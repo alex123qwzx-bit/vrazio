@@ -126,8 +126,13 @@
         }
     @endphp
     @if(!$viteRendered)
-        <link rel="stylesheet" href="{{ asset('build/assets/app-Bvlct9fP.css') }}">
-        <script type="module" src="{{ asset('build/assets/app-B1y9mKpQ.js') }}"></script>
+        @if(file_exists(public_path('build/assets/app-Bvlct9fP.css')))
+            <link rel="stylesheet" href="{{ asset('build/assets/app-Bvlct9fP.css') }}">
+            <script type="module" src="{{ asset('build/assets/app-B1y9mKpQ.js') }}"></script>
+        @else
+            <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+            <script type="module" src="{{ asset('js/app.js') }}"></script>
+        @endif
     @endif
 
     {{-- Livewire Styles --}}

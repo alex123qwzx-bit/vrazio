@@ -42,6 +42,13 @@ RUN if [ ! -f .env ]; then \
         sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=stderr|' .env; \
     fi
 
+# Restore production Vite build assets into public/build from public/css and public/js
+RUN mkdir -p public/build/assets public/build/.vite \
+    && cp -f public/css/app.css public/build/assets/app-Bvlct9fP.css \
+    && cp -f public/js/app.js public/build/assets/app-B1y9mKpQ.js \
+    && echo '{"resources/css/app.css":{"file":"assets/app-Bvlct9fP.css","src":"resources/css/app.css","isEntry":true},"resources/js/app.js":{"file":"assets/app-B1y9mKpQ.js","name":"app","src":"resources/js/app.js","isEntry":true}}' > public/build/manifest.json \
+    && cp -f public/build/manifest.json public/build/.vite/manifest.json
+
 # Set permissions and storage link
 RUN rm -f bootstrap/cache/*.php \
     && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
