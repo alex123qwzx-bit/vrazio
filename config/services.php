@@ -12,13 +12,13 @@ return [
     */
 
     'firebase' => [
-        'api_key' => env('FIREBASE_API_KEY', 'AIzaSyB2tLBMSN99rTQWYCAzhQH938LXlrgmMoY'),
-        'auth_domain' => env('FIREBASE_AUTH_DOMAIN', 'vrazio.firebaseapp.com'),
-        'project_id' => env('FIREBASE_PROJECT_ID', 'vrazio'),
-        'storage_bucket' => env('FIREBASE_STORAGE_BUCKET', 'vrazio.firebasestorage.app'),
-        'messaging_sender_id' => env('FIREBASE_MESSAGING_SENDER_ID', '765416189650'),
-        'app_id' => env('FIREBASE_APP_ID', '1:765416189650:web:e8b0c346b70953c25f470b'),
-        'measurement_id' => env('FIREBASE_MEASUREMENT_ID', 'G-0NL6RX2815'),
+        'api_key' => env('FIREBASE_API_KEY'),
+        'auth_domain' => env('FIREBASE_AUTH_DOMAIN'),
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        'storage_bucket' => env('FIREBASE_STORAGE_BUCKET'),
+        'messaging_sender_id' => env('FIREBASE_MESSAGING_SENDER_ID'),
+        'app_id' => env('FIREBASE_APP_ID'),
+        'measurement_id' => env('FIREBASE_MEASUREMENT_ID'),
     ],
 
     'razorpay' => [
