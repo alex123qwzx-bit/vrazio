@@ -40,7 +40,7 @@
                 <div class="lg:hidden mb-4">
                     <button @click="mobileFiltersOpen = !mobileFiltersOpen" 
                             class="w-full py-3 bg-[#0E261C] text-[#D4AF37] text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                        <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                         <span>Filter &amp; Refine Vault</span>
                     </button>
                 </div>
@@ -152,7 +152,7 @@
                 @if($products->isEmpty())
                     <div class="bg-white border border-[#D4AF37]/20 p-16 text-center shadow-sm">
                         <div class="w-12 h-12 mx-auto text-[#D4AF37] mb-4">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                         <h3 class="font-display text-xl font-bold text-[#0E261C] mb-2">No Curations Matched Your Criteria</h3>
                         <p class="text-xs text-gray-500 max-w-md mx-auto mb-6">

@@ -143,6 +143,27 @@
     <style>
         [x-cloak] { display: none !important; }
 
+        /* Essential SVG containment: Never allow SVGs to stretch full-screen */
+        svg {
+            max-width: 100%;
+            height: auto;
+            vertical-align: middle;
+        }
+        svg:not([width]) {
+            width: 1.25rem;
+            height: 1.25rem;
+            max-width: 1.5rem;
+            max-height: 1.5rem;
+        }
+        header svg, nav svg {
+            max-width: 28px;
+            max-height: 28px;
+        }
+        footer svg {
+            max-width: 24px;
+            max-height: 24px;
+        }
+
         @keyframes ticker {
             0% { transform: translateX(100%); }
             100% { transform: translateX(-100%); }
@@ -222,7 +243,7 @@
             <button @click="announcementVisible = false"
                     class="ml-4 flex-shrink-0 text-vrazio-gold/70 hover:text-vrazio-gold transition-colors"
                     aria-label="Close announcement">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
@@ -249,7 +270,7 @@
                 </div>
                 <div class="flex items-center gap-6">
                     <a href="{{ route('orders.index') }}" class="text-vrazio-gold font-semibold hover:underline transition-colors flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         <span>My Orders &amp; Warranty</span>
                     </a>
                     <a href="{{ route('orders.track') ?? '#' }}" class="hover:text-vrazio-gold transition-colors">Track Order</a>
@@ -267,10 +288,10 @@
                 <button @click="mobileMenuOpen = !mobileMenuOpen"
                         class="lg:hidden p-2 -ml-2 text-vrazio-forest hover:text-vrazio-gold transition-colors"
                         aria-label="Toggle mobile menu">
-                    <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg width="24" height="24" x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
-                    <svg x-show="mobileMenuOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg width="24" height="24" x-show="mobileMenuOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -289,7 +310,7 @@
                         <a href="{{ route('products.index') ?? '#' }}"
                            class="flex items-center gap-1 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2">
                             Collections
-                            <svg class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg width="14" height="14" class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </a>
@@ -332,7 +353,7 @@
                             class="p-2 text-vrazio-forest hover:text-vrazio-gold transition-colors"
                             aria-label="Search"
                             title="Search">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </button>
@@ -341,7 +362,7 @@
                     <a href="{{ route('orders.index') }}"
                        class="flex items-center gap-1.5 px-3 py-1.5 border border-vrazio-gold/30 hover:border-vrazio-gold bg-white hover:bg-vrazio-gold/10 text-vrazio-forest text-xs font-semibold tracking-wider transition-all rounded shadow-xs"
                        title="View My Orders & Warranty Claims">
-                        <svg class="w-4 h-4 text-vrazio-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                         <span class="hidden sm:inline">My Orders</span>
@@ -352,7 +373,7 @@
                         <a href="{{ route('account') }}"
                            class="flex items-center gap-1.5 px-3 py-1.5 border border-vrazio-gold/40 hover:border-vrazio-gold bg-vrazio-gold/10 hover:bg-vrazio-gold/20 text-vrazio-forest text-xs font-semibold tracking-wider transition-all rounded shadow-xs"
                            title="Customer Account">
-                            <svg class="w-4 h-4 text-[#0E261C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg width="16" height="16" class="w-4 h-4 text-[#0E261C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                             <span class="hidden sm:inline">{{ Str::words(auth()->user()->name, 1, '') }}</span>
@@ -361,7 +382,7 @@
                         <a href="{{ route('login') }}"
                            class="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 hover:border-vrazio-gold bg-white hover:bg-vrazio-gold/10 text-vrazio-forest text-xs font-semibold tracking-wider transition-all rounded shadow-xs"
                            title="Sign In or Register">
-                            <svg class="w-4 h-4 text-vrazio-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                             <span class="hidden sm:inline">Sign In</span>
@@ -373,7 +394,7 @@
                        class="relative p-2 text-vrazio-forest hover:text-vrazio-gold transition-colors flex items-center"
                        aria-label="Shopping Cart"
                        title="View Shopping Cart">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
                         @livewire('cart-counter')
@@ -399,7 +420,7 @@
                                x-ref="searchInput"
                                @keydown.escape="searchOpen = false">
                         <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-vrazio-forest/50 hover:text-vrazio-gold transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </button>
@@ -504,7 +525,7 @@
                         VR<span class="text-vrazio-gold">A</span>ZIO
                     </span>
                     <button @click="mobileMenuOpen = false" class="p-2 -mr-2 text-vrazio-forest/60 hover:text-vrazio-forest">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
@@ -516,7 +537,7 @@
                         <button @click="collectionsOpen = !collectionsOpen"
                                 class="w-full flex items-center justify-between px-3 py-3 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
                             Collections
-                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': collectionsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg width="16" height="16" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': collectionsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
@@ -559,7 +580,7 @@
                         @auth
                             <a href="{{ route('account') }}" class="flex items-center justify-between px-3 py-2.5 text-sm text-vrazio-forest font-semibold hover:text-vrazio-gold transition-colors rounded-lg bg-vrazio-gold/10">
                                 <div class="flex items-center gap-3">
-                                    <svg class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                     <span>My Account ({{ Str::words(auth()->user()->name, 1, '') }})</span>
                                 </div>
                                 <span class="text-xs text-[#D4AF37]">&rarr;</span>
@@ -572,20 +593,20 @@
                             </form>
                         @else
                             <a href="{{ route('login') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-vrazio-forest font-medium hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 Sign In / Register
                             </a>
                         @endauth
                         <a href="{{ route('orders.index') }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-vrazio-forest/70 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
-                            <svg class="w-4 h-4 text-vrazio-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                             My Orders &amp; Warranty
                         </a>
                         <a href="{{ route('orders.track') ?? '#' }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-vrazio-forest/70 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                             Track Order
                         </a>
                         <a href="{{ route('faq') ?? '#' }}" class="flex items-center gap-3 px-3 py-2.5 text-sm text-vrazio-forest/70 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Help & FAQ
                         </a>
                     </div>
@@ -594,11 +615,11 @@
                 {{-- Drawer Footer --}}
                 <div class="px-6 py-4 border-t border-vrazio-gold/10 space-y-3">
                     <a href="tel:+919876543210" class="flex items-center gap-2 text-xs text-vrazio-forest/60 hover:text-vrazio-gold transition-colors">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         +91 98765 43210
                     </a>
                     <a href="mailto:concierge@vrazio.com" class="flex items-center gap-2 text-xs text-vrazio-forest/60 hover:text-vrazio-gold transition-colors">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                         concierge@vrazio.com
                     </a>
                 </div>
@@ -669,7 +690,7 @@
                     <span class="text-sm font-body font-normal text-vrazio-forest/50" x-text="'(' + itemCount + ')'"></span>
                 </h2>
                 <button @click="cartDrawerOpen = false" class="p-2 -mr-2 text-vrazio-forest/60 hover:text-vrazio-forest transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -680,7 +701,7 @@
                 {{-- Empty State --}}
                 <template x-if="cartItems.length === 0">
                     <div class="flex flex-col items-center justify-center h-full text-center py-12">
-                        <svg class="w-16 h-16 text-vrazio-gold/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="64" height="64" class="w-16 h-16 text-vrazio-gold/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
                         <p class="font-heading text-lg text-vrazio-forest/60 mb-2">Your bag is empty</p>
@@ -708,7 +729,7 @@
                                     <button @click="updateQty(index, 1)" class="px-2 py-1 text-vrazio-forest/60 hover:text-vrazio-gold transition-colors text-xs">+</button>
                                 </div>
                                 <button @click="removeItem(index)" class="text-vrazio-ruby/60 hover:text-vrazio-ruby transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
                                 </button>
@@ -843,7 +864,7 @@
 
             {{-- Close --}}
             <button @click="show = false" class="absolute top-4 right-4 text-vrazio-forest/40 hover:text-vrazio-forest transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
@@ -852,7 +873,7 @@
             <template x-if="step === 'phone'">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-vrazio-gold/10 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <svg class="w-8 h-8 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="32" height="32" class="w-8 h-8 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
                     </div>
@@ -874,7 +895,7 @@
 
                     <button @click="sendOtp()" :disabled="loading"
                             class="btn-vrazio w-full flex items-center justify-center gap-2">
-                        <svg x-show="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <svg width="16" height="16" x-show="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                         </svg>
@@ -887,7 +908,7 @@
             <template x-if="step === 'otp'">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-vrazio-gold/10 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <svg class="w-8 h-8 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="32" height="32" class="w-8 h-8 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                         </svg>
                     </div>
@@ -910,7 +931,7 @@
 
                     <button @click="verifyOtp()" :disabled="loading"
                             class="btn-vrazio w-full flex items-center justify-center gap-2 mb-4">
-                        <svg x-show="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <svg width="16" height="16" x-show="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                         </svg>
@@ -932,7 +953,7 @@
             <template x-if="step === 'verified'">
                 <div class="text-center py-4">
                     <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="40" height="40" class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" class="checkmark-animate"/>
                         </svg>
                     </div>
@@ -967,19 +988,19 @@
                         <a href="https://www.instagram.com/vrazio.official/" target="_blank" rel="noopener noreferrer" 
                            class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:border-vrazio-gold hover:text-vrazio-gold transition-all" 
                            aria-label="Instagram @vrazio.official" title="Instagram @vrazio.official">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                            <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
                         </a>
                         {{-- Facebook --}}
                         <a href="https://www.facebook.com/share/1CJBJZbnkG/" target="_blank" rel="noopener noreferrer" 
                            class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center hover:border-vrazio-gold hover:text-vrazio-gold transition-all" 
                            aria-label="Facebook Page" title="Facebook Page">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         {{-- WhatsApp --}}
                         <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" rel="noopener noreferrer" 
                            class="w-9 h-9 rounded-full border border-emerald-500/40 text-emerald-400 flex items-center justify-center hover:border-emerald-400 hover:bg-emerald-500/10 transition-all" 
                            aria-label="WhatsApp Support" title="Chat on WhatsApp">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
+                            <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
                         </a>
                     </div>
                 </div>
@@ -1016,21 +1037,21 @@
                     <h4 class="font-heading text-sm font-semibold tracking-widest uppercase text-vrazio-gold mb-5">Contact Us</h4>
                     <div class="space-y-3.5">
                         <div class="flex items-center gap-3">
-                            <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
+                            <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
                             <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" class="text-sm text-emerald-400 font-semibold hover:underline">
                                 WhatsApp: +91 89796 22310
                             </a>
                         </div>
                         <div class="flex items-center gap-3">
-                            <svg class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                             <a href="tel:+918979622310" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">+91 89796 22310</a>
                         </div>
                         <div class="flex items-center gap-3">
-                            <svg class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                             <a href="mailto:vrazioofficial@gmail.com" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">vrazioofficial@gmail.com</a>
                         </div>
                         <div class="flex items-center gap-3">
-                            <svg class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <p class="text-xs text-white/60">Monday — Saturday: 10:00 AM — 8:00 PM IST</p>
                         </div>
                     </div>
@@ -1054,7 +1075,7 @@
                     <div class="flex items-center gap-4">
                         {{-- BIS Hallmark Badge --}}
                         <div class="flex items-center gap-1.5 text-xs text-white/50">
-                            <svg class="w-4 h-4 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             BIS Hallmarked
                         </div>
 
@@ -1071,7 +1092,7 @@
 
                         {{-- Razorpay Badge --}}
                         <div class="flex items-center gap-1.5 text-xs text-white/50">
-                            <svg class="w-4 h-4 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                             Secured by Razorpay
                         </div>
                     </div>
@@ -1113,7 +1134,7 @@
              class="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6 bg-[#0E261C]/95 backdrop-blur-md border-t border-[#D4AF37]/30 text-white shadow-2xl">
             <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 text-xs text-[#FAF8F5]/90 max-w-3xl">
-                    <svg class="w-6 h-6 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg width="24" height="24" class="w-6 h-6 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
                     <p>

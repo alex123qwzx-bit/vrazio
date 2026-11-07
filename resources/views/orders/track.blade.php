@@ -102,7 +102,7 @@
                         {{-- Invoice Action --}}
                         <a href="{{ route('order.invoice', $order->order_number) }}" target="_blank"
                            class="px-4 py-2 bg-gray-100 hover:bg-[#D4AF37] hover:text-[#0E261C] text-gray-800 text-xs font-semibold uppercase tracking-wider transition-colors rounded-xs border border-gray-200 flex items-center gap-1.5 shadow-xs">
-                            <svg class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             Invoice
                         </a>
                     </div>
@@ -147,7 +147,7 @@
                                 {{-- Circle Icon --}}
                                 <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs mb-2.5 transition-all shadow-xs {{ $isCompleted ? 'bg-[#0E261C] text-[#D4AF37] border-2 border-[#D4AF37]' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
                                     @if($isCompleted && $num < $currentStepNum)
-                                        <svg class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                     @else
                                         {{ $num }}
                                     @endif
@@ -276,7 +276,7 @@
         @elseif($accessDenied ?? false)
             <div class="bg-white border border-[#D4AF37]/50 p-8 text-center max-w-xl mx-auto shadow-xs rounded-xs">
                 <div class="w-12 h-12 bg-amber-50 text-[#D4AF37] mx-auto rounded-full flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <svg width="24" height="24" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <h3 class="font-display text-lg font-bold text-[#0E261C]">Patron Verification Required</h3>
                 <p class="text-xs text-gray-600 mt-2 max-w-sm mx-auto leading-relaxed">
@@ -291,7 +291,7 @@
         @elseif($reference)
             <div class="bg-white border border-red-200 p-8 text-center max-w-xl mx-auto shadow-xs rounded-xs">
                 <div class="w-12 h-12 bg-red-50 text-red-600 mx-auto rounded-full flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <svg width="24" height="24" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
                 <h3 class="font-display text-lg font-bold text-gray-900">Order Not Found</h3>
                 <p class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">

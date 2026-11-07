@@ -402,7 +402,7 @@
                         </div>
 
                         <div x-show="otpVerified" class="text-xs text-green-300 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            <svg width="16" height="16" class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                             <span>Phone Verified. You are cleared to proceed with payment.</span>
                         </div>
                     </div>
@@ -487,7 +487,7 @@
                     {{-- Dynamic Gateway Description Banner --}}
                     <div x-show="paymentMethod === 'razorpay'" class="p-4 border border-[#D4AF37]/30 bg-white">
                         <div class="flex items-center gap-3">
-                            <svg class="w-7 h-7 text-[#0E261C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <svg width="28" height="28" class="w-7 h-7 text-[#0E261C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                             <div>
                                 <h3 class="font-display font-bold text-sm text-[#0E261C]">256-Bit Escrow Gateway via Razorpay</h3>
                                 <p class="text-[11px] text-gray-500">Supports all major Credit Cards, Net Banking, UPI, and verified Bank Wire.</p>
@@ -497,7 +497,7 @@
 
                     <div x-show="paymentMethod === 'cod'" x-cloak class="p-4 border border-[#D4AF37]/30 bg-[#0E261C] text-[#FAF8F5]">
                         <div class="flex items-center gap-3">
-                            <svg class="w-7 h-7 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <svg width="28" height="28" class="w-7 h-7 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             <div>
                                 <h3 class="font-display font-bold text-sm text-[#D4AF37]">Armoured Cash on Delivery Verification</h3>
                                 <p class="text-[11px] text-white/80">Courier will verify patron photo ID and OTP before collection of cash or doorstep UPI payment.</p>
@@ -512,7 +512,7 @@
                                 class="w-full py-4 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.25em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300 shadow-2xl flex items-center justify-center gap-2">
                             <span x-show="!paymentSubmitting" x-text="paymentMethod === 'cod' ? 'Confirm Order with Cash on Delivery &rarr;' : 'Authorize & Commission Order via Razorpay &rarr;'"></span>
                             <span x-show="paymentSubmitting" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <svg width="16" height="16" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 <span>Securing Order in Vault...</span>
                             </span>
                         </button>

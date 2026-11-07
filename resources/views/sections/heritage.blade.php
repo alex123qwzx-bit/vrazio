@@ -55,7 +55,7 @@
                     <a href="{{ route('pages.about') }}" 
                        class="inline-flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-[#D4AF37] hover:text-white font-semibold group transition-colors">
                         <span>Discover Our Private Atelier Process</span>
-                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="16" height="16" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                         </svg>
                     </a>

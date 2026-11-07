@@ -21,7 +21,7 @@
         <div class="mb-10 bg-emerald-50 border border-emerald-300 p-5 rounded-lg shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3.5 text-center sm:text-left">
                 <div class="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow">
-                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
+                    <svg width="24" height="24" class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-emerald-950">Chat Directly on WhatsApp</h3>
@@ -99,7 +99,7 @@
                  }">
                 <div x-show="submitted" x-cloak class="p-8 bg-emerald-50 border border-emerald-300 text-center space-y-4 rounded-sm">
                     <div class="w-14 h-14 rounded-full bg-[#0E261C] border border-[#D4AF37] flex items-center justify-center mx-auto text-[#D4AF37]">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <svg width="28" height="28" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     </div>
                     <span class="text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-bold block">Inquiry Dispatched</span>
                     <h3 class="font-display text-2xl font-bold text-[#0E261C]">Thank You, <span x-text="senderName || 'Valued Patron'"></span></h3>

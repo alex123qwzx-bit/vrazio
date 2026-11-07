@@ -97,7 +97,7 @@
         <div class="mb-8 bg-emerald-50 border border-emerald-300 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg shadow-sm">
             <div class="flex items-center gap-3.5 text-center sm:text-left">
                 <div class="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow">
-                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
+                    <svg width="24" height="24" class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-emerald-950">Need Quick Help on WhatsApp?</h3>
@@ -274,7 +274,7 @@
                         
                         <div class="space-y-2">
                             <div class="w-12 h-12 bg-white text-[#D4AF37] border border-[#D4AF37]/30 mx-auto flex items-center justify-center shadow-sm">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg width="24" height="24" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
@@ -304,7 +304,7 @@
                                         @click.stop="removeFile(index)" 
                                         class="absolute top-2 right-2 w-7 h-7 bg-[#9B1B30] text-white rounded-full flex items-center justify-center hover:bg-red-700 shadow-md transition-colors"
                                         title="Remove Photo">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </button>
@@ -335,7 +335,7 @@
                         </template>
                         <template x-if="isSubmitting">
                             <span class="flex items-center gap-2">
-                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-[#D4AF37]" fill="none" viewBox="0 0 24 24">
+                                <svg width="16" height="16" class="animate-spin -ml-1 mr-2 h-4 w-4 text-[#D4AF37]" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>

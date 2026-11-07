@@ -9,7 +9,7 @@
         {{-- Success Banner --}}
         <div class="bg-white border border-[#D4AF37]/30 p-8 sm:p-12 shadow-sm text-center relative overflow-hidden">
             <div class="w-16 h-16 bg-[#0E261C] border border-[#D4AF37] rounded-full flex items-center justify-center mx-auto text-[#D4AF37] mb-4">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <svg width="32" height="32" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
 
             <span class="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">Atelier Commission Confirmed</span>
@@ -23,7 +23,7 @@
             <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ route('order.invoice.download', $order->order_number) }}" 
                    class="px-6 py-2.5 bg-[#D4AF37] hover:bg-[#c5a028] text-[#0E261C] text-xs uppercase tracking-wider font-bold shadow-sm transition-all flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download Invoice (PDF)
                 </a>
                 <a href="{{ route('order.invoice', $order->order_number) }}" target="_blank"

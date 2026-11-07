@@ -22,14 +22,14 @@
         @endif
         @if($isCouture)
             <span class="bg-[#0E261C]/90 backdrop-blur text-[#D4AF37] border border-[#D4AF37]/30 text-[9px] uppercase font-semibold tracking-wider px-2 py-0.5 flex items-center gap-1">
-                <svg class="w-2.5 h-2.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
+                <svg width="20" height="20" class="w-2.5 h-2.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
                 Haute Couture
             </span>
         @elseif($product->bis_hallmarked)
             <span class="bg-[#FAF8F5]/90 backdrop-blur text-[#0E261C] border border-[#D4AF37]/30 text-[9px] uppercase font-semibold tracking-wider px-2 py-0.5 flex items-center gap-1">
-                <svg class="w-2.5 h-2.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
+                <svg width="20" height="20" class="w-2.5 h-2.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
                 BIS Hallmarked
@@ -108,7 +108,7 @@
                 <button type="submit" 
                         class="p-2 border border-[#0E261C] text-[#0E261C] hover:bg-[#0E261C] hover:text-[#D4AF37] transition-all duration-300"
                         title="Add to Cart">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                     </svg>
                 </button>
