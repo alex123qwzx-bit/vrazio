@@ -187,7 +187,12 @@ class Order extends Model
             }
         }
 
-        // 3. Guest with verified OTP phone in session
+        // 3. Guest with verified OTP phone in session or recently placed order in session
+        $recentOrder = session('recently_placed_order');
+        if (!empty($recentOrder) && $recentOrder === $this->order_number) {
+            return true;
+        }
+
         $sessionPhone = $verifiedPhone ?? session('order_phone_verified');
         if (!empty($sessionPhone) && !empty($this->client_phone) && $sessionPhone === $this->client_phone) {
             return true;

@@ -64,7 +64,7 @@ class OrderController extends Controller
      */
     public function confirmation(Request $request): View|RedirectResponse
     {
-        $orderNumber = $request->query('orderNumber');
+        $orderNumber = $request->query('orderNumber') ?? $request->query('order_number');
 
         if (! $orderNumber) {
             return redirect()->route('home');
@@ -74,7 +74,9 @@ class OrderController extends Controller
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
-        if (! $order->isAccessibleBy(auth()->user())) {
+        // Allow access if user is authorized or if this order was placed in the current session
+        $recentOrder = session('recently_placed_order');
+        if ($recentOrder !== $order->order_number && ! $order->isAccessibleBy(auth()->user())) {
             abort(403, 'Unauthorized access to order confirmation.');
         }
 

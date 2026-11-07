@@ -103,7 +103,7 @@ class CheckoutController extends Controller
                 }
             }
 
-            $paymentMethod = $validated['payment_method'] ?? 'razorpay';
+            $paymentMethod = $validated['payment_method'] ?? 'cod';
 
             $order = Order::create([
                 'user_id' => auth()->id(),
@@ -146,12 +146,13 @@ class CheckoutController extends Controller
                 DB::commit();
                 $this->cartService->clear();
                 session()->forget('order_phone_verified');
+                session(['recently_placed_order' => $order->order_number]);
 
                 return response()->json([
                     'success' => true,
                     'payment_method' => 'cod',
                     'order_number' => $order->order_number,
-                    'redirect_url' => route('order.confirmation', ['order_number' => $order->order_number]),
+                    'redirect_url' => route('order.confirmation', ['orderNumber' => $order->order_number]),
                     'message' => 'Your Cash on Delivery order has been successfully placed in our atelier vault.',
                 ]);
             }
@@ -189,6 +190,8 @@ class CheckoutController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to initialize order in atelier vault. Please try again.',
+                'error_detail' => $e->getMessage(),
+                'error_file' => $e->getFile() . ':' . $e->getLine(),
             ], 500);
         }
     }
