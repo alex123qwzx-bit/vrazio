@@ -95,16 +95,13 @@ class CheckoutController extends Controller
         });
 
         try {
-            DB::beginTransaction();
-
-            // BUS-02: Lock stock rows inside transaction to prevent overselling
+            // Check stock rows to prevent overselling
             $productIds = array_unique(array_column($items, 'id'));
-            $lockedProducts = Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id');
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
             foreach ($items as $item) {
-                $product = $lockedProducts->get($item['id']);
+                $product = $products->get($item['id']);
                 if (! $product || $product->stock_quantity < $item['quantity']) {
-                    DB::rollBack();
                     return response()->json([
                         'success' => false,
                         'message' => "Stock depleted for '{$item['title']}'. Please adjust your bag.",
@@ -134,7 +131,7 @@ class CheckoutController extends Controller
             ]);
 
             foreach ($items as $item) {
-                $product = $lockedProducts->get($item['id']);
+                $product = $products->get($item['id']);
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => (int) $item['id'],
@@ -147,14 +144,15 @@ class CheckoutController extends Controller
                 ]);
 
                 // For Cash on Delivery, decrement stock immediately on placement
-                if ($paymentMethod === 'cod' && $product) {
-                    $product->decrement('stock_quantity', (int) $item['quantity']);
+                if ($paymentMethod === 'cod') {
+                    Product::where('id', (int) $item['id'])
+                        ->where('stock_quantity', '>=', (int) $item['quantity'])
+                        ->decrement('stock_quantity', (int) $item['quantity']);
                 }
             }
 
             // Cash on Delivery direct fulfillment path
             if ($paymentMethod === 'cod') {
-                DB::commit();
                 $this->cartService->clear();
                 session()->forget('order_phone_verified');
                 session(['recently_placed_order' => $order->order_number]);
@@ -179,8 +177,6 @@ class CheckoutController extends Controller
                 'razorpay_order_id' => $razorpayOrder->id,
             ]);
 
-            DB::commit();
-
             return response()->json([
                 'success' => true,
                 'payment_method' => 'razorpay',
@@ -195,7 +191,14 @@ class CheckoutController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            DB::rollBack();
+            if (isset($order) && $order->exists) {
+                try {
+                    $order->items()->delete();
+                    $order->delete();
+                } catch (\Throwable) {
+                    // Ignore rollback cleanup error
+                }
+            }
             Log::error('Order creation failed: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'queries' => $queryLog,
