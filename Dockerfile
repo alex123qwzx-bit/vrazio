@@ -54,5 +54,5 @@ RUN rm -f bootstrap/cache/*.php \
 ENV PORT=3000
 EXPOSE 3000
 
-# Start command: clear config cache, migrate/seed safely, and serve with native PHP router
-CMD ["sh", "-c", "php artisan optimize:clear && (php artisan migrate --force && php artisan db:seed --force || true) && php -S 0.0.0.0:${PORT:-3000} server.php"]
+# Start command: clear config cache, migrate/seed safely, and serve with native PHP router with public root
+CMD ["sh", "-c", "php artisan optimize:clear && (php artisan migrate --force && php artisan db:seed --force || true) && php -S 0.0.0.0:${PORT:-3000} -t public server.php"]

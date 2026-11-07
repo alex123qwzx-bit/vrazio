@@ -113,8 +113,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    {{-- Vite Assets --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Resilient Production Vite Assets with Fallback --}}
+    @php
+        $viteRendered = false;
+        try {
+            if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('build/.vite/manifest.json'))) {
+                echo app(\Illuminate\Foundation\Vite::class)(['resources/css/app.css', 'resources/js/app.js'])->toHtml();
+                $viteRendered = true;
+            }
+        } catch (\Throwable $e) {
+            $viteRendered = false;
+        }
+    @endphp
+    @if(!$viteRendered)
+        <link rel="stylesheet" href="{{ asset('build/assets/app-Bvlct9fP.css') }}">
+        <script type="module" src="{{ asset('build/assets/app-B1y9mKpQ.js') }}"></script>
+    @endif
 
     {{-- Livewire Styles --}}
     @livewireStyles
