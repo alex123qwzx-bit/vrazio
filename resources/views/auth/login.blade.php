@@ -8,8 +8,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-<div class="bg-[#FAF8F5] min-h-screen py-12 md:py-16" 
-     x-data="{ 
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('customerAuth', () => ({
         tab: '{{ $errors->has('name') || $errors->has('password_confirmation') ? 'register' : 'login' }}',
         loginMethod: 'otp',
         phone: '{{ old('phone') }}',
@@ -183,6 +184,7 @@
                 this.errorMessage = 'Authentication error. Please retry.';
             }
         },
+
         startTimer(seconds) {
             this.timer = seconds;
             if (this.interval) clearInterval(this.interval);
@@ -194,9 +196,11 @@
                 }
             }, 1000);
         }
-     }">
+    }));
+});
+</script>
 
-    {{-- Invisible reCAPTCHA container for Firebase Phone Auth --}}
+<div class="bg-[#FAF8F5] min-h-screen py-12 md:py-16" x-data="customerAuth">
     <div id="recaptcha-container"></div>
 
     <div class="max-w-md mx-auto px-6">
