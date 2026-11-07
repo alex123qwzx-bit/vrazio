@@ -26,9 +26,25 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Create 10 patron users via factory if needed
-        if (User::where('role', '!=', 'admin')->count() < 10) {
-            User::factory()->count(10)->create();
+        // 2. Create sample patron users without Faker
+        $samplePatrons = [
+            ['name' => 'Aarav Sharma', 'email' => 'aarav.sharma@example.com', 'phone' => '+919876543210'],
+            ['name' => 'Ananya Iyer', 'email' => 'ananya.iyer@example.com', 'phone' => '+919876543211'],
+            ['name' => 'Rohan Mehta', 'email' => 'rohan.mehta@example.com', 'phone' => '+919876543212'],
+        ];
+
+        foreach ($samplePatrons as $patron) {
+            User::firstOrCreate(
+                ['email' => $patron['email']],
+                [
+                    'name' => $patron['name'],
+                    'phone' => $patron['phone'],
+                    'role' => 'patron',
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'phone_verified_at' => now(),
+                ]
+            );
         }
 
         // 3. Create 24 products (detailed, realistic jewellery data)

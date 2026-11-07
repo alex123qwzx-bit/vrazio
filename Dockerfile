@@ -33,7 +33,13 @@ RUN composer install --no-dev --no-interaction --no-scripts --prefer-dist --opti
 
 # Copy application code
 COPY . .
-RUN if [ ! -f .env ]; then cp .env.example .env; fi
+RUN if [ ! -f .env ]; then \
+        cp .env.example .env && \
+        sed -i 's|^APP_KEY=.*|APP_KEY=base64:MsSubg1hnz426grHFbFVGOKiJRekcf+FQM2qSvDg2Qs=|' .env && \
+        sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|' .env && \
+        sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env && \
+        sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env; \
+    fi
 
 # Set permissions and storage link
 RUN rm -f bootstrap/cache/*.php \
