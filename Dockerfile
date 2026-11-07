@@ -36,9 +36,11 @@ COPY . .
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
 # Set permissions and storage link
-RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
+RUN rm -f bootstrap/cache/*.php \
+    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
     && rm -rf public/storage \
     && php artisan storage:link || true \
+    && php artisan package:discover --ansi || true \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
