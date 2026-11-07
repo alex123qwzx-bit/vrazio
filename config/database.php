@@ -33,7 +33,7 @@ return [
         ],
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => ($dbUrl = env('DATABASE_URL', env('DB_URL'))) && str_contains($dbUrl, '-pooler.') ? str_replace('-pooler.', '.', $dbUrl) : $dbUrl,
+            'url' => env('DATABASE_URL', env('DB_URL')),
             'host' => env('PGHOST', env('DB_HOST', '127.0.0.1')),
             'port' => env('PGPORT', '5432'),
             'database' => env('PGDATABASE', env('DB_DATABASE', 'forge')),
