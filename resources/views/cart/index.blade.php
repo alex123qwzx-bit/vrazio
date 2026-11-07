@@ -142,7 +142,7 @@
                     <div class="p-4 bg-[#FAF8F5] border border-[#D4AF37]/20 text-[11px] text-gray-600 space-y-2">
                         <div class="flex items-center gap-2">
                             <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37] shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                            <span>Phone OTP verification required for checkout</span>
+                            <span class="text-emerald-800 font-medium">Cash on Delivery Available • Online Payment Optional</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37] shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>

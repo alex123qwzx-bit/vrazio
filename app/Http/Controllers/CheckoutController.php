@@ -64,15 +64,11 @@ class CheckoutController extends Controller
     {
         $validated = $request->validated();
         $clientPhone = $validated['client_phone'];
+        $paymentMethod = $validated['payment_method'] ?? 'cod';
 
-        // Strict OTP verification gate
+        // Check if phone was verified via SMS OTP in this session (optional for Cash on Delivery)
         $sessionPhone = session('order_phone_verified');
-        if (! $sessionPhone || $sessionPhone !== $clientPhone) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Mobile number requires SMS OTP verification before order initialization.',
-            ], 403);
-        }
+        $phoneVerified = ($sessionPhone && $sessionPhone === $clientPhone);
 
         $items = $this->cartService->getItems();
         if (empty($items)) {
@@ -123,7 +119,7 @@ class CheckoutController extends Controller
                 'payment_gateway' => $paymentMethod,
                 'payment_status' => 'pending',
                 'fulfillment_status' => 'inscribed',
-                'otp_verified_at' => now(),
+                'otp_verified_at' => $phoneVerified ? now() : null,
             ]);
 
             foreach ($items as $item) {

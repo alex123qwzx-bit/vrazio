@@ -31,7 +31,7 @@
          city: '',
          state: 'Maharashtra',
          pincode: '',
-         paymentMethod: 'razorpay',
+         paymentMethod: 'cod',
          paymentSubmitting: false,
 
          startOtpFlow() {
@@ -228,21 +228,32 @@
         </div>
 
         {{-- Step Navigation Indicator --}}
-        <div class="max-w-3xl mx-auto mb-8 sm:mb-12">
+        <div class="max-w-3xl mx-auto mb-6 sm:mb-8">
             <div class="flex items-center justify-between text-[11px] sm:text-xs uppercase tracking-wider font-semibold gap-1 sm:gap-2">
-                <div :class="step >= 1 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
+                <button type="button" @click="step = 1" :class="step === 1 ? 'text-[#0E261C] border-[#D4AF37] font-bold' : 'text-gray-500 border-gray-200 hover:text-[#0E261C]'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center cursor-pointer transition-all">
                     <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-current flex items-center justify-center text-[9px] sm:text-[10px]">1</span>
-                    <span><span class="hidden sm:inline">Patron </span>Address</span>
-                </div>
-                <div :class="step >= 2 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
+                    <span>1. Address</span>
+                </button>
+                <button type="button" @click="step = 2" :class="step === 2 ? 'text-[#0E261C] border-[#D4AF37] font-bold' : 'text-gray-500 border-gray-200 hover:text-[#0E261C]'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center cursor-pointer transition-all">
                     <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-current flex items-center justify-center text-[9px] sm:text-[10px]">2</span>
-                    <span>Logistics<span class="hidden sm:inline"> &amp; OTP</span></span>
-                </div>
-                <div :class="step >= 3 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
+                    <span>2. Delivery</span>
+                </button>
+                <button type="button" @click="step = 3" :class="step === 3 ? 'text-[#0E261C] border-[#D4AF37] font-bold' : 'text-gray-500 border-gray-200 hover:text-[#0E261C]'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center cursor-pointer transition-all">
                     <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-current flex items-center justify-center text-[9px] sm:text-[10px]">3</span>
-                    <span>Payment<span class="hidden sm:inline"> Settlement</span></span>
-                </div>
+                    <span>3. Payment <span class="text-[#D4AF37]">(COD / Online)</span></span>
+                </button>
             </div>
+        </div>
+
+        {{-- Payment Flexibility Banner --}}
+        <div class="max-w-3xl mx-auto mb-6 p-4 bg-gradient-to-r from-[#0E261C] to-[#1A3A2C] border border-[#D4AF37]/40 text-[#FAF8F5] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md rounded-xs">
+            <div class="flex items-center gap-3 text-xs">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#D4AF37] animate-pulse shrink-0"></span>
+                <span><strong>Cash on Delivery (COD) Available:</strong> Pay in cash or UPI at your doorstep upon delivery. Online payment is completely optional.</span>
+            </div>
+            <button type="button" @click="step = 3; paymentMethod = 'cod';" class="px-3 py-1.5 bg-[#D4AF37] text-[#0E261C] font-bold text-[10px] uppercase tracking-widest hover:bg-[#F3E5AB] transition-all whitespace-nowrap shadow-xs">
+                Select COD &rarr;
+            </button>
         </div>
 
         {{-- Alerts --}}
@@ -379,7 +390,7 @@
                     <div class="p-6 bg-[#0E261C] text-[#FAF8F5] border border-[#D4AF37]/30 mt-6">
                         <div class="flex items-center justify-between mb-4">
                             <span class="text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold">
-                                Mandatory Two-Factor Consignment Shield
+                                Consignment Security & Mobile Verification (Optional)
                             </span>
                             <template x-if="otpVerified">
                                 <span class="bg-green-700/80 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1">
@@ -412,11 +423,9 @@
                             Back
                         </button>
                         <button type="button" 
-                                :disabled="!otpVerified"
                                 @click="step = 3"
-                                :class="otpVerified ? 'bg-[#0E261C] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0E261C]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
-                                class="flex-grow py-4 text-xs uppercase tracking-[0.25em] font-semibold transition-all">
-                            Continue to Payment &rarr;
+                                class="flex-grow py-4 bg-[#0E261C] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0E261C] text-xs uppercase tracking-[0.25em] font-semibold transition-all shadow-md cursor-pointer">
+                            Proceed to Payment Selection (COD / Online) &rarr;
                         </button>
                     </div>
                 </div>
@@ -454,36 +463,38 @@
 
                     {{-- Payment Method Selection --}}
                     <div class="space-y-3">
-                        <label class="block text-xs uppercase tracking-wider text-gray-700 font-bold">Select Payment Preference *</label>
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs uppercase tracking-wider text-gray-700 font-bold">Select Payment Preference *</label>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Online payment is optional</span>
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            {{-- Option 1: Razorpay Online Payment --}}
-                            <label class="flex items-start gap-3 p-4 border cursor-pointer transition-all rounded-sm"
-                                   :class="paymentMethod === 'razorpay' ? 'border-[#D4AF37] bg-[#FAF8F5] shadow-sm ring-1 ring-[#D4AF37]' : 'border-gray-200 hover:border-gray-300'">
-                                <input type="radio" name="paymentMethod" value="razorpay" x-model="paymentMethod" class="mt-1 text-[#0E261C] focus:ring-[#D4AF37]">
-                                <div class="flex-grow">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-display font-bold text-sm text-[#0E261C]">Online Payment</span>
-                                        <span class="text-[9px] uppercase px-1.5 py-0.5 bg-emerald-700 text-white font-bold rounded-xs tracking-wider">Fast &amp; Instant</span>
-                                    </div>
-                                    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">UPI (GPay / PhonePe / Paytm), Credit / Debit Cards, NetBanking via Razorpay 256-bit escrow.</p>
-                                </div>
-                            </label>
-
-                            {{-- Option 2: Cash on Delivery (COD) --}}
+                            {{-- Option 1: Cash on Delivery (COD) -- PRIMARY / DEFAULT --}}
                             <label class="flex items-start gap-3 p-4 border cursor-pointer transition-all rounded-sm"
                                    :class="paymentMethod === 'cod' ? 'border-[#D4AF37] bg-[#FAF8F5] shadow-sm ring-1 ring-[#D4AF37]' : 'border-gray-200 hover:border-gray-300'">
                                 <input type="radio" name="paymentMethod" value="cod" x-model="paymentMethod" class="mt-1 text-[#0E261C] focus:ring-[#D4AF37]">
                                 <div class="flex-grow">
                                     <div class="flex items-center gap-2">
                                         <span class="font-display font-bold text-sm text-[#0E261C]">Cash on Delivery (COD)</span>
-                                        <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#D4AF37] text-[#0E261C] font-bold rounded-xs tracking-wider">Doorstep</span>
+                                        <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#D4AF37] text-[#0E261C] font-bold rounded-xs tracking-wider">Recommended</span>
                                     </div>
                                     <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">Pay in cash or digital UPI upon receipt of package directly to our transit courier.</p>
                                 </div>
                             </label>
+
+                            {{-- Option 2: Razorpay Online Payment -- OPTIONAL --}}
+                            <label class="flex items-start gap-3 p-4 border cursor-pointer transition-all rounded-sm"
+                                   :class="paymentMethod === 'razorpay' ? 'border-[#D4AF37] bg-[#FAF8F5] shadow-sm ring-1 ring-[#D4AF37]' : 'border-gray-200 hover:border-gray-300'">
+                                <input type="radio" name="paymentMethod" value="razorpay" x-model="paymentMethod" class="mt-1 text-[#0E261C] focus:ring-[#D4AF37]">
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-display font-bold text-sm text-[#0E261C]">Online Payment</span>
+                                        <span class="text-[9px] uppercase px-1.5 py-0.5 bg-gray-200 text-gray-700 font-bold rounded-xs tracking-wider">Optional</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">UPI (GPay / PhonePe / Paytm), Credit / Debit Cards, NetBanking via Razorpay 256-bit escrow.</p>
+                                </div>
+                            </label>
                         </div>
                     </div>
-
                     {{-- Dynamic Gateway Description Banner --}}
                     <div x-show="paymentMethod === 'razorpay'" class="p-4 border border-[#D4AF37]/30 bg-white">
                         <div class="flex items-center gap-3">
