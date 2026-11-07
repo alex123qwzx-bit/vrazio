@@ -38,7 +38,8 @@ RUN if [ ! -f .env ]; then \
         sed -i 's|^APP_KEY=.*|APP_KEY=base64:MsSubg1hnz426grHFbFVGOKiJRekcf+FQM2qSvDg2Qs=|' .env && \
         sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|' .env && \
         sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env && \
-        sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env; \
+        sed -i 's|^APP_DEBUG=.*|APP_DEBUG=true|' .env && \
+        sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=stderr|' .env; \
     fi
 
 # Set permissions and storage link
@@ -53,5 +54,5 @@ RUN rm -f bootstrap/cache/*.php \
 ENV PORT=3000
 EXPOSE 3000
 
-# Start command: clear config cache, migrate/seed safely, and serve on port 3000
-CMD ["sh", "-c", "php artisan optimize:clear && (php artisan migrate --force && php artisan db:seed --force || true) && php artisan serve --host=0.0.0.0 --port=${PORT:-3000}"]
+# Start command: clear config cache, migrate/seed safely, and serve with native PHP router
+CMD ["sh", "-c", "php artisan optimize:clear && (php artisan migrate --force && php artisan db:seed --force || true) && php -S 0.0.0.0:${PORT:-3000} server.php"]
