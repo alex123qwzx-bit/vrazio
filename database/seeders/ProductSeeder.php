@@ -15,7 +15,10 @@ class ProductSeeder extends Seeder
         $products = $this->getProductData();
 
         foreach ($products as $product) {
-            Product::create($product);
+            Product::updateOrCreate(
+                ['sku' => $product['sku']],
+                $product
+            );
         }
     }
 
