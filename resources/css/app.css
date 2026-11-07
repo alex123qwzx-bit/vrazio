@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================
+   VRAZIO — Haute Joaillerie Custom Styles
+   ============================================= */
+
+@layer base {
+    body {
+        @apply font-body text-vrazio-forest bg-vrazio-ivory antialiased;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-display;
+    }
+}
+
+@layer components {
+    /* Gold luxury divider */
+    .vrazio-divider {
+        @apply w-24 h-px bg-vrazio-gold mx-auto my-8;
+    }
+
+    .vrazio-divider-wide {
+        @apply w-48 h-px bg-gradient-to-r from-transparent via-vrazio-gold to-transparent mx-auto my-8;
+    }
+
+    /* Primary CTA Button */
+    .btn-vrazio {
+        @apply inline-flex items-center justify-center px-8 py-3.5 text-sm font-body font-semibold tracking-[0.15em] uppercase
+               bg-vrazio-ruby text-white border border-vrazio-ruby
+               hover:bg-vrazio-forest hover:border-vrazio-gold hover:text-vrazio-gold
+               transition-all duration-300 ease-in-out;
+    }
+
+    /* Gold outline button */
+    .btn-vrazio-outline {
+        @apply inline-flex items-center justify-center px-8 py-3.5 text-sm font-body font-semibold tracking-[0.15em] uppercase
+               bg-transparent text-vrazio-gold border border-vrazio-gold
+               hover:bg-vrazio-gold hover:text-vrazio-forest
+               transition-all duration-300 ease-in-out;
+    }
+
+    /* Dark variant */
+    .btn-vrazio-dark {
+        @apply inline-flex items-center justify-center px-8 py-3.5 text-sm font-body font-semibold tracking-[0.15em] uppercase
+               bg-vrazio-forest text-vrazio-gold border border-vrazio-gold
+               hover:bg-vrazio-gold hover:text-vrazio-forest
+               transition-all duration-300 ease-in-out;
+    }
+
+    /* Product card */
+    .product-card {
+        @apply relative bg-white overflow-hidden shadow-sm hover:shadow-luxury transition-all duration-500;
+    }
+
+    .product-card-image {
+        @apply w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-700 ease-out;
+    }
+
+    /* Gold text shimmer */
+    .text-gold-shimmer {
+        @apply bg-clip-text text-transparent bg-gold-gradient animate-shimmer;
+    }
+
+    /* Announcement bar ticker */
+    .announcement-ticker {
+        @apply whitespace-nowrap animate-ticker;
+    }
+
+    /* Section heading */
+    .section-heading {
+        @apply text-3xl md:text-4xl lg:text-5xl font-display font-bold text-vrazio-forest tracking-tight;
+    }
+
+    .section-subheading {
+        @apply text-lg md:text-xl font-body text-vrazio-forest/70 mt-4 max-w-2xl mx-auto;
+    }
+
+    /* Input styling */
+    .input-vrazio {
+        @apply w-full px-4 py-3 bg-white border border-gray-200 text-vrazio-forest font-body text-sm
+               focus:border-vrazio-gold focus:ring-1 focus:ring-vrazio-gold focus:outline-none
+               transition-colors duration-200 placeholder:text-gray-400;
+    }
+
+    /* Badge */
+    .badge-vrazio {
+        @apply inline-flex items-center px-3 py-1 text-xs font-body font-semibold tracking-wider uppercase
+               bg-vrazio-gold/10 text-vrazio-gold-dark border border-vrazio-gold/20;
+    }
+}
+
+/* Custom scrollbar for luxury feel */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #FAF8F5;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #C5A028;
+}
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
