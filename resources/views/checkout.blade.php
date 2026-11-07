@@ -31,6 +31,8 @@
          city: '',
          state: 'Maharashtra',
          pincode: '',
+         paymentMethod: 'razorpay',
+         paymentSubmitting: false,
 
          startOtpFlow() {
              this.errorMessage = '';
@@ -118,6 +120,7 @@
 
          async initializePayment() {
              this.errorMessage = '';
+             this.paymentSubmitting = true;
              try {
                  const payload = {
                      client_name: this.clientName,
@@ -129,7 +132,8 @@
                          state: this.state,
                          pincode: this.pincode
                      },
-                     shipping_method: this.shippingMethod
+                     shipping_method: this.shippingMethod,
+                     payment_method: this.paymentMethod
                  };
 
                  const res = await fetch('{{ route('checkout.process') }}', {
@@ -146,6 +150,15 @@
 
                  if (!res.ok || !data.success) {
                      this.errorMessage = data.message || 'Order initialization failed.';
+                     this.paymentSubmitting = false;
+                     return;
+                 }
+
+                 // Handle Cash on Delivery (COD)
+                 if (data.payment_method === 'cod') {
+                     if (data.redirect_url) {
+                         window.location.href = data.redirect_url;
+                     }
                      return;
                  }
 
@@ -195,9 +208,11 @@
                      alert('Payment declined: ' + response.error.description);
                  });
                  rzp.open();
+                 this.paymentSubmitting = false;
 
              } catch (err) {
                  this.errorMessage = 'Checkout network error. Please contact atelier concierge.';
+                 this.paymentSubmitting = false;
              }
          }
      }">
@@ -213,19 +228,19 @@
         </div>
 
         {{-- Step Navigation Indicator --}}
-        <div class="max-w-3xl mx-auto mb-12">
-            <div class="flex items-center justify-between text-xs uppercase tracking-wider font-semibold">
-                <div :class="step >= 1 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
-                    <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px]">1</span>
-                    <span>Patron Dossier</span>
+        <div class="max-w-3xl mx-auto mb-8 sm:mb-12">
+            <div class="flex items-center justify-between text-[11px] sm:text-xs uppercase tracking-wider font-semibold gap-1 sm:gap-2">
+                <div :class="step >= 1 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
+                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-current flex items-center justify-center text-[9px] sm:text-[10px]">1</span>
+                    <span><span class="hidden sm:inline">Patron </span>Address</span>
                 </div>
-                <div :class="step >= 2 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
-                    <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px]">2</span>
-                    <span>Logistics &amp; OTP</span>
+                <div :class="step >= 2 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
+                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-current flex items-center justify-center text-[9px] sm:text-[10px]">2</span>
+                    <span>Logistics<span class="hidden sm:inline"> &amp; OTP</span></span>
                 </div>
-                <div :class="step >= 3 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
-                    <span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px]">3</span>
-                    <span>Razorpay Settlement</span>
+                <div :class="step >= 3 ? 'text-[#0E261C] border-[#D4AF37]' : 'text-gray-400 border-gray-200'" class="flex items-center gap-1.5 sm:gap-2 pb-2 border-b-2 flex-1 text-center justify-center">
+                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-current flex items-center justify-center text-[9px] sm:text-[10px]">3</span>
+                    <span>Payment<span class="hidden sm:inline"> Settlement</span></span>
                 </div>
             </div>
         </div>
@@ -401,7 +416,7 @@
                                 @click="step = 3"
                                 :class="otpVerified ? 'bg-[#0E261C] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0E261C]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                                 class="flex-grow py-4 text-xs uppercase tracking-[0.25em] font-semibold transition-all">
-                            Continue to Razorpay Settlement &rarr;
+                            Continue to Payment &rarr;
                         </button>
                     </div>
                 </div>
@@ -437,9 +452,42 @@
                         </div>
                     </div>
 
-                    <div class="p-4 border border-[#D4AF37]/30 bg-white">
+                    {{-- Payment Method Selection --}}
+                    <div class="space-y-3">
+                        <label class="block text-xs uppercase tracking-wider text-gray-700 font-bold">Select Payment Preference *</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            {{-- Option 1: Razorpay Online Payment --}}
+                            <label class="flex items-start gap-3 p-4 border cursor-pointer transition-all rounded-sm"
+                                   :class="paymentMethod === 'razorpay' ? 'border-[#D4AF37] bg-[#FAF8F5] shadow-sm ring-1 ring-[#D4AF37]' : 'border-gray-200 hover:border-gray-300'">
+                                <input type="radio" name="paymentMethod" value="razorpay" x-model="paymentMethod" class="mt-1 text-[#0E261C] focus:ring-[#D4AF37]">
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-display font-bold text-sm text-[#0E261C]">Online Payment</span>
+                                        <span class="text-[9px] uppercase px-1.5 py-0.5 bg-emerald-700 text-white font-bold rounded-xs tracking-wider">Fast &amp; Instant</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">UPI (GPay / PhonePe / Paytm), Credit / Debit Cards, NetBanking via Razorpay 256-bit escrow.</p>
+                                </div>
+                            </label>
+
+                            {{-- Option 2: Cash on Delivery (COD) --}}
+                            <label class="flex items-start gap-3 p-4 border cursor-pointer transition-all rounded-sm"
+                                   :class="paymentMethod === 'cod' ? 'border-[#D4AF37] bg-[#FAF8F5] shadow-sm ring-1 ring-[#D4AF37]' : 'border-gray-200 hover:border-gray-300'">
+                                <input type="radio" name="paymentMethod" value="cod" x-model="paymentMethod" class="mt-1 text-[#0E261C] focus:ring-[#D4AF37]">
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-display font-bold text-sm text-[#0E261C]">Cash on Delivery (COD)</span>
+                                        <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#D4AF37] text-[#0E261C] font-bold rounded-xs tracking-wider">Doorstep</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">Pay in cash or digital UPI upon receipt of package directly to our transit courier.</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Dynamic Gateway Description Banner --}}
+                    <div x-show="paymentMethod === 'razorpay'" class="p-4 border border-[#D4AF37]/30 bg-white">
                         <div class="flex items-center gap-3">
-                            <svg class="w-8 h-8 text-[#0E261C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <svg class="w-7 h-7 text-[#0E261C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                             <div>
                                 <h3 class="font-display font-bold text-sm text-[#0E261C]">256-Bit Escrow Gateway via Razorpay</h3>
                                 <p class="text-[11px] text-gray-500">Supports all major Credit Cards, Net Banking, UPI, and verified Bank Wire.</p>
@@ -447,11 +495,26 @@
                         </div>
                     </div>
 
+                    <div x-show="paymentMethod === 'cod'" x-cloak class="p-4 border border-[#D4AF37]/30 bg-[#0E261C] text-[#FAF8F5]">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-7 h-7 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <div>
+                                <h3 class="font-display font-bold text-sm text-[#D4AF37]">Armoured Cash on Delivery Verification</h3>
+                                <p class="text-[11px] text-white/80">Courier will verify patron photo ID and OTP before collection of cash or doorstep UPI payment.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="pt-4">
                         <button type="button" 
                                 @click="initializePayment()" 
-                                class="w-full py-4 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.25em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300 shadow-2xl">
-                            Authorize &amp; Commission Order via Razorpay
+                                :disabled="paymentSubmitting"
+                                class="w-full py-4 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.25em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300 shadow-2xl flex items-center justify-center gap-2">
+                            <span x-show="!paymentSubmitting" x-text="paymentMethod === 'cod' ? 'Confirm Order with Cash on Delivery &rarr;' : 'Authorize & Commission Order via Razorpay &rarr;'"></span>
+                            <span x-show="paymentSubmitting" class="flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span>Securing Order in Vault...</span>
+                            </span>
                         </button>
                     </div>
                 </div>

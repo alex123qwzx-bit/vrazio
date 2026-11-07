@@ -256,6 +256,20 @@ class OrderResource extends Resource
                     ->sortable()
                     ->weight('bold'),
 
+                Tables\Columns\TextColumn::make('payment_gateway')
+                    ->label('Payment Method')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'cod' => 'warning',
+                        'razorpay' => 'success',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'cod' => 'Cash on Delivery (COD)',
+                        'razorpay' => 'Razorpay (Online)',
+                        default => $state ? strtoupper($state) : '—',
+                    }),
+
                 Tables\Columns\TextColumn::make('payment_status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -420,6 +434,29 @@ class OrderResource extends Resource
                         Notification::make()
                             ->title('Delivery Advanced')
                             ->body(sprintf('Order %s is now "%s".', $record->order_number, $record->getCasualStatusLabel()))
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('mark_paid')
+                    ->label('Mark Paid')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (Order $record): bool => $record->payment_status !== 'paid')
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirm Payment Receipt')
+                    ->modalDescription(fn (Order $record): string => sprintf(
+                        'Confirm that ₹%s has been collected for Order %s (%s)?',
+                        number_format((float) $record->total_amount, 2),
+                        $record->order_number,
+                        $record->payment_gateway === 'cod' ? 'Cash on Delivery' : 'Online Payment'
+                    ))
+                    ->action(function (Order $record): void {
+                        $record->update(['payment_status' => 'paid']);
+
+                        Notification::make()
+                            ->title('Payment Recorded')
+                            ->body(sprintf('Order %s has been marked as Paid.', $record->order_number))
                             ->success()
                             ->send();
                     }),

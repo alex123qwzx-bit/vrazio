@@ -25,6 +25,7 @@ class CheckoutRequest extends FormRequest
             'shipping_address.state' => ['required', 'string', 'max:100'],
             'shipping_address.pincode' => ['required', 'string', 'regex:/^\d{6}$/'],
             'shipping_method' => ['required', 'in:standard,express'],
+            'payment_method' => ['nullable', 'string', 'in:razorpay,cod'],
         ];
     }
 
@@ -36,6 +37,7 @@ class CheckoutRequest extends FormRequest
             'client_phone.regex' => 'A verified 10-digit Indian mobile is required for armoured delivery OTP confirmation.',
             'shipping_address.pincode.regex' => 'The Postal Pincode must be a 6-digit Indian PIN code.',
             'shipping_method.in' => 'Selected transit tier is invalid.',
+            'payment_method.in' => 'Please select a valid payment method (Razorpay or Cash on Delivery).',
         ];
     }
 }

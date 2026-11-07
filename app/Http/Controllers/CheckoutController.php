@@ -107,6 +107,8 @@ class CheckoutController extends Controller
                 }
             }
 
+            $paymentMethod = $validated['payment_method'] ?? 'razorpay';
+
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'client_name' => $validated['client_name'],
@@ -118,7 +120,7 @@ class CheckoutController extends Controller
                 'tax_gst' => $gst,
                 'shipping_cost' => $shippingCost,
                 'total_amount' => $totalAmount,
-                'payment_gateway' => 'razorpay',
+                'payment_gateway' => $paymentMethod,
                 'payment_status' => 'pending',
                 'fulfillment_status' => 'inscribed',
                 'otp_verified_at' => now(),
@@ -135,6 +137,26 @@ class CheckoutController extends Controller
                     'quantity' => $item['quantity'],
                     'size' => $item['size'] ?? null,
                     'line_total' => round($item['price'] * $item['quantity'], 2),
+                ]);
+
+                // For Cash on Delivery, decrement stock immediately on placement
+                if ($paymentMethod === 'cod' && $product) {
+                    $product->decrement('stock_quantity', $item['quantity']);
+                }
+            }
+
+            // Cash on Delivery direct fulfillment path
+            if ($paymentMethod === 'cod') {
+                DB::commit();
+                $this->cartService->clear();
+                session()->forget('order_phone_verified');
+
+                return response()->json([
+                    'success' => true,
+                    'payment_method' => 'cod',
+                    'order_number' => $order->order_number,
+                    'redirect_url' => route('order.confirmation', ['order_number' => $order->order_number]),
+                    'message' => 'Your Cash on Delivery order has been successfully placed in our atelier vault.',
                 ]);
             }
 
@@ -153,6 +175,7 @@ class CheckoutController extends Controller
 
             return response()->json([
                 'success' => true,
+                'payment_method' => 'razorpay',
                 'order_number' => $order->order_number,
                 'razorpay_order_id' => $razorpayOrder->id,
                 'amount' => (int) round($totalAmount * 100), // in paise for Razorpay JS
