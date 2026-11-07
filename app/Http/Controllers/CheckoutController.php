@@ -85,6 +85,15 @@ class CheckoutController extends Controller
         $shippingCost = $this->cartService->getShippingCost($shippingMethod);
         $totalAmount = round($subtotal + $gst + $shippingCost, 2);
 
+        $queryLog = [];
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queryLog) {
+            $queryLog[] = [
+                'sql' => $query->sql,
+                'bindings' => $query->bindings,
+                'time_ms' => $query->time,
+            ];
+        });
+
         try {
             DB::beginTransaction();
 
@@ -104,8 +113,10 @@ class CheckoutController extends Controller
             }
 
             $paymentMethod = $validated['payment_method'] ?? 'cod';
+            $orderNumber = 'VRZ-' . strtoupper(Str::random(8));
 
             $order = Order::create([
+                'order_number' => $orderNumber,
                 'user_id' => auth()->id(),
                 'client_name' => $validated['client_name'],
                 'client_email' => $validated['client_email'],
@@ -126,18 +137,18 @@ class CheckoutController extends Controller
                 $product = $lockedProducts->get($item['id']);
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $item['id'],
+                    'product_id' => (int) $item['id'],
                     'product_title' => $item['title'],
                     'product_sku' => $product?->sku ?? 'VRZ-ITEM',
-                    'unit_price' => $item['price'],
-                    'quantity' => $item['quantity'],
+                    'unit_price' => (float) $item['price'],
+                    'quantity' => (int) $item['quantity'],
                     'size' => $item['size'] ?? null,
-                    'line_total' => round($item['price'] * $item['quantity'], 2),
+                    'line_total' => round((float) $item['price'] * (int) $item['quantity'], 2),
                 ]);
 
                 // For Cash on Delivery, decrement stock immediately on placement
                 if ($paymentMethod === 'cod' && $product) {
-                    $product->decrement('stock_quantity', $item['quantity']);
+                    $product->decrement('stock_quantity', (int) $item['quantity']);
                 }
             }
 
@@ -185,13 +196,17 @@ class CheckoutController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Order creation failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('Order creation failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'queries' => $queryLog,
+            ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to initialize order in atelier vault. Please try again.',
                 'error_detail' => $e->getMessage(),
                 'error_file' => $e->getFile() . ':' . $e->getLine(),
+                'queries' => $queryLog,
             ], 500);
         }
     }
