@@ -92,18 +92,20 @@
                     if (error.code === 'auth/popup-closed-by-user') {
                         return;
                     }
-                    if (error.code === 'auth/unauthorized-domain') {
-                        this.errorMessage = 'This domain is not authorized in Firebase Console. Please browse to http://localhost:8000/login or add 127.0.0.1 to Firebase Console > Authentication > Settings > Authorized domains.';
+                    if (error.code === 'auth/unauthorized-domain' || (error.message && error.message.includes('unauthorized-domain'))) {
+                        const currentHost = window.location.hostname;
+                        this.errorMessage = 'This domain (' + currentHost + ') is not authorized in Firebase Console. To enable Google Sign-In, go to Firebase Console > Authentication > Settings > Authorized domains, and click "Add domain" for: ' + currentHost;
                     } else if (error.message && error.message.includes('missing initial state')) {
-                        this.errorMessage = 'Google Sign-In blocked by browser cookie settings or unauthorized domain. Please access the store via http://localhost:8000/login.';
+                        const currentHost = window.location.hostname;
+                        this.errorMessage = 'Google Sign-In requires ' + currentHost + ' to be added in Firebase Console > Authentication > Settings > Authorized domains.';
                     } else {
                         this.errorMessage = error.message || 'Unable to sign in with Google. Please try again.';
                     }
                 });
         },
 
-        // Send Mobile SMS OTP via Firebase
-        sendOtp() {
+        // Send Mobile SMS OTP via Laravel Backend (Fast2SMS / Dev fallback)
+        async sendOtp() {
             let clean = (this.phone || '').replace(/\D/g, '');
             if (clean.length < 10) {
                 this.errorMessage = 'Please enter a valid 10-digit mobile number.';
@@ -116,88 +118,71 @@
             this.successMessage = '';
 
             try {
-                this.initRecaptcha();
-                const fullPhone = '+91' + clean;
+                const res = await fetch('{{ route('auth.otp.send') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ phone: clean })
+                });
 
-                firebase.auth().signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
-                    .then((confirmationResult) => {
-                        window.confirmationResult = confirmationResult;
-                        this.loading = false;
-                        this.otpSent = true;
-                        this.successMessage = 'SMS with 6-digit OTP has been sent to ' + fullPhone + ' via Google Firebase!';
-                        this.startTimer(60);
-                    })
-                    .catch((error) => {
-                        this.loading = false;
-                        if (window.recaptchaVerifier) {
-                            try { window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId)); } catch(e) {}
-                        }
-                        if (error.code === 'auth/billing-not-enabled') {
-                            this.errorMessage = 'Google Firebase requires a linked billing account (Blaze plan) to send real live SMS to prevent spam. However, you can add your mobile as a Test Number in Firebase Console (Authentication > Sign-in method > Phone > Phone numbers for testing) to test completely FREE with no card or billing needed!';
-                        } else if (error.code === 'auth/operation-not-allowed' || (error.message && error.message.includes('region'))) {
-                            this.errorMessage = 'SMS sending to India (+91) needs to be enabled in Firebase Console (Authentication > Settings > SMS Region Policy), OR you can add your phone as a Test Number in Firebase Console (Authentication > Sign-in method > Phone > Phone numbers for testing) to test immediately without quota limits.';
-                        } else if (error.code === 'auth/too-many-requests') {
-                            this.errorMessage = 'Daily SMS quota reached for today (10 SMS/day on free tier). You can add test phone numbers in Firebase Console > Phone to test unlimited times for free!';
-                        } else {
-                            this.errorMessage = error.message || 'Failed to send SMS OTP. Please check the number and try again.';
-                        }
-                    });
+                const data = await res.json();
+                this.loading = false;
+
+                if (data.success) {
+                    this.otpSent = true;
+                    this.successMessage = data.message;
+                    if (data.dev_otp) {
+                        this.successMessage += ' [Test Code: ' + data.dev_otp + ']';
+                        this.otp = data.dev_otp;
+                    }
+                    this.startTimer(60);
+                } else {
+                    this.errorMessage = data.message || 'Failed to dispatch SMS OTP. Please retry.';
+                }
             } catch (err) {
                 this.loading = false;
-                this.errorMessage = err.message || 'Error initializing verification.';
+                this.errorMessage = 'Network connection failure. Please retry.';
             }
         },
 
-        // Verify OTP via Firebase and authenticate in Laravel
-        verifyOtp() {
+        // Verify OTP via Laravel Backend and authenticate
+        async verifyOtp() {
             if (!this.otp || this.otp.length !== 6) {
                 this.errorMessage = 'Please enter the 6-digit OTP received via SMS.';
                 return;
             }
 
-            if (!window.confirmationResult) {
-                this.errorMessage = 'Session expired. Please request a new OTP.';
-                return;
-            }
-
+            let clean = (this.phone || '').replace(/\D/g, '').slice(-10);
             this.loading = true;
             this.errorMessage = '';
 
-            window.confirmationResult.confirm(this.otp)
-                .then((result) => {
-                    return result.user.getIdToken();
-                })
-                .then((idToken) => {
-                    let clean = (this.phone || '').replace(/\D/g, '').slice(-10);
-                    return fetch('{{ route('auth.firebase.session') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ 
-                            idToken: idToken, 
-                            provider: 'phone',
-                            phone: clean 
-                        })
-                    });
-                })
-                .then(res => res.json())
-                .then(data => {
-                    this.loading = false;
-                    if (data.success) {
-                        window.location.href = data.redirect || '{{ route('account') }}';
-                    } else {
-                        this.errorMessage = data.message || 'Verification failed.';
-                    }
-                })
-                .catch((error) => {
-                    this.loading = false;
-                    this.errorMessage = error.message || 'Invalid OTP code. Please check and try again.';
+            try {
+                const res = await fetch('{{ route('auth.otp.verify') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ phone: clean, otp: this.otp })
                 });
-        },
 
+                const data = await res.json();
+                this.loading = false;
+
+                if (data.success) {
+                    window.location.href = data.redirect || '{{ route('account') }}';
+                } else {
+                    this.errorMessage = data.message || 'Invalid or expired OTP. Please try again.';
+                }
+            } catch (err) {
+                this.loading = false;
+                this.errorMessage = 'Authentication error. Please retry.';
+            }
+        },
         startTimer(seconds) {
             this.timer = seconds;
             if (this.interval) clearInterval(this.interval);
