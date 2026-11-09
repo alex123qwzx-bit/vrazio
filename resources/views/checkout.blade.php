@@ -24,9 +24,9 @@
          successMessage: '',
 
          // Form Data
-         clientName: '',
-         clientEmail: '',
-         clientPhone: '{{ $verifiedPhone ?? '' }}',
+         clientName: '{{ addslashes(auth()->user()?->name ?? '') }}',
+         clientEmail: '{{ addslashes(auth()->user()?->email ?? '') }}',
+         clientPhone: '{{ $verifiedPhone ?? auth()->user()?->phone ?? '' }}',
          street: '',
          city: '',
          state: 'Maharashtra',

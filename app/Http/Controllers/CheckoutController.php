@@ -35,6 +35,13 @@ class CheckoutController extends Controller
                 ->with('info', 'Your bespoke jewellery bag is empty. Please select a creation first.');
         }
 
+        // Require customer authentication to proceed to checkout / place an order
+        if (! auth()->check()) {
+            session()->put('url.intended', route('checkout.index'));
+            return redirect()->route('login')
+                ->with('info', 'Please sign in or create an account to proceed with your bespoke order.');
+        }
+
         $items = $this->cartService->getItems();
         $subtotal = $this->cartService->getSubtotal();
         $gst = $this->cartService->getGst();
@@ -62,6 +69,15 @@ class CheckoutController extends Controller
      */
     public function process(CheckoutRequest $request): JsonResponse
     {
+        // Enforce authentication at order placement
+        if (! auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please sign in or create an account to place your order.',
+                'redirect' => route('login'),
+            ], 401);
+        }
+
         $validated = $request->validated();
         $clientPhone = $validated['client_phone'];
         $paymentMethod = $validated['payment_method'] ?? 'cod';

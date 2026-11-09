@@ -30,7 +30,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('VRAZIO Atelier')
-            ->favicon(asset('favicon.ico'))
+            ->brandLogo(fn () => asset('images/vrazio-logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(fn () => asset('favicon.ico'))
             ->colors([
                 'primary' => Color::hex('#0E261C'),
                 'danger' => Color::hex('#9B1B30'),

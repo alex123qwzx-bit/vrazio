@@ -37,7 +37,7 @@
         <div class="mt-12 pt-8 border-t border-gray-200">
             <p class="text-xs text-gray-500">
                 Require bespoke concierge assistance? 
-                <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20hit%20a%20missing%20page%20and%20need%20help" 
+                <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20hit%20a%20missing%20page%20and%20need%20help" 
                    target="_blank" 
                    class="text-emerald-700 font-semibold underline hover:text-emerald-900">
                     Connect with our Private Concierge

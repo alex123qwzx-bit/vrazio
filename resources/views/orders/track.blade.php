@@ -195,7 +195,7 @@
                         </div>
 
                         <div class="shrink-0">
-                            <a href="https://wa.me/918979622310?text={{ urlencode('Hi VRAZIO, I am checking delivery status for order ' . $order->order_number) }}" 
+                            <a href="https://wa.me/918791227210?text={{ urlencode('Hi VRAZIO, I am checking delivery status for order ' . $order->order_number) }}" 
                                target="_blank" rel="noopener noreferrer"
                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#25D366] text-white text-xs font-semibold rounded-xs hover:bg-[#1EBE5D] transition-colors shadow-xs">
                                 WhatsApp Courier Help
@@ -266,7 +266,7 @@
                         <div class="text-xs text-gray-500">
                             <span>✦ BIS Hallmarked &amp; Lifetime Craftsmanship Warranty active on all authentic pieces.</span>
                         </div>
-                        <a href="https://wa.me/918979622310" target="_blank" rel="noopener noreferrer" 
+                        <a href="https://wa.me/918791227210" target="_blank" rel="noopener noreferrer" 
                            class="text-xs font-semibold text-[#0E261C] hover:text-[#D4AF37] flex items-center gap-1">
                             Questions? WhatsApp Concierge &rarr;
                         </a>

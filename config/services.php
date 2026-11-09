@@ -48,6 +48,13 @@ return [
 
     'gst_rate' => 0.03, // 3% GST on jewellery
 
+    'enterprise' => [
+        'name' => env('ENTERPRISE_NAME', 'VRAZIO'),
+        'udyam_registration' => env('UDYAM_REGISTRATION', 'UDYAM-UP-59-0089382'),
+        'whatsapp_support' => env('WHATSAPP_SUPPORT', '+91 8791227210'),
+        'support_email' => env('SUPPORT_EMAIL', 'vrazioofficial@gmail.com'),
+    ],
+
     'shipping' => [
         'standard' => [
             'label' => 'Complimentary Armoured Transit',

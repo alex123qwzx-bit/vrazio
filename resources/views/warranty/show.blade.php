@@ -67,12 +67,12 @@
                     </p>
 
                     <div class="pt-2">
-                        <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20following%20up%20on%20my%20warranty%20claim%20{{ $claim->claim_number }}" 
+                        <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20following%20up%20on%20my%20warranty%20claim%20{{ $claim->claim_number }}" 
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#1ebd5b] text-white text-xs font-bold rounded shadow transition-all">
                             <svg width="16" height="16" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
-                            <span>Questions? Chat with us on WhatsApp (+91 89796 22310)</span>
+                            <span>Questions? Chat with us on WhatsApp (+91 87912 27210)</span>
                         </a>
                     </div>
                 </div>

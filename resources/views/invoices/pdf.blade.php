@@ -370,10 +370,33 @@
         {{-- Header: Brand & Invoice Meta --}}
         <table class="header-table">
             <tr>
-                <td style="width: 55%;">
-                    <div class="brand-logo">VR<span class="gold">A</span>ZIO</div>
-                    <div class="brand-subtitle">— ATELIER &amp; HAUTE COUTURE —</div>
-                    <div class="brand-tagline">TIMELESS BEAUTY, ALWAYS YOURS</div>
+@php
+    $pdfLogoPath = public_path('images/vrazio-logo.png');
+    $pdfLogoBase64 = file_exists($pdfLogoPath) ? base64_encode(file_get_contents($pdfLogoPath)) : '';
+@endphp
+                <td style="width: 58%;">
+                    <table style="border-collapse: collapse;">
+                        <tr>
+                            @if(!empty($pdfLogoBase64))
+                                <td style="width: 75px; vertical-align: top; padding-right: 12px;">
+                                    <img src="data:image/png;base64,{{ $pdfLogoBase64 }}" width="70" height="70" style="width: 70px; height: 70px; border-radius: 50%; border: 1px solid #D4AF37;" alt="VRAZIO Emblem">
+                                </td>
+                            @endif
+                            <td style="vertical-align: top;">
+                                <div class="brand-logo">VR<span class="gold">A</span>ZIO</div>
+                                <div class="brand-subtitle">— ATELIER &amp; HAUTE COUTURE —</div>
+                                <div style="font-size: 8.5px; color: #0E261C; font-weight: bold; margin-top: 3px;">
+                                    NAME OF ENTERPRISE: VRAZIO
+                                </div>
+                                <div style="font-size: 8px; color: #333333; font-family: monospace; margin-top: 1px;">
+                                    UDYAM REG. NO: UDYAM-UP-59-0089382
+                                </div>
+                                <div style="font-size: 7.5px; color: #666666; text-transform: uppercase; margin-top: 1px;">
+                                    HSN 7113 • 3% GST PRECIOUS JEWELLERY
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
                 <td style="width: 45%;">
                     <div class="invoice-title-block">
@@ -521,7 +544,7 @@
             <table class="footer-table">
                 <tr>
                     <td class="footer-contacts">
-                        <span>WhatsApp: +91 89796 22310</span>
+                        <span>WhatsApp: +91 87912 27210</span>
                         <span class="footer-bullet">|</span>
                         <span>vrazioofficial@gmail.com</span>
                         <span class="footer-bullet">|</span>

@@ -76,10 +76,10 @@
             {{-- WhatsApp Note --}}
             <div class="pt-4 border-t border-gray-100 text-xs text-gray-500">
                 Having trouble receiving the email? 
-                <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20need%20help%20verifying%20my%20account%20email%20{{ auth()->user()?->email ?? '' }}" 
+                <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20need%20help%20verifying%20my%20account%20email%20{{ auth()->user()?->email ?? '' }}" 
                    target="_blank" 
                    class="text-emerald-700 font-semibold hover:underline">
-                    WhatsApp us at +91 89796 22310
+                    WhatsApp us at +91 87912 27210
                 </a>
             </div>
         </div>

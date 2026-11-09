@@ -27,7 +27,7 @@
                class="w-full sm:w-auto px-8 py-4 bg-[#0E261C] text-[#D4AF37] border border-[#D4AF37] text-xs uppercase tracking-[0.25em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all shadow-lg">
                 Return to Grand Foyer
             </a>
-            <a href="https://wa.me/918979622310" 
+            <a href="https://wa.me/918791227210" 
                target="_blank"
                class="w-full sm:w-auto px-8 py-4 bg-emerald-700 text-white text-xs uppercase tracking-[0.25em] font-semibold hover:bg-emerald-800 transition-all shadow-sm">
                 WhatsApp Concierge

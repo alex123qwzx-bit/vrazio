@@ -98,6 +98,12 @@ class CustomerAuthController extends Controller
 
         Auth::login($user);
 
+        $intended = session()->pull('url.intended');
+        if ($intended) {
+            return redirect()->to($intended)
+                ->with('success', 'Your account has been created successfully! Welcome, ' . $user->name . '.');
+        }
+
         return redirect()->route('verification.notice')
             ->with('success', 'Your account has been created successfully!');
     }
@@ -257,7 +263,7 @@ class CustomerAuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Signed in successfully! Welcome, ' . $user->name,
-            'redirect' => route('account'),
+            'redirect' => session()->pull('url.intended', route('account')),
         ]);
     }
 
@@ -408,7 +414,7 @@ class CustomerAuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Welcome, ' . $user->name . '!',
-            'redirect' => route('account'),
+            'redirect' => session()->pull('url.intended', route('account')),
         ]);
     }
 }

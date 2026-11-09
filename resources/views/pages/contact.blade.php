@@ -25,10 +25,10 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-emerald-950">Chat Directly on WhatsApp</h3>
-                    <p class="text-xs text-emerald-800">Message us at <strong>+91 89796 22310</strong> for instant answers, custom orders, or photos.</p>
+                    <p class="text-xs text-emerald-800">Message us at <strong>+91 87912 27210</strong> for instant answers, custom orders, or photos.</p>
                 </div>
             </div>
-            <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20an%20inquiry" 
+            <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20have%20an%20inquiry" 
                target="_blank" 
                rel="noopener noreferrer"
                class="px-5 py-2.5 bg-[#25D366] hover:bg-[#1ebd5b] text-white text-xs font-bold uppercase tracking-wider rounded shadow transition-all whitespace-nowrap flex items-center gap-2">
@@ -43,12 +43,12 @@
                 <div>
                     <span class="text-xs uppercase tracking-widest text-[#D4AF37] font-bold block mb-1">WhatsApp &amp; Voice Concierge</span>
                     <div class="flex flex-wrap items-center gap-4">
-                        <a href="https://wa.me/918979622310" target="_blank" class="text-emerald-700 hover:underline flex items-center gap-1.5 font-mono text-sm font-semibold">
-                            <span>WhatsApp: +91 89796 22310</span>
+                        <a href="https://wa.me/918791227210" target="_blank" class="text-emerald-700 hover:underline flex items-center gap-1.5 font-mono text-sm font-semibold">
+                            <span>WhatsApp: +91 87912 27210</span>
                         </a>
                         <span class="text-gray-300">|</span>
-                        <a href="tel:+918979622310" class="text-[#0E261C] hover:text-[#D4AF37] underline font-mono text-xs font-semibold">
-                            Direct Voice: +91 89796 22310
+                        <a href="tel:+918791227210" class="text-[#0E261C] hover:text-[#D4AF37] underline font-mono text-xs font-semibold">
+                            Direct Voice: +91 87912 27210
                         </a>
                     </div>
                     <p class="text-[11px] text-gray-500 mt-1">Available Mon &ndash; Sat, 10:00 AM &ndash; 8:00 PM IST</p>
@@ -127,7 +127,7 @@
                     </div>
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-700 mb-1 font-semibold">Phone Number</label>
-                        <input type="tel" placeholder="+91 89796 22310" 
+                        <input type="tel" placeholder="+91 87912 27210" 
                                class="w-full text-xs px-3.5 py-2.5 border border-gray-300 focus:border-[#D4AF37] focus:outline-none font-mono rounded-xs">
                     </div>
                     <div>

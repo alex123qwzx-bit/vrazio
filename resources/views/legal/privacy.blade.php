@@ -56,7 +56,7 @@
 
             <h3 class="font-display text-lg font-bold text-[#0E261C] pt-4 border-t border-gray-100">5. Patron Rights &amp; Concierge Contact</h3>
             <p>
-                Patrons may at any time request an export or complete deletion of their personal dossier from our records by contacting our Data Protection Officer at <a href="mailto:vrazioofficial@gmail.com" class="text-emerald-800 underline font-semibold">vrazioofficial@gmail.com</a> or via WhatsApp at <strong>+91 89796 22310</strong>.
+                Patrons may at any time request an export or complete deletion of their personal dossier from our records by contacting our Data Protection Officer at <a href="mailto:vrazioofficial@gmail.com" class="text-emerald-800 underline font-semibold">vrazioofficial@gmail.com</a> or via WhatsApp at <strong>+91 87912 27210</strong>.
             </p>
         </div>
     </div>

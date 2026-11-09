@@ -80,7 +80,7 @@
                 },
                 "contactPoint": {
                     "@type": "ContactPoint",
-                    "telephone": "+91-89796-22310",
+                    "telephone": "+91-87912-27210",
                     "contactType": "Customer Support",
                     "areaServed": "IN",
                     "availableLanguage": ["English", "Hindi"]
@@ -259,9 +259,9 @@
         <div class="hidden lg:block bg-vrazio-forest text-white/85">
             <div class="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between text-xs tracking-wide">
                 <div class="flex items-center gap-6">
-                    <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 hover:text-vrazio-gold transition-colors text-emerald-400 font-medium">
+                    <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 hover:text-vrazio-gold transition-colors text-emerald-400 font-medium">
                         <svg width="14" height="14" style="width: 14px; height: 14px; display: inline-block;" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
-                        <span>WhatsApp: +91 89796 22310</span>
+                        <span>WhatsApp: +91 87912 27210</span>
                     </a>
                     <a href="mailto:vrazioofficial@gmail.com" class="flex items-center gap-1.5 hover:text-vrazio-gold transition-colors">
                         <svg width="14" height="14" style="width: 14px; height: 14px; display: inline-block;" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -297,7 +297,8 @@
                 </button>
 
                 {{-- Logo --}}
-                <a href="{{ url('/') }}" class="flex items-center gap-1 group">
+                <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
+                    <img src="{{ asset('images/favicon-32x32.png') }}" alt="VRAZIO Emblem" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-vrazio-gold/40 shadow-xs object-contain bg-[#0E261C]">
                     <span class="font-heading text-2xl lg:text-3xl font-bold tracking-[0.2em] text-vrazio-forest group-hover:text-vrazio-forest/90 transition-colors">
                         VR<span class="text-vrazio-gold">A</span>ZIO
                     </span>
@@ -997,7 +998,7 @@
                             <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                         {{-- WhatsApp --}}
-                        <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" rel="noopener noreferrer" 
+                        <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" rel="noopener noreferrer" 
                            class="w-9 h-9 rounded-full border border-emerald-500/40 text-emerald-400 flex items-center justify-center hover:border-emerald-400 hover:bg-emerald-500/10 transition-all" 
                            aria-label="WhatsApp Support" title="Chat on WhatsApp">
                             <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
@@ -1038,13 +1039,13 @@
                     <div class="space-y-3.5">
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" style="width: 16px; height: 16px; min-width: 16px; max-width: 16px; display: block;" class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
-                            <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" class="text-sm text-emerald-400 font-semibold hover:underline">
-                                WhatsApp: +91 89796 22310
+                            <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20have%20a%20query" target="_blank" class="text-sm text-emerald-400 font-semibold hover:underline">
+                                WhatsApp: +91 87912 27210
                             </a>
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <a href="tel:+918979622310" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">+91 89796 22310</a>
+                            <a href="tel:+918791227210" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">+91 87912 27210</a>
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -1065,6 +1066,8 @@
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-white/50">
                         <span>© {{ date('Y') }} VRAZIO Haute Joaillerie. All rights reserved.</span>
+                        <span class="text-white/20">•</span>
+                        <span class="font-mono text-vrazio-gold/90 font-medium">UDYAM: UDYAM-UP-59-0089382</span>
                         <span class="text-white/20">•</span>
                         <a href="{{ route('pages.privacy') }}" class="hover:text-vrazio-gold transition-colors">Privacy &amp; Cookies</a>
                         <span class="text-white/20">•</span>
@@ -1157,7 +1160,7 @@
                :class="showCookieBanner ? 'bottom-24 sm:bottom-24' : 'bottom-4 sm:bottom-6'"
                style="position: fixed; right: 16px; bottom: 16px; z-index: 50;"
                class="fixed right-4 sm:right-6 z-50 transition-all duration-300">
-            <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20have%20a%20query%20about%20an%20order%20or%20warranty" 
+            <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20have%20a%20query%20about%20an%20order%20or%20warranty" 
                target="_blank" 
                rel="noopener noreferrer"
                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #25D366; color: #ffffff; border-radius: 9999px; text-decoration: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3);"

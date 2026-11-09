@@ -515,8 +515,8 @@ document.addEventListener('alpine:init', () => {
         {{-- WhatsApp Help --}}
         <div class="mt-8 text-center text-xs text-gray-500">
             Need help with your account? 
-            <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20need%20help%20with%20my%20account" target="_blank" class="text-emerald-700 font-semibold hover:underline">
-                Chat with us on WhatsApp (+91 89796 22310)
+            <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20need%20help%20with%20my%20account" target="_blank" class="text-emerald-700 font-semibold hover:underline">
+                Chat with us on WhatsApp (+91 87912 27210)
             </a>
         </div>
     </div>

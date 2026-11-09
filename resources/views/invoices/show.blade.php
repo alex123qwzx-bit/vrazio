@@ -99,15 +99,20 @@
         {{-- Header Section: Brand & Invoice Meta --}}
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-8 border-b border-[#D4AF37]/20">
             {{-- Brand Logo & Taglines --}}
-            <div>
-                <div class="font-display text-4xl sm:text-5xl font-bold tracking-[0.25em] text-[#0E261C]">
-                    VR<span class="text-[#D4AF37]">A</span>ZIO
-                </div>
-                <div class="text-[11px] uppercase tracking-[0.35em] text-[#D4AF37] font-bold mt-2">
-                    — ATELIER &amp; HAUTE COUTURE —
-                </div>
-                <div class="text-[9px] uppercase tracking-[0.25em] text-gray-500 mt-1">
-                    TIMELESS BEAUTY, ALWAYS YOURS
+            <div class="flex items-center sm:items-start gap-4 sm:gap-5">
+                <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Emblem" class="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-full border border-[#D4AF37]/40 shadow-sm shrink-0 bg-[#0E261C]">
+                <div>
+                    <div class="font-display text-3xl sm:text-4xl font-bold tracking-[0.2em] text-[#0E261C]">
+                        VR<span class="text-[#D4AF37]">A</span>ZIO
+                    </div>
+                    <div class="text-[11px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold mt-1">
+                        — ATELIER &amp; HAUTE COUTURE —
+                    </div>
+                    <div class="text-[11px] text-gray-700 mt-2 space-y-0.5">
+                        <div class="font-semibold text-[#0E261C]">NAME OF ENTERPRISE: <span class="font-bold tracking-wide">VRAZIO</span></div>
+                        <div class="font-mono text-gray-700 text-xs">UDYAM REG. NO.: <span class="font-bold text-[#0E261C]">UDYAM-UP-59-0089382</span></div>
+                        <div class="text-gray-500 text-[10px] uppercase tracking-wider">HSN 7113 • 3% GST PRECIOUS JEWELLERY</div>
+                    </div>
                 </div>
             </div>
 
@@ -273,7 +278,7 @@
             <div class="flex flex-wrap items-center gap-3">
                 <span class="flex items-center gap-1">
                     <svg width="14" height="14" class="w-3.5 h-3.5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.044.102-.115.434-.506.549-.68.116-.173.232-.144.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z"/></svg>
-                    +91 89796 22310
+                    +91 87912 27210
                 </span>
                 <span class="text-[#D4AF37]">•</span>
                 <span>vrazioofficial@gmail.com</span>

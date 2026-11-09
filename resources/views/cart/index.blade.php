@@ -133,10 +133,20 @@
                     </div>
 
                     <div class="pt-4">
-                        <a href="{{ route('checkout.index') }}" 
-                           class="w-full block text-center py-4 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300 shadow-xl">
-                            Proceed to Checkout
-                        </a>
+                        @auth
+                            <a href="{{ route('checkout.index') }}" 
+                               class="w-full block text-center py-4 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300 shadow-xl">
+                                Proceed to Checkout
+                            </a>
+                        @else
+                            <a href="{{ route('checkout.index') }}" 
+                               class="w-full block text-center py-4 bg-[#0E261C] text-[#D4AF37] border border-[#D4AF37] text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300 shadow-xl">
+                                Sign In &amp; Proceed to Checkout
+                            </a>
+                            <p class="text-[11px] text-center text-gray-500 mt-2 font-medium">
+                                ✦ Patron sign-in required to place an order
+                            </p>
+                        @endauth
                     </div>
 
                     <div class="p-4 bg-[#FAF8F5] border border-[#D4AF37]/20 text-[11px] text-gray-600 space-y-2">

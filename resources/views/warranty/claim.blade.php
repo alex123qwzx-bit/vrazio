@@ -101,10 +101,10 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-bold text-emerald-950">Need Quick Help on WhatsApp?</h3>
-                    <p class="text-xs text-emerald-800">You can message us directly on WhatsApp at <strong>+91 89796 22310</strong> for immediate assistance with your warranty claim.</p>
+                    <p class="text-xs text-emerald-800">You can message us directly on WhatsApp at <strong>+91 87912 27210</strong> for immediate assistance with your warranty claim.</p>
                 </div>
             </div>
-            <a href="https://wa.me/918979622310?text=Hi%20VRAZIO%2C%20I%20need%20help%20with%20my%20warranty%20claim%20for%20order%20{{ $order->order_number }}" 
+            <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20need%20help%20with%20my%20warranty%20claim%20for%20order%20{{ $order->order_number }}" 
                target="_blank" 
                rel="noopener noreferrer"
                class="px-5 py-2.5 bg-[#25D366] hover:bg-[#1ebd5b] text-white text-xs font-bold uppercase tracking-wider rounded shadow transition-all whitespace-nowrap flex items-center gap-2">
@@ -209,7 +209,7 @@
                             </label>
                             <input type="tel" name="phone" required
                                    value="{{ old('phone', auth()->user()?->phone ?? $order->client_phone) }}"
-                                   placeholder="e.g. +91 89796 22310"
+                                   placeholder="e.g. +91 87912 27210"
                                    class="w-full text-xs border border-gray-200 px-3.5 py-2.5 focus:border-[#D4AF37] focus:outline-none bg-white">
                         </div>
 

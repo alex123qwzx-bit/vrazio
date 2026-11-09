@@ -65,7 +65,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="https://wa.me/918979622310?text={{ urlencode('Hello VRAZIO Support, I need help with my account (Name: ' . $user->name . ')') }}" 
+                <a href="https://wa.me/918791227210?text={{ urlencode('Hello VRAZIO Support, I need help with my account (Name: ' . $user->name . ')') }}" 
                    target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#25D366] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#1EBE5D] transition-colors rounded-xs shadow-xs">
                     <svg width="16" height="16" class="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -265,10 +265,10 @@
                         Our concierge desk is available 7 days a week for order inquiries, returns, and warranty requests.
                     </p>
                     <div class="space-y-2 pt-1 text-xs">
-                        <a href="https://wa.me/918979622310" target="_blank" rel="noopener noreferrer"
+                        <a href="https://wa.me/918791227210" target="_blank" rel="noopener noreferrer"
                            class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#25D366]/10 hover:text-[#25D366] text-gray-700 transition-colors border border-gray-100 rounded-xs">
                             <span class="font-medium">WhatsApp Support</span>
-                            <span class="font-mono font-semibold">+91 89796 22310</span>
+                            <span class="font-mono font-semibold">+91 87912 27210</span>
                         </a>
                         <a href="mailto:vrazioofficial@gmail.com" 
                            class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#0E261C]/5 hover:text-[#0E261C] text-gray-700 transition-colors border border-gray-100 rounded-xs">

@@ -8,9 +8,7 @@
     <div class="max-w-4xl mx-auto px-6">
         {{-- Success Banner --}}
         <div class="bg-white border border-[#D4AF37]/30 p-8 sm:p-12 shadow-sm text-center relative overflow-hidden">
-            <div class="w-16 h-16 bg-[#0E261C] border border-[#D4AF37] rounded-full flex items-center justify-center mx-auto text-[#D4AF37] mb-4">
-                <svg width="32" height="32" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            </div>
+            <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Atelier Emblem" class="w-24 h-24 mx-auto rounded-full border-2 border-[#D4AF37] shadow-md mb-4 object-contain bg-[#0E261C]">
 
             <span class="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">Atelier Commission Confirmed</span>
             <h1 class="font-display text-3xl sm:text-4xl font-bold text-[#0E261C] mt-2">
@@ -132,7 +130,13 @@
                 </div>
 
                 <div>
-                    <span class="text-gray-400 uppercase tracking-wider text-[10px] block">Razorpay Settlement Ref</span>
+                    <span class="text-gray-400 uppercase tracking-wider text-[10px] block">Enterprise Credentials</span>
+                    <p class="font-semibold text-[#0E261C] mt-0.5">VRAZIO</p>
+                    <p class="text-gray-600 font-mono text-[11px]">UDYAM: UDYAM-UP-59-0089382 &bull; 3% GST</p>
+                </div>
+
+                <div>
+                    <span class="text-gray-400 uppercase tracking-wider text-[10px] block">Payment &amp; Settlement Ref</span>
                     <p class="font-mono text-gray-700 mt-0.5">{{ $order->razorpay_payment_id ?? 'Awaiting Confirmation' }}</p>
                     <span class="inline-block mt-1 px-2 py-0.5 bg-green-50 text-green-800 text-[10px] font-bold uppercase tracking-wider border border-green-200">
                         {{ strtoupper($order->payment_status) }}
