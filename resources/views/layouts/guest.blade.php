@@ -41,7 +41,7 @@
 <body class="bg-[#0A1C15] text-[#FAF8F5] min-h-screen flex flex-col justify-between font-body antialiased">
     <header class="py-8 text-center border-b border-[#D4AF37]/20">
         <a href="{{ route('home') }}" class="inline-block">
-            <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Emblem" class="w-16 h-16 mx-auto rounded-full border border-[#D4AF37]/50 shadow-md mb-2 object-contain bg-[#0E261C]">
+            <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Brand Logo" class="w-20 h-20 mx-auto rounded-lg border border-[#D4AF37]/50 shadow-md mb-2 object-contain bg-[#0E261C]">
             <span class="font-display text-3xl md:text-4xl tracking-[0.25em] font-bold text-[#D4AF37]">V R A Z I O</span>
             <span class="block text-[9px] uppercase tracking-[0.4em] text-[#D4AF37]/70 mt-1">Haute Joaillerie &bull; Master Atelier</span>
         </a>

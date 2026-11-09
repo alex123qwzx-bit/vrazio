@@ -378,8 +378,8 @@
                     <table style="border-collapse: collapse;">
                         <tr>
                             @if(!empty($pdfLogoBase64))
-                                <td style="width: 75px; vertical-align: top; padding-right: 12px;">
-                                    <img src="data:image/png;base64,{{ $pdfLogoBase64 }}" width="70" height="70" style="width: 70px; height: 70px; border-radius: 50%; border: 1px solid #D4AF37;" alt="VRAZIO Emblem">
+                                <td style="width: 85px; vertical-align: top; padding-right: 14px;">
+                                    <img src="data:image/png;base64,{{ $pdfLogoBase64 }}" width="80" height="80" style="width: 80px; height: 80px; border-radius: 6px; border: 1px solid #D4AF37;" alt="VRAZIO Brand Logo">
                                 </td>
                             @endif
                             <td style="vertical-align: top;">

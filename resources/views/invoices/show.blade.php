@@ -100,7 +100,7 @@
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-8 border-b border-[#D4AF37]/20">
             {{-- Brand Logo & Taglines --}}
             <div class="flex items-center sm:items-start gap-4 sm:gap-5">
-                <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Emblem" class="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-full border border-[#D4AF37]/40 shadow-sm shrink-0 bg-[#0E261C]">
+                <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Brand Logo" class="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-lg border border-[#D4AF37]/50 shadow-md shrink-0 bg-[#0E261C]">
                 <div>
                     <div class="font-display text-3xl sm:text-4xl font-bold tracking-[0.2em] text-[#0E261C]">
                         VR<span class="text-[#D4AF37]">A</span>ZIO

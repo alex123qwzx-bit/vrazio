@@ -8,7 +8,7 @@
     <div class="max-w-4xl mx-auto px-6">
         {{-- Success Banner --}}
         <div class="bg-white border border-[#D4AF37]/30 p-8 sm:p-12 shadow-sm text-center relative overflow-hidden">
-            <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Atelier Emblem" class="w-24 h-24 mx-auto rounded-full border-2 border-[#D4AF37] shadow-md mb-4 object-contain bg-[#0E261C]">
+            <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Brand Logo" class="w-28 h-28 mx-auto rounded-xl border-2 border-[#D4AF37] shadow-md mb-4 object-contain bg-[#0E261C]">
 
             <span class="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">Atelier Commission Confirmed</span>
             <h1 class="font-display text-3xl sm:text-4xl font-bold text-[#0E261C] mt-2">

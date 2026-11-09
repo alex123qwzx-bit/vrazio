@@ -162,6 +162,31 @@
                      return;
                  }
 
+                 // Handle Simulated / Demo Razorpay (ensures client demo never fails on missing gateway keys)
+                 if (data.is_simulated || (data.key && data.key.includes('simulated'))) {
+                     const verifyRes = await fetch('{{ route('checkout.verify-payment') }}', {
+                         method: 'POST',
+                         headers: {
+                             'Content-Type': 'application/json',
+                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                             'Accept': 'application/json'
+                         },
+                         body: JSON.stringify({
+                             razorpay_order_id: data.razorpay_order_id,
+                             razorpay_payment_id: 'pay_sim_' + Math.random().toString(36).substring(2, 11),
+                             razorpay_signature: 'sig_sim_demo_approved'
+                         })
+                     });
+                     const verifyData = await verifyRes.json();
+                     if (verifyData.success && verifyData.redirect_url) {
+                         window.location.href = verifyData.redirect_url;
+                     } else {
+                         this.errorMessage = verifyData.message || 'Payment simulation failed.';
+                         this.paymentSubmitting = false;
+                     }
+                     return;
+                 }
+
                  // Launch Razorpay Modal
                  const options = {
                      key: data.key,

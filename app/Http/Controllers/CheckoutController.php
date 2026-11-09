@@ -196,6 +196,7 @@ class CheckoutController extends Controller
             return response()->json([
                 'success' => true,
                 'payment_method' => 'razorpay',
+                'is_simulated' => $this->razorpayService->isSimulated(),
                 'order_number' => $order->order_number,
                 'razorpay_order_id' => $razorpayOrder->id,
                 'amount' => (int) round($totalAmount * 100), // in paise for Razorpay JS
@@ -294,25 +295,20 @@ class CheckoutController extends Controller
             return;
         }
 
-        DB::transaction(function () use ($order, $paymentId) {
-            $freshOrder = Order::where('id', $order->id)->lockForUpdate()->first();
-            if (! $freshOrder || $freshOrder->payment_status === 'paid') {
-                return;
-            }
+        $order->update([
+            'razorpay_payment_id' => $paymentId,
+            'payment_status' => 'paid',
+            'fulfillment_status' => 'inscribed',
+        ]);
 
-            $freshOrder->update([
-                'razorpay_payment_id' => $paymentId,
-                'payment_status' => 'paid',
-                'fulfillment_status' => 'inscribed',
-            ]);
-
-            // Decrement inventory stock
-            foreach ($freshOrder->items as $item) {
-                if ($item->product) {
-                    $item->product->decrement('stock_quantity', $item->quantity);
-                }
+        // Decrement inventory stock atomically
+        foreach ($order->items as $item) {
+            if ($item->product_id) {
+                Product::where('id', (int) $item->product_id)
+                    ->where('stock_quantity', '>=', (int) $item->quantity)
+                    ->decrement('stock_quantity', (int) $item->quantity);
             }
-        });
+        }
     }
 
     /**

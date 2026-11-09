@@ -93,14 +93,19 @@ document.addEventListener('alpine:init', () => {
                     if (error.code === 'auth/popup-closed-by-user') {
                         return;
                     }
-                    if (error.code === 'auth/unauthorized-domain' || (error.message && error.message.includes('unauthorized-domain'))) {
+                    const isDomainAuthError = error.code === 'auth/unauthorized-domain'
+                        || error.code === 'auth/invalid-continue-uri'
+                        || (error.message && (
+                            error.message.includes('unauthorized-domain')
+                            || error.message.includes('invalid-continue-uri')
+                            || error.message.includes('missing initial state')
+                        ));
+
+                    if (isDomainAuthError) {
                         const currentHost = window.location.hostname;
-                        this.errorMessage = 'This domain (' + currentHost + ') is not authorized in Firebase Console. To enable Google Sign-In, go to Firebase Console > Authentication > Settings > Authorized domains, and click "Add domain" for: ' + currentHost;
-                    } else if (error.message && error.message.includes('missing initial state')) {
-                        const currentHost = window.location.hostname;
-                        this.errorMessage = 'Google Sign-In requires ' + currentHost + ' to be added in Firebase Console > Authentication > Settings > Authorized domains.';
+                        this.errorMessage = 'Google Sign-In requires "' + currentHost + '" to be added in Firebase Console > Authentication > Settings > Authorized domains. To sign in right now, please use Mobile SMS OTP or Email/Password below!';
                     } else {
-                        this.errorMessage = error.message || 'Unable to sign in with Google. Please try again.';
+                        this.errorMessage = error.message || 'Unable to sign in with Google. Please sign in via Mobile SMS OTP or Email below.';
                     }
                 });
         },
