@@ -4,7 +4,7 @@
 @section('meta_description', 'Manage your VRAZIO account, view past orders, track deliveries, and check warranty claim status.')
 
 @section('content')
-<div class="bg-[#FAF8F5] min-h-screen py-10 md:py-14">
+<div x-data="{ editModal: {{ $errors->any() ? 'true' : 'false' }} }" class="bg-[#FAF8F5] min-h-screen py-10 md:py-14">
     <div class="max-w-6xl mx-auto px-6">
         {{-- Breadcrumbs --}}
         <x-breadcrumbs :links="[
@@ -435,4 +435,86 @@
         </div>
     </div>
 </div>
+
+    {{-- Edit Profile Modal --}}
+    <div x-show="editModal" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto"
+         aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" @click="editModal = false"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-xs bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-[#D4AF37]/40 p-6 sm:p-8"
+                 @click.away="editModal = false">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold">Account Settings</span>
+                        <h3 class="font-display text-xl font-bold text-[#0E261C] mt-0.5">Edit Patron Profile</h3>
+                    </div>
+                    <button type="button" @click="editModal = false" class="text-gray-400 hover:text-gray-600 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <form action="{{ route('account.profile.update') }}" method="POST" class="space-y-4 text-xs">
+                    @csrf
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1 uppercase tracking-wider text-[10px]">Full Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-xs">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1 uppercase tracking-wider text-[10px]">Email Address</label>
+                        <input type="email" value="{{ $user->email }}" disabled 
+                               class="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xs text-gray-500 text-xs cursor-not-allowed">
+                        <p class="text-[10px] text-gray-400 mt-1">To change your primary email address, please contact concierge support.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1 uppercase tracking-wider text-[10px]">Mobile Phone Number</label>
+                        <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="10-digit mobile number"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-xs font-mono">
+                        <p class="text-[10px] text-amber-700 mt-1">Note: Updating your mobile number will reset SMS phone verification.</p>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100">
+                        <span class="block text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-2">Change Password (Optional)</span>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-gray-600 text-[10px] uppercase tracking-wider mb-0.5">Current Password</label>
+                                <input type="password" name="current_password" placeholder="Leave blank to keep existing password"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-xs">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-gray-600 text-[10px] uppercase tracking-wider mb-0.5">New Password</label>
+                                    <input type="password" name="new_password" placeholder="Min. 8 characters"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-xs">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-600 text-[10px] uppercase tracking-wider mb-0.5">Confirm New Password</label>
+                                    <input type="password" name="new_password_confirmation" placeholder="Confirm password"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-xs focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-xs">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" @click="editModal = false" 
+                                class="px-4 py-2 border border-gray-300 text-gray-700 text-xs font-semibold uppercase tracking-wider hover:bg-gray-50 rounded-xs transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-5 py-2 bg-[#0E261C] text-[#D4AF37] text-xs font-semibold uppercase tracking-wider hover:bg-[#D4AF37] hover:text-[#0E261C] rounded-xs transition-colors shadow-xs">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection

@@ -38,7 +38,8 @@ RUN if [ ! -f .env ]; then \
         sed -i 's|^APP_KEY=.*|APP_KEY=base64:MsSubg1hnz426grHFbFVGOKiJRekcf+FQM2qSvDg2Qs=|' .env && \
         sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|' .env && \
         sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env && \
-        sed -i 's|^APP_DEBUG=.*|APP_DEBUG=true|' .env && \
+        sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env && \
+        sed -i 's|^APP_ENV=.*|APP_ENV=production|' .env && \
         sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=stderr|' .env; \
     fi
 

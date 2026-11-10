@@ -140,7 +140,7 @@ document.addEventListener('alpine:init', () => {
                 if (data.success) {
                     this.otpSent = true;
                     this.successMessage = data.message;
-                    if (data.dev_otp) {
+                    if (data.dev_otp && {{ config('services.otp.dev_mode') ? 'true' : 'false' }}) {
                         this.successMessage += ' [Test Code: ' + data.dev_otp + ']';
                         this.otp = data.dev_otp;
                     }

@@ -191,7 +191,8 @@ class CustomerAuthController extends Controller
             $request->user()->sendEmailVerificationNotification();
             return back()->with('success', 'A new verification link has been sent to your email address!');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Unable to send email: ' . $e->getMessage() . '. Please verify your SMTP settings in .env.');
+            \Log::error('Email verification error', ['error' => $e->getMessage()]);
+            return back()->with('error', 'We made a mistake while sending your verification email. Please try again shortly or contact concierge support.');
         }
     }
 
@@ -350,58 +351,69 @@ class CustomerAuthController extends Controller
 
         $user = null;
 
-        // 1. Phone SMS Auth — Strictly read phone from verified Firebase token, NEVER from $request->input('phone')
-        if ($provider === 'phone') {
-            if (empty($phoneNumber)) {
-                return response()->json(['success' => false, 'message' => 'Token does not contain a verified mobile number.'], 403);
+        try {
+            // 1. Phone SMS Auth — Strictly read phone from verified Firebase token, NEVER from $request->input('phone')
+            if ($provider === 'phone') {
+                if (empty($phoneNumber)) {
+                    return response()->json(['success' => false, 'message' => 'Token does not contain a verified mobile number.'], 403);
+                }
+
+                $cleanPhone = $this->otpService->normalizePhone($phoneNumber);
+                if (empty($cleanPhone)) {
+                    return response()->json(['success' => false, 'message' => 'Invalid phone number format in token.'], 403);
+                }
+
+                $user = User::where('phone', $cleanPhone)
+                    ->orWhere('phone', 'like', "%{$cleanPhone}")
+                    ->first();
+
+                if (! $user) {
+                    $user = User::create([
+                        'name' => $displayName ?? ('Patron ' . substr($cleanPhone, -4)),
+                        'email' => $email ?? ($cleanPhone . '@vrazio.customer'),
+                        'phone' => $cleanPhone,
+                        'role' => 'patron',
+                        'password' => Hash::make(Str::random(32)),
+                        'phone_verified_at' => now(),
+                    ]);
+                } else {
+                    $user->update(['phone_verified_at' => now()]);
+                }
             }
 
-            $cleanPhone = $this->otpService->normalizePhone($phoneNumber);
-            if (empty($cleanPhone)) {
-                return response()->json(['success' => false, 'message' => 'Invalid phone number format in token.'], 403);
+            // 2. Google Sign-In — Authenticate strictly via verified Google email and UID
+            if ($provider === 'google' || (! $user && !empty($email))) {
+                $user = User::where('google_id', $firebaseUid)
+                    ->orWhere('email', $email)
+                    ->first();
+
+                if (! $user) {
+                    $user = User::create([
+                        'name' => $displayName ?? 'Patron',
+                        'email' => $email,
+                        'google_id' => $firebaseUid,
+                        'avatar' => $photoUrl,
+                        'role' => 'patron',
+                        'password' => Hash::make(Str::random(32)),
+                        'email_verified_at' => now(),
+                    ]);
+                } else {
+                    $user->update([
+                        'google_id' => $firebaseUid,
+                        'avatar' => $photoUrl ?? $user->avatar,
+                        'email_verified_at' => $user->email_verified_at ?? now(),
+                    ]);
+                }
             }
-
-            $user = User::where('phone', $cleanPhone)
-                ->orWhere('phone', 'like', "%{$cleanPhone}")
-                ->first();
-
-            if (! $user) {
-                $user = User::create([
-                    'name' => $displayName ?? ('Patron ' . substr($cleanPhone, -4)),
-                    'email' => $email ?? ($cleanPhone . '@vrazio.customer'),
-                    'phone' => $cleanPhone,
-                    'role' => 'patron',
-                    'password' => Hash::make(Str::random(32)),
-                    'phone_verified_at' => now(),
-                ]);
-            } else {
-                $user->update(['phone_verified_at' => now()]);
-            }
-        }
-
-        // 2. Google Sign-In — Authenticate strictly via verified Google email and UID
-        if ($provider === 'google' || (! $user && !empty($email))) {
-            $user = User::where('google_id', $firebaseUid)
-                ->orWhere('email', $email)
-                ->first();
-
-            if (! $user) {
-                $user = User::create([
-                    'name' => $displayName ?? 'Patron',
-                    'email' => $email,
-                    'google_id' => $firebaseUid,
-                    'avatar' => $photoUrl,
-                    'role' => 'patron',
-                    'password' => Hash::make(Str::random(32)),
-                    'email_verified_at' => now(),
-                ]);
-            } else {
-                $user->update([
-                    'google_id' => $firebaseUid,
-                    'avatar' => $photoUrl ?? $user->avatar,
-                    'email_verified_at' => $user->email_verified_at ?? now(),
-                ]);
-            }
+        } catch (\Throwable $e) {
+            \Log::error('Firebase Authentication Session Error', [
+                'error' => $e->getMessage(),
+                'provider' => $provider,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'We made a mistake while setting up your session. Please try again or sign in with password.',
+            ], 500);
         }
 
         if (! $user) {
@@ -416,5 +428,81 @@ class CustomerAuthController extends Controller
             'message' => 'Welcome, ' . $user->name . '!',
             'redirect' => session()->pull('url.intended', route('account')),
         ]);
+    }
+
+    /**
+     * Update patron profile information.
+     */
+    public function updateProfile(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'regex:/^[0-9+\s\-()]{10,20}$/'],
+            'current_password' => ['nullable', 'required_with:new_password', 'string'],
+            'new_password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ], [
+            'name.required' => 'Please enter your full name.',
+            'phone.regex' => 'Please enter a valid mobile number.',
+            'current_password.required_with' => 'Current password is required to change your password.',
+            'new_password.confirmed' => 'The new password confirmation does not match.',
+            'new_password.min' => 'The new password must be at least 8 characters.',
+        ]);
+
+        // If password update requested, verify current password
+        if (! empty($validated['new_password'])) {
+            if (! empty($user->password) && ! Hash::check($validated['current_password'] ?? '', $user->password)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'The current password provided is incorrect.'], 422);
+                }
+                return back()->withErrors(['current_password' => 'The current password provided is incorrect.']);
+            }
+            $user->password = Hash::make($validated['new_password']);
+        }
+
+        $user->name = trim($validated['name']);
+
+        // Handle phone update
+        if (array_key_exists('phone', $validated)) {
+            if (! empty($validated['phone'])) {
+                $cleanPhone = $this->otpService->normalizePhone($validated['phone']);
+                
+                // Check if phone changed
+                if ($cleanPhone !== $user->phone) {
+                    // Check if already taken by another account
+                    $existing = User::where('phone', $cleanPhone)->where('id', '!=', $user->id)->first();
+                    if ($existing) {
+                        if ($request->expectsJson()) {
+                            return response()->json(['success' => false, 'message' => 'This mobile number is already registered with another patron account.'], 422);
+                        }
+                        return back()->withErrors(['phone' => 'This mobile number is already registered with another patron account.']);
+                    }
+
+                    $user->phone = $cleanPhone;
+                    $user->phone_verified_at = null; // Require re-verification
+                }
+            } else {
+                $user->phone = null;
+                $user->phone_verified_at = null;
+            }
+        }
+
+        $user->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Your profile details have been successfully updated.',
+            ]);
+        }
+
+        return redirect()->route('account')->with('success', 'Your profile details have been successfully updated.');
     }
 }

@@ -153,7 +153,7 @@ class WarrantyClaimController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Unable to record warranty claim: ' . $e->getMessage());
+                ->with('error', 'We made a mistake while submitting your warranty claim. Please try again shortly or contact concierge support.');
         }
     }
 

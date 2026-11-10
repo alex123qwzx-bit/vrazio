@@ -223,10 +223,7 @@ class CheckoutController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to initialize order in atelier vault. Please try again.',
-                'error_detail' => $e->getMessage(),
-                'error_file' => $e->getFile() . ':' . $e->getLine(),
-                'queries' => $queryLog,
+                'message' => 'We made a mistake while initializing your order. Our team has been notified. Please try again shortly.',
             ], 500);
         }
     }

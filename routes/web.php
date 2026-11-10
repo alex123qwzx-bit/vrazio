@@ -35,6 +35,7 @@ Route::post('/auth/firebase/session', [CustomerAuthController::class, 'handleFir
 Route::post('/auth/otp/send', [CustomerAuthController::class, 'sendLoginOtp'])->middleware('throttle:3,5')->name('auth.otp.send');
 Route::post('/auth/otp/verify', [CustomerAuthController::class, 'verifyLoginOtp'])->middleware('throttle:5,5')->name('auth.otp.verify');
 Route::post('/account/phone/verify', [CustomerAuthController::class, 'verifyDashboardPhone'])->middleware(['auth', 'throttle:5,5'])->name('account.phone.verify');
+Route::post('/account/profile', [CustomerAuthController::class, 'updateProfile'])->middleware(['auth', 'throttle:10,1'])->name('account.profile.update');
 
 // Email Verification
 Route::get('/email/verify', [CustomerAuthController::class, 'showVerifyEmail'])->name('verification.notice');

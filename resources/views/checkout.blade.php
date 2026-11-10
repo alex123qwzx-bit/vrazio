@@ -64,7 +64,7 @@
                  const data = await res.json();
                  if (data.success) {
                      this.successMessage = data.message;
-                     if (data.dev_otp) {
+                     if (data.dev_otp && {{ config('services.otp.dev_mode') ? 'true' : 'false' }}) {
                          this.successMessage += ' [Dev Simulator OTP: ' + data.dev_otp + ']';
                          this.otpCode = data.dev_otp;
                      }

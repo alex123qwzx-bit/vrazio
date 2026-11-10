@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,7 +14,7 @@ class CheckoutAndWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_checkout_rejects_unverified_phone_number(): void
+    public function test_checkout_rejects_unauthenticated_guest(): void
     {
         $product = Product::factory()->create(['stock_quantity' => 5, 'price' => 50000]);
 
@@ -30,24 +31,26 @@ class CheckoutAndWebhookTest extends TestCase
             'shipping_method' => 'standard',
         ];
 
-        // Session does not have verified phone
+        // Unauthenticated guest cannot checkout
         $response = $this->withSession([
             'cart' => [
                 (string)$product->id => ['id' => $product->id, 'quantity' => 1],
             ],
         ])->postJson(route('checkout.process'), $payload);
 
-        $response->assertStatus(403);
+        $response->assertStatus(401);
     }
 
     public function test_checkout_succeeds_with_verified_phone_and_locks_stock(): void
     {
+        $user = User::factory()->create(['phone' => '9876543210']);
         $product = Product::factory()->create(['stock_quantity' => 2, 'price' => 50000]);
 
         $payload = [
             'client_name' => 'Aditi Sharma',
             'client_email' => 'aditi@example.com',
             'client_phone' => '9876543210',
+            'payment_method' => 'razorpay',
             'shipping_address' => [
                 'street' => 'Colaba Causeway',
                 'city' => 'Mumbai',
@@ -57,7 +60,7 @@ class CheckoutAndWebhookTest extends TestCase
             'shipping_method' => 'standard',
         ];
 
-        $response = $this->withSession([
+        $response = $this->actingAs($user)->withSession([
             'order_phone_verified' => '9876543210',
             'cart' => [
                 "{$product->id}_Size_14" => [

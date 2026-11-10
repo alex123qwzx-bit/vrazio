@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Atelier Maintenance | 500')
-@section('meta_description', 'Our atelier vault is currently experiencing an unexpected interruption. Our master technicians are attending to it.')
+@section('title', 'We Made a Mistake | 500')
+@section('meta_description', 'We made a mistake. Our master technicians are attending to it. Your patron information and order history remain completely secure.')
 
 @section('content')
 <div class="bg-[#FAF8F5] min-h-[75vh] flex items-center justify-center py-20 px-6">
@@ -11,15 +11,15 @@
         </div>
 
         <span class="block text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-semibold mb-2">
-            Atelier Interruption
+            We Made a Mistake
         </span>
 
-        <h1 class="font-display text-4xl sm:text-5xl font-bold text-[#0E261C] mb-4">
-            Undergoing Vault Maintenance
+        <h1 class="font-display text-3xl sm:text-4xl font-bold text-[#0E261C] mb-4">
+            Something Went Wrong on Our End
         </h1>
 
         <p class="text-sm text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-            Our atelier system encountered an unexpected security condition. Rest assured, all patron dossiers and cart items remain safely preserved.
+            {{ $message ?? 'We apologize for the inconvenience. An unexpected error occurred and our engineering team has been automatically alerted. Rest assured, your account, orders, and cart remain safely protected.' }}
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -27,7 +27,7 @@
                class="w-full sm:w-auto px-8 py-4 bg-[#0E261C] text-[#D4AF37] border border-[#D4AF37] text-xs uppercase tracking-[0.25em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all shadow-lg">
                 Return to Grand Foyer
             </a>
-            <a href="https://wa.me/918791227210" 
+            <a href="https://wa.me/918791227210?text=Hello%20VRAZIO%20Concierge,%20I%20encountered%20an%20issue%20on%20the%20website" 
                target="_blank"
                class="w-full sm:w-auto px-8 py-4 bg-emerald-700 text-white text-xs uppercase tracking-[0.25em] font-semibold hover:bg-emerald-800 transition-all shadow-sm">
                 WhatsApp Concierge
