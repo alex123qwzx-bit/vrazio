@@ -351,6 +351,7 @@
                                             @php
                                                 $casualKey = $order->getCasualStatusKey();
                                                 $badgeClasses = match($casualKey) {
+                                                    'cancelled' => 'bg-rose-100 text-rose-800 border-rose-300',
                                                     'delivered' => 'bg-green-100 text-green-800 border-green-300',
                                                     'out_for_delivery' => 'bg-sky-100 text-sky-800 border-sky-300',
                                                     'shipped' => 'bg-blue-100 text-blue-800 border-blue-300',
@@ -427,6 +428,18 @@
                                                class="px-3 py-1.5 text-xs text-gray-700 hover:text-[#0E261C] border border-gray-300 hover:border-[#0E261C] transition-colors rounded-xs">
                                                 Track Delivery
                                             </a>
+
+                                            @if($order->canBeCancelled())
+                                                <form action="{{ route('order.cancel', $order->order_number) }}" method="POST"
+                                                      onsubmit="return confirm('Are you sure you wish to cancel order #{{ $order->order_number }}? Reserved atelier items will be restored.');"
+                                                      class="inline-block">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            class="px-3 py-1.5 text-xs text-rose-700 hover:text-white border border-rose-300 hover:bg-rose-700 transition-colors rounded-xs">
+                                                        Cancel Order
+                                                    </button>
+                                                </form>
+                                            @endif
 
                                             @if($order->warrantyClaim)
                                                 <a href="{{ route('warranty.show', $order->warrantyClaim->claim_number) }}" 

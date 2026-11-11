@@ -8,6 +8,7 @@ use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\SiteThemeSetting;
 use App\Services\CartService;
 use App\Services\RazorpayService;
 use Illuminate\Contracts\View\View;
@@ -54,13 +55,21 @@ class CheckoutController extends Controller
             session(['order_phone_verified' => $verifiedPhone]);
         }
 
+        $indianStates = CartService::INDIAN_STATES;
+        $codStateRates = SiteThemeSetting::getSetting('cod_state_rates', []);
+        if (! is_array($codStateRates)) {
+            $codStateRates = json_decode((string) $codStateRates, true) ?: [];
+        }
+
         return view('checkout', compact(
             'items',
             'subtotal',
             'gst',
             'standardTotal',
             'expressTotal',
-            'verifiedPhone'
+            'verifiedPhone',
+            'indianStates',
+            'codStateRates'
         ));
     }
 
@@ -99,6 +108,9 @@ class CheckoutController extends Controller
         $gst = $this->cartService->getGst();
         $shippingMethod = $validated['shipping_method'];
         $shippingCost = $this->cartService->getShippingCost($shippingMethod);
+        $stateName = $validated['shipping_address']['state'] ?? '';
+        $codFee = ($paymentMethod === 'cod') ? CartService::getCodFeeForState($stateName) : 0.0;
+        $shippingCost = round($shippingCost + $codFee, 2);
         $totalAmount = round($subtotal + $gst + $shippingCost, 2);
 
         $queryLog = [];

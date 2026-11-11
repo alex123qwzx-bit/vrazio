@@ -70,6 +70,7 @@ Route::get('/order/track/{orderNumber?}', [OrderController::class, 'track'])->na
 Route::get('/orders/track/{orderNumber?}', [OrderController::class, 'track'])->name('orders.track');
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('/account/orders', [OrderController::class, 'index'])->name('account.orders');
+Route::post('/orders/{orderNumber}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
 
 // Luxury Order Invoices (Web View, PDF Download, Stream)
 Route::get('/order/{orderNumber}/invoice', [InvoiceController::class, 'show'])->name('order.invoice');

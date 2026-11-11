@@ -47,7 +47,7 @@ class InvoiceController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
                 'defaultFont' => 'serif',
-                'dpi' => 150,
+                'dpi' => 96,
             ]);
 
         return $pdf->download("VRAZIO-Invoice-{$order->order_number}.pdf");
@@ -72,7 +72,7 @@ class InvoiceController extends Controller
                 'isHtml5ParserEnabled' => true,
                 'isRemoteEnabled' => true,
                 'defaultFont' => 'serif',
-                'dpi' => 150,
+                'dpi' => 96,
             ]);
 
         return $pdf->stream("VRAZIO-Invoice-{$order->order_number}.pdf");

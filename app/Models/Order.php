@@ -73,6 +73,13 @@ class Order extends Model
      * Clean casual order tracking steps.
      */
     public const array CASUAL_STEPS = [
+        'cancelled' => [
+            'key' => 'cancelled',
+            'step' => 0,
+            'label' => 'Cancelled',
+            'desc' => 'Order was cancelled',
+            'aliases' => ['cancelled', 'canceled'],
+        ],
         'order_placed' => [
             'key' => 'order_placed',
             'step' => 1,
@@ -238,10 +245,12 @@ class Order extends Model
     {
         return Attribute::make(
             get: fn (): string => match ($this->fulfillment_status) {
-                'inscribed' => 'amber',
-                'hallmarking' => 'blue',
-                'armoured_transit' => 'indigo',
+                'inscribed', 'order_placed' => 'amber',
+                'hallmarking', 'packed' => 'blue',
+                'armoured_transit', 'shipped' => 'indigo',
+                'out_for_delivery' => 'sky',
                 'delivered' => 'emerald',
+                'cancelled' => 'rose',
                 default => 'gray',
             },
         );
@@ -379,6 +388,46 @@ class Order extends Model
         }
 
         return $dateFormatted;
+    }
+
+    /**
+     * Determine if order can be cancelled by patron.
+     */
+    public function canBeCancelled(): bool
+    {
+        if ($this->fulfillment_status === 'cancelled') {
+            return false;
+        }
+
+        $casualKey = $this->getCasualStatusKey();
+        return in_array($casualKey, ['order_placed', 'packed'], true);
+    }
+
+    /**
+     * Cancel the order and restore reserved product stock.
+     */
+    public function cancel(string $reason = 'Cancelled by customer'): bool
+    {
+        if (! $this->canBeCancelled()) {
+            return false;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($reason) {
+            // Restore inventory for each line item
+            foreach ($this->items as $item) {
+                if ($item->product_id && $item->quantity > 0) {
+                    Product::where('id', $item->product_id)->increment('stock_quantity', (int) $item->quantity);
+                }
+            }
+
+            $currentNotes = $this->tracking_notes ? $this->tracking_notes . "\n" : '';
+            $this->update([
+                'fulfillment_status' => 'cancelled',
+                'tracking_notes' => $currentNotes . '[' . now()->toDateTimeString() . '] ' . $reason,
+            ]);
+        });
+
+        return true;
     }
 
     /*

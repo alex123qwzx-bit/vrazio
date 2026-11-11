@@ -118,4 +118,25 @@ class OrderController extends Controller
 
         return view('orders.track', compact('order', 'reference', 'accessDenied'));
     }
+
+    /**
+     * Cancel an active order by customer.
+     */
+    public function cancel(Request $request, string $orderNumber): RedirectResponse
+    {
+        $order = Order::with('items')->where('order_number', $orderNumber)->firstOrFail();
+
+        if (! $order->isAccessibleBy(auth()->user())) {
+            abort(403, 'Unauthorized access to cancel this order.');
+        }
+
+        if (! $order->canBeCancelled()) {
+            return back()->with('error', 'This order cannot be cancelled as it is already being processed or in transit.');
+        }
+
+        $reason = $request->input('reason', 'Cancelled by customer via portal');
+        $order->cancel($reason);
+
+        return back()->with('success', "Order #{$order->order_number} has been successfully cancelled. Reserved inventory was restored to stock.");
+    }
 }

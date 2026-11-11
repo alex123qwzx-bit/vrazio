@@ -5,7 +5,7 @@
     <title>Invoice - {{ $order->order_number }} | VRAZIO</title>
     <style>
         @page {
-            margin: 25px 35px 35px 35px;
+            margin: 15mm 15mm 15mm 15mm;
             size: a4 portrait;
         }
 
@@ -39,14 +39,16 @@
 
         .container {
             width: 100%;
-            padding: 10px 15px;
+            padding: 0;
+            margin: 0;
         }
 
         /* Header Table */
         .header-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .header-table td {
@@ -86,9 +88,9 @@
         }
 
         .invoice-title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: normal;
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             color: #0E261C;
             text-transform: uppercase;
             margin-bottom: 4px;
@@ -161,6 +163,7 @@
         /* Products Table */
         .items-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
@@ -206,8 +209,9 @@
         /* Summary Section */
         .summary-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .summary-table td {
@@ -215,8 +219,8 @@
         }
 
         .thankyou-box {
-            width: 58%;
-            padding-right: 25px;
+            width: 57%;
+            padding-right: 15px;
         }
 
         .thank-you-script {
@@ -273,15 +277,16 @@
 
         /* Totals Block */
         .totals-box {
-            width: 42%;
+            width: 43%;
             border-left: 2px solid #D4AF37;
-            padding-left: 18px;
+            padding-left: 12px;
         }
 
         .totals-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 10.5px;
         }
 
         .totals-table td {
@@ -398,7 +403,7 @@
                         </tr>
                     </table>
                 </td>
-                <td style="width: 45%;">
+                <td style="width: 42%;">
                     <div class="invoice-title-block">
                         <div class="invoice-title">INVOICE</div>
                         <div class="invoice-title-line"></div>
@@ -452,11 +457,11 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th class="center" style="width: 6%;">#</th>
-                    <th style="width: 48%;">PRODUCT DESCRIPTION</th>
+                    <th class="center" style="width: 5%;">#</th>
+                    <th style="width: 47%;">PRODUCT DESCRIPTION</th>
                     <th class="center" style="width: 10%;">QTY</th>
                     <th class="right" style="width: 18%;">UNIT PRICE</th>
-                    <th class="right" style="width: 18%;">TOTAL</th>
+                    <th class="right" style="width: 20%;">TOTAL</th>
                 </tr>
             </thead>
             <tbody>

@@ -105,8 +105,37 @@
                             <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             Invoice
                         </a>
+
+                        @if($order->canBeCancelled())
+                            <form action="{{ route('order.cancel', $order->order_number) }}" method="POST"
+                                  onsubmit="return confirm('Are you sure you wish to cancel order #{{ $order->order_number }}? Reserved atelier items will be restored.');"
+                                  class="inline-block">
+                                @csrf
+                                <button type="submit" 
+                                        class="px-4 py-2 bg-rose-50 hover:bg-rose-700 text-rose-700 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors rounded-xs border border-rose-300 flex items-center gap-1.5 shadow-xs">
+                                    Cancel Order
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
+
+                {{-- Cancelled Status Notice --}}
+                @if($order->fulfillment_status === 'cancelled')
+                    <div class="mt-6 p-4 bg-rose-50 border border-rose-200 rounded-xs flex items-center gap-3 text-rose-800">
+                        <div class="w-9 h-9 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center font-bold text-base shrink-0">
+                            ✕
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-rose-800 block">
+                                Order Cancelled
+                            </span>
+                            <span class="text-sm font-medium text-rose-900">
+                                This order was cancelled. Any reserved items have been restored to our vault inventory. If you need further assistance, please contact Concierge on WhatsApp.
+                            </span>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Estimated Delivery Date & Time (Set by Admin) --}}
                 @if($order->getEstimatedDeliveryText())

@@ -13,13 +13,7 @@
          step: 1,
          shippingMethod: 'standard',
          phone: '{{ $verifiedPhone ?? '' }}',
-         otpVerified: {{ !empty($verifiedPhone) ? 'true' : 'false' }},
-         otpModalOpen: false,
-         otpCode: '',
-         otpSending: false,
-         otpVerifying: false,
-         otpCountdown: 0,
-         otpCooldownInterval: null,
+         otpVerified: true,
          errorMessage: '',
          successMessage: '',
 
@@ -33,89 +27,29 @@
          pincode: '',
          paymentMethod: 'cod',
          paymentSubmitting: false,
+         subtotalVal: {{ $subtotal }},
+         gstVal: {{ $gst }},
+         standardTransitVal: 0,
+         expressTransitVal: 999,
+         stateCodRates: {{ json_encode($codStateRates ?? []) }},
 
-         startOtpFlow() {
-             this.errorMessage = '';
-             this.successMessage = '';
-
-             const phoneRegex = /^[6-9]\d{9}$/;
-             if (!phoneRegex.test(this.clientPhone)) {
-                 this.errorMessage = 'Please enter a valid 10-digit Indian mobile number to receive OTP.';
-                 return;
+         getCodFee() {
+             if (this.paymentMethod !== 'cod') return 0;
+             const st = (this.state || '').trim();
+             if (this.stateCodRates && this.stateCodRates[st] !== undefined) {
+                 return parseFloat(this.stateCodRates[st]) || 0;
              }
-
-             this.otpModalOpen = true;
-             this.sendOtp();
+             if (this.stateCodRates && this.stateCodRates['default'] !== undefined) {
+                 return parseFloat(this.stateCodRates['default']) || 0;
+             }
+             return 0;
          },
 
-         async sendOtp() {
-             this.otpSending = true;
-             this.errorMessage = '';
-             try {
-                 const res = await fetch('/api/checkout/otp/send', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                         'Accept': 'application/json'
-                     },
-                     body: JSON.stringify({ phone: this.clientPhone })
-                 });
-                 const data = await res.json();
-                 if (data.success) {
-                     this.successMessage = data.message;
-                     if (data.dev_otp && {{ config('services.otp.dev_mode') ? 'true' : 'false' }}) {
-                         this.successMessage += ' [Dev Simulator OTP: ' + data.dev_otp + ']';
-                         this.otpCode = data.dev_otp;
-                     }
-                     this.startCountdown(30);
-                 } else {
-                     this.errorMessage = data.message || 'Unable to dispatch OTP. Please retry.';
-                 }
-             } catch (err) {
-                 this.errorMessage = 'Network protocol failure. Please retry.';
-             }
-             this.otpSending = false;
-         },
-
-         startCountdown(sec) {
-             this.otpCountdown = sec;
-             if (this.otpCooldownInterval) clearInterval(this.otpCooldownInterval);
-             this.otpCooldownInterval = setInterval(() => {
-                 this.otpCountdown--;
-                 if (this.otpCountdown <= 0) {
-                     clearInterval(this.otpCooldownInterval);
-                     this.otpCooldownInterval = null;
-                 }
-             }, 1000);
-         },
-
-         async verifyOtp() {
-             this.otpVerifying = true;
-             this.errorMessage = '';
-             try {
-                 const res = await fetch('/api/checkout/otp/verify', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                         'Accept': 'application/json'
-                     },
-                     body: JSON.stringify({ phone: this.clientPhone, otp: this.otpCode })
-                 });
-                 const data = await res.json();
-                 if (data.success) {
-                     this.otpVerified = true;
-                     this.otpModalOpen = false;
-                     this.successMessage = 'Mobile successfully validated. Proceed to Payment.';
-                     this.step = 3;
-                 } else {
-                     this.errorMessage = data.message || 'Invalid or expired OTP authentication cipher.';
-                 }
-             } catch (err) {
-                 this.errorMessage = 'Network verification failure. Please retry.';
-             }
-             this.otpVerifying = false;
+         getCalculatedTotal() {
+             let base = this.subtotalVal + this.gstVal;
+             let transit = (this.shippingMethod === 'express') ? this.expressTransitVal : this.standardTransitVal;
+             let cod = this.getCodFee();
+             return (base + transit + cod).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
          },
 
          async initializePayment() {
@@ -312,13 +246,13 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs uppercase tracking-wider text-gray-600 mb-1 font-semibold">Indian Mobile Number (Mandatory SMS OTP) *</label>
+                        <label class="block text-xs uppercase tracking-wider text-gray-600 mb-1 font-semibold">Indian Mobile Number *</label>
                         <div class="flex">
                             <span class="inline-flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 text-xs text-gray-500 font-mono">+91</span>
                             <input type="tel" x-model="clientPhone" maxlength="10" placeholder="9876543210" 
                                    class="w-full text-xs px-4 py-3 border border-gray-200 focus:border-[#D4AF37] focus:outline-none font-mono">
                         </div>
-                        <span class="text-[10px] text-gray-500 mt-1 block">A 6-digit cryptographic verification OTP will be sent to this number.</span>
+                        <span class="text-[10px] text-gray-500 mt-1 block">Used for delivery updates & WhatsApp order confirmation docket.</span>
                     </div>
 
                     <div>
@@ -335,17 +269,10 @@
                         </div>
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-gray-600 mb-1 font-semibold">State *</label>
-                            <select x-model="state" class="w-full text-xs px-3 py-3 border border-gray-200 focus:border-[#D4AF37] focus:outline-none bg-white">
-                                <option value="Maharashtra">Maharashtra</option>
-                                <option value="Delhi">Delhi NCR</option>
-                                <option value="Karnataka">Karnataka</option>
-                                <option value="Tamil Nadu">Tamil Nadu</option>
-                                <option value="Gujarat">Gujarat</option>
-                                <option value="Rajasthan">Rajasthan</option>
-                                <option value="Telangana">Telangana</option>
-                                <option value="West Bengal">West Bengal</option>
-                                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                <option value="Other">Other Territory</option>
+                            <select x-model="state" class="w-full text-xs px-3 py-3 border border-gray-200 focus:border-[#D4AF37] focus:outline-none bg-white font-medium">
+                                @foreach($indianStates ?? \App\Services\CartService::INDIAN_STATES as $st)
+                                    <option value="{{ $st }}">{{ $st }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div>
@@ -375,7 +302,7 @@
                 <div x-show="step === 2" x-cloak class="space-y-6">
                     <div class="flex items-center justify-between pb-3 border-b border-gray-100">
                         <h2 class="font-display text-xl font-bold text-[#0E261C]">
-                            2. Armoured Transit &amp; Mobile OTP Authentication
+                            2. Armoured Transit &amp; Delivery Selection
                         </h2>
                         <button type="button" @click="step = 1" class="text-[11px] text-gray-500 hover:text-[#0E261C] uppercase tracking-wider">
                             &larr; Edit Address
@@ -409,38 +336,6 @@
                                 <p class="text-xs text-gray-500 mt-0.5">Direct chartered armoured courier. 2-3 business days guaranteed delivery with photo ID signoff.</p>
                             </div>
                         </label>
-                    </div>
-
-                    {{-- Mobile OTP Verification Box --}}
-                    <div class="p-6 bg-[#0E261C] text-[#FAF8F5] border border-[#D4AF37]/30 mt-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold">
-                                Consignment Security & Mobile Verification (Optional)
-                            </span>
-                            <template x-if="otpVerified">
-                                <span class="bg-green-700/80 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1">
-                                    ✓ Authenticated
-                                </span>
-                            </template>
-                        </div>
-
-                        <p class="text-xs text-[#FAF8F5]/80 font-light leading-relaxed mb-4">
-                            To ensure high-value vault provenance, an SMS OTP will be dispatched to patron mobile 
-                            <strong class="font-mono text-[#D4AF37]" x-text="'+91 ' + clientPhone"></strong>.
-                        </p>
-
-                        <div x-show="!otpVerified">
-                            <button type="button" 
-                                    @click="startOtpFlow()" 
-                                    class="px-8 py-3.5 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all">
-                                Request SMS OTP Cipher
-                            </button>
-                        </div>
-
-                        <div x-show="otpVerified" class="text-xs text-green-300 flex items-center gap-2">
-                            <svg width="16" height="16" class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                            <span>Phone Verified. You are cleared to proceed with payment.</span>
-                        </div>
                     </div>
 
                     <div class="pt-4 flex gap-4">
@@ -502,7 +397,15 @@
                                         <span class="font-display font-bold text-sm text-[#0E261C]">Cash on Delivery (COD)</span>
                                         <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#D4AF37] text-[#0E261C] font-bold rounded-xs tracking-wider">Recommended</span>
                                     </div>
-                                    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">Pay in cash or digital UPI upon receipt of package directly to our transit courier.</p>
+                                    <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                                            Pay in cash or doorstep UPI upon receipt of package directly to courier.
+                                            <span x-show="getCodFee() > 0" class="block text-amber-700 font-semibold mt-0.5">
+                                                State COD Surcharge (<span x-text="state"></span>): +₹<span x-text="getCodFee().toFixed(2)"></span>
+                                            </span>
+                                            <span x-show="getCodFee() === 0" class="block text-emerald-700 font-semibold mt-0.5">
+                                                Free COD in <span x-text="state"></span>
+                                            </span>
+                                        </p>
                                 </div>
                             </label>
 
@@ -593,10 +496,16 @@
                             <span class="font-mono font-semibold text-green-700" 
                                   x-text="shippingMethod === 'standard' ? 'Complimentary (₹0)' : '₹999.00'"></span>
                         </div>
+                        <div x-show="paymentMethod === 'cod'" x-cloak class="flex justify-between items-center text-xs">
+                            <span class="text-amber-800">COD Surcharge (<span x-text="state"></span>):</span>
+                            <span class="font-mono font-semibold" 
+                                  :class="getCodFee() > 0 ? 'text-amber-800' : 'text-emerald-700'"
+                                  x-text="getCodFee() > 0 ? '+₹' + getCodFee().toFixed(2) : 'Free (₹0)'"></span>
+                        </div>
                         <div class="pt-3 border-t border-gray-100 flex justify-between font-bold text-sm text-[#0E261C]">
                             <span>Final Investment:</span>
                             <span class="font-display text-lg text-[#0E261C]" 
-                                  x-text="shippingMethod === 'standard' ? '₹{{ number_format($standardTotal, 2) }}' : '₹{{ number_format($expressTotal, 2) }}'"></span>
+                                  x-text="'₹' + getCalculatedTotal()"></span>
                         </div>
                     </div>
                 </div>
@@ -612,52 +521,5 @@
         </div>
     </div>
 
-    {{-- OTP Authentication Modal --}}
-    <div x-show="otpModalOpen" 
-         x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div @click.away="otpModalOpen = false" 
-             class="bg-[#0E261C] border border-[#D4AF37] p-8 max-w-md w-full text-[#FAF8F5] shadow-2xl relative">
-            <button type="button" @click="otpModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
-
-            <div class="text-center mb-6">
-                <span class="w-2 h-2 rotate-45 bg-[#D4AF37] inline-block mb-2"></span>
-                <h3 class="font-display text-2xl font-bold text-[#D4AF37]">Patron Verification</h3>
-                <p class="text-xs text-[#FAF8F5]/70 mt-1">
-                    Enter the 6-digit authentication cipher dispatched via SMS to:
-                </p>
-                <p class="font-mono text-sm text-[#D4AF37] font-bold mt-1" x-text="'+91 ' + clientPhone"></p>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <input type="text" 
-                           x-model="otpCode" 
-                           maxlength="6" 
-                           placeholder="&bull; &bull; &bull; &bull; &bull; &bull;" 
-                           class="w-full text-center font-mono text-2xl tracking-[0.5em] py-3 bg-[#0A1C15] border border-[#D4AF37]/40 text-[#FAF8F5] focus:border-[#D4AF37] focus:outline-none">
-                </div>
-
-                <button type="button" 
-                        @click="verifyOtp()" 
-                        :disabled="otpVerifying || otpCode.length !== 6" 
-                        class="w-full py-3.5 bg-[#9B1B30] text-white text-xs uppercase tracking-[0.2em] font-semibold hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all disabled:opacity-50">
-                    <span x-show="!otpVerifying">Authenticate Cipher</span>
-                    <span x-show="otpVerifying">Verifying Provenance...</span>
-                </button>
-
-                <div class="text-center text-xs text-gray-400">
-                    <template x-if="otpCountdown > 0">
-                        <span>Resend available in <strong class="font-mono text-[#D4AF37]" x-text="otpCountdown"></strong>s</span>
-                    </template>
-                    <template x-if="otpCountdown <= 0">
-                        <button type="button" @click="sendOtp()" class="text-[#D4AF37] hover:underline uppercase text-[10px] tracking-wider">
-                            Resend SMS OTP
-                        </button>
-                    </template>
-                </div>
-            </div>
-        </div>
     </div>
-</div>
 @endsection

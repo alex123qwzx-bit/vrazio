@@ -10,6 +10,81 @@ use Illuminate\Support\Facades\Session;
 class CartService
 {
     /**
+     * Complete list of all 28 States and 8 Union Territories in India.
+     */
+    public const array INDIAN_STATES = [
+        'Andaman and Nicobar Islands',
+        'Andhra Pradesh',
+        'Arunachal Pradesh',
+        'Assam',
+        'Bihar',
+        'Chandigarh',
+        'Chhattisgarh',
+        'Dadra and Nagar Haveli and Daman and Diu',
+        'Delhi',
+        'Goa',
+        'Gujarat',
+        'Haryana',
+        'Himachal Pradesh',
+        'Jammu and Kashmir',
+        'Jharkhand',
+        'Karnataka',
+        'Kerala',
+        'Ladakh',
+        'Lakshadweep',
+        'Madhya Pradesh',
+        'Maharashtra',
+        'Manipur',
+        'Meghalaya',
+        'Mizoram',
+        'Nagaland',
+        'Odisha',
+        'Puducherry',
+        'Punjab',
+        'Rajasthan',
+        'Sikkim',
+        'Tamil Nadu',
+        'Telangana',
+        'Tripura',
+        'Uttar Pradesh',
+        'Uttarakhand',
+        'West Bengal',
+    ];
+
+    /**
+     * Get COD fee for a given state from admin settings.
+     */
+    public static function getCodFeeForState(?string $state): float
+    {
+        $rates = \App\Models\SiteThemeSetting::getSetting('cod_state_rates', []);
+        if (! is_array($rates)) {
+            $rates = json_decode((string)$rates, true) ?: [];
+        }
+
+        $defaultFee = (float) ($rates['default'] ?? 0);
+
+        if (empty($state)) {
+            return $defaultFee;
+        }
+
+        $cleanedState = trim($state);
+
+        // Direct match
+        if (isset($rates[$cleanedState])) {
+            return (float) $rates[$cleanedState];
+        }
+
+        // Case-insensitive match
+        foreach ($rates as $st => $fee) {
+            if (strcasecmp((string)$st, $cleanedState) === 0) {
+                return (float) $fee;
+            }
+        }
+
+        return $defaultFee;
+    }
+
+    /**
      * Session key for cart storage.
      */
     private const SESSION_KEY = 'cart';

@@ -99,7 +99,7 @@
                             {{-- Status Badges --}}
                             <div class="flex flex-wrap items-center gap-2">
                                 {{-- Delivery Status Badge --}}
-                                <span class="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-sm {{ $isDelivered ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
+                                <span class="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-sm {{ $order->fulfillment_status === 'cancelled' ? 'bg-rose-100 text-rose-800 border border-rose-300' : ($isDelivered ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-amber-100 text-amber-800 border border-amber-200') }}">
                                     {{ $order->getCasualStatusLabel() }}
                                 </span>
 
@@ -173,6 +173,18 @@
                                    class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:text-[#0E261C] hover:border-[#D4AF37] text-xs font-semibold uppercase tracking-wider transition-colors">
                                     Track Order
                                 </a>
+
+                                @if($order->canBeCancelled())
+                                    <form action="{{ route('order.cancel', $order->order_number) }}" method="POST"
+                                          onsubmit="return confirm('Are you sure you wish to cancel order #{{ $order->order_number }}? Reserved inventory will be restored.');"
+                                          class="inline-block">
+                                        @csrf
+                                        <button type="submit" 
+                                                class="px-4 py-2 bg-white border border-rose-300 text-rose-700 hover:bg-rose-700 hover:text-white text-xs font-semibold uppercase tracking-wider transition-colors">
+                                            Cancel Order
+                                        </button>
+                                    </form>
+                                @endif
 
                                 {{-- Warranty Actions: Claim Warranty / View Claim --}}
                                 @if($claim)
