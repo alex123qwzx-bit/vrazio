@@ -35,45 +35,47 @@
             </div>
         </div>
 
-        {{-- Mandatory WhatsApp Order Confirmation --}}
+                {{-- Mandatory WhatsApp Order Confirmation --}}
         @if($order->fulfillment_status !== 'cancelled')
-            <div class="mt-8 bg-gradient-to-r from-[#0E261C] to-[#153a2b] border-2 border-[#D4AF37] p-6 sm:p-8 shadow-xl text-white relative rounded-xs">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div class="space-y-2.5 text-center md:text-left">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#D4AF37]/20 border border-[#D4AF37] rounded-full text-[11px] font-bold text-[#D4AF37] uppercase tracking-wider">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <div style="background: #0E261C; background: linear-gradient(135deg, #0E261C 0%, #153a2b 100%); border: 2px solid #D4AF37; color: #FAF8F5; padding: 24px 28px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25); border-radius: 6px; position: relative; overflow: hidden; margin-top: 2rem; box-sizing: border-box;" class="mt-8">
+                <div style="display: flex; flex-direction: column; gap: 20px; box-sizing: border-box;" class="md:flex-row md:items-center md:justify-between">
+                    <div style="flex: 1 1 auto; min-width: 0; text-align: left;">
+                        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; background: rgba(212, 175, 55, 0.15); border: 1px solid #D4AF37; border-radius: 9999px; font-size: 11px; font-weight: 700; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #34D399; box-shadow: 0 0 6px #34D399;"></span>
                             Mandatory Step &bull; Final Verification
                         </div>
-                        <h2 class="font-display text-2xl sm:text-3xl font-bold text-[#FAF8F5]">
+                        <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 700; color: #FFFFFF !important; line-height: 1.3; margin: 0 0 8px 0;">
                             Confirm Order on WhatsApp Support
                         </h2>
-                        <p class="text-xs sm:text-sm text-gray-200 max-w-xl font-light leading-relaxed">
-                            To ensure genuine patron authenticity and prevent fraudulent consignment dispatches, our concierge requires a quick 1-tap confirmation on WhatsApp before releasing order <strong class="text-[#D4AF37] font-mono">#{{ $order->order_number }}</strong> for master vault packaging.
+                        <p style="font-size: 13px; line-height: 1.6; color: #E5E7EB !important; margin: 0 0 12px 0; max-width: 580px;">
+                            To ensure genuine patron authenticity and prevent fraudulent consignment dispatches, our concierge requires a quick 1-tap confirmation on WhatsApp before releasing order <strong style="color: #D4AF37; font-family: monospace; font-size: 14px;">#{{ $order->order_number }}</strong> for master vault packaging.
                         </p>
-                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-gray-300 pt-1">
-                            <span>Concierge Desk: <strong class="text-[#D4AF37] font-mono">+91 87912 27210</strong></span>
-                            <span class="hidden sm:inline">&bull;</span>
-                            <span class="text-emerald-300 font-semibold">Instant Response 24/7</span>
+                        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12px; color: #D1D5DB;">
+                            <span style="color: #D1D5DB;">Concierge Desk: <strong style="color: #D4AF37; font-family: monospace;">+91 87912 27210</strong></span>
+                            <span style="color: #9CA3AF;">&bull;</span>
+                            <span style="color: #34D399; font-weight: 600;">Instant Response 24/7</span>
                         </div>
                     </div>
 
-                    <div class="shrink-0 text-center w-full md:w-auto">
+                    <div style="flex-shrink: 0; text-align: center; box-sizing: border-box; max-width: 100%;">
                         <a href="https://wa.me/918791227210?text={{ urlencode('Hello VRAZIO Concierge, I genuinely confirm my order #' . $order->order_number . ' (Amount: Rs. ' . number_format((float)$order->total_amount, 2) . '). Please proceed with vault packaging and insured dispatch.') }}" 
                            target="_blank"
-                           class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs uppercase tracking-[0.2em] transition-all shadow-lg hover:shadow-emerald-500/30 w-full md:w-auto rounded-xs">
-                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                           style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 28px; background-color: #25D366; color: #FFFFFF !important; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; border-radius: 4px; text-decoration: none; box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4); box-sizing: border-box; max-width: 100%; white-space: nowrap; transition: transform 0.15s ease, background-color 0.15s ease;"
+                           onmouseover="this.style.backgroundColor='#20ba59'; this.style.transform='translateY(-1px)';"
+                           onmouseout="this.style.backgroundColor='#25D366'; this.style.transform='none';">
+                            <svg style="width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                             Confirm via WhatsApp
                         </a>
-                        <p class="text-[10px] text-gray-300 mt-2 font-mono">
+                        <p style="font-size: 11px; color: #9CA3AF; margin-top: 6px; font-family: monospace;">
                             Tap to send pre-filled verification docket
                         </p>
                     </div>
                 </div>
             </div>
         @else
-            <div class="mt-8 bg-rose-50 border border-rose-200 p-6 text-center rounded-xs text-rose-800">
-                <span class="text-xs uppercase tracking-widest font-bold block mb-1">Order Cancelled</span>
-                <p class="text-sm font-medium">This order has been cancelled and vault reservation released. No further action is needed.</p>
+            <div style="background-color: #FFF1F2; border: 1px solid #FECDD3; padding: 24px; text-align: center; border-radius: 4px; color: #9F1239; margin-top: 2rem;">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; display: block; margin-bottom: 4px;">Order Cancelled</span>
+                <p style="font-size: 14px; font-weight: 500; margin: 0;">This order has been cancelled and vault reservation released. No further action is needed.</p>
             </div>
         @endif
 
