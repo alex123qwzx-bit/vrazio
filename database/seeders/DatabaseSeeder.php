@@ -13,13 +13,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Create admin user
+        // 1. Create super admin and admin users
+        User::updateOrCreate(
+            ['email' => 'ruben.arsh2601@gmail.com'],
+            [
+                'name' => 'Ruben Arsh',
+                'phone' => '+919999999998',
+                'role' => 'super_admin',
+                'is_approved' => true,
+                'password' => Hash::make('SuperAdmin@2026'),
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+            ]
+        );
+
         User::firstOrCreate(
             ['email' => 'admin@vrazio.com'],
             [
                 'name' => 'VRAZIO Admin',
                 'phone' => '+919999999999',
                 'role' => 'admin',
+                'is_approved' => true,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
