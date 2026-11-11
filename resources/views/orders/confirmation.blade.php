@@ -79,35 +79,46 @@
 
         {{-- Order Progress Timeline --}}
         <div class="mt-8 bg-white border border-[#D4AF37]/20 p-6 sm:p-8 shadow-sm">
-            <h2 class="font-display text-base font-bold text-[#0E261C] mb-6 text-center">
-                Order Delivery Progress
-            </h2>
+            @if($order->fulfillment_status === 'cancelled')
+                <div class="text-center py-4">
+                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-rose-100 text-rose-800 text-xs font-bold uppercase tracking-wider rounded-full border border-rose-300">
+                        ✕ Order Cancelled
+                    </span>
+                    <p class="text-xs text-gray-500 mt-2">
+                        This order has been cancelled and reserved pieces have been returned to inventory.
+                    </p>
+                </div>
+            @else
+                <h2 class="font-display text-base font-bold text-[#0E261C] mb-6 text-center">
+                    Order Delivery Progress
+                </h2>
 
-            @php
-                $currentStepNum = $order->getCurrentStepNumber();
-                $timelineStages = [
-                    1 => ['label' => 'Order Placed', 'desc' => 'Confirmed & received'],
-                    2 => ['label' => 'Packed', 'desc' => 'Safely boxed & sealed'],
-                    3 => ['label' => 'Shipped', 'desc' => 'On the way with courier'],
-                    4 => ['label' => 'Out for Delivery', 'desc' => 'Arrived in your city'],
-                    5 => ['label' => 'Delivered', 'desc' => 'Delivered to your doorstep'],
-                ];
-            @endphp
+                @php
+                    $currentStepNum = $order->getCurrentStepNumber();
+                    $timelineStages = [
+                        1 => ['label' => 'Order Placed', 'desc' => 'Confirmed & received'],
+                        2 => ['label' => 'Packed', 'desc' => 'Safely boxed & sealed'],
+                        3 => ['label' => 'Shipped', 'desc' => 'On the way with courier'],
+                        4 => ['label' => 'Out for Delivery', 'desc' => 'Arrived in your city'],
+                        5 => ['label' => 'Delivered', 'desc' => 'Delivered to your doorstep'],
+                    ];
+                @endphp
 
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
-                @foreach($timelineStages as $stepIndex => $stage)
-                    @php $isDone = $stepIndex <= $currentStepNum; @endphp
-                    <div class="flex flex-col items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs mb-2 {{ $isDone ? 'bg-[#0E261C] text-[#D4AF37] border-2 border-[#D4AF37]' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
-                            {{ $stepIndex }}
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+                    @foreach($timelineStages as $stepIndex => $stage)
+                        @php $isDone = $stepIndex <= $currentStepNum; @endphp
+                        <div class="flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs mb-2 {{ $isDone ? 'bg-[#0E261C] text-[#D4AF37] border-2 border-[#D4AF37]' : 'bg-gray-100 text-gray-400 border border-gray-200' }}">
+                                {{ $stepIndex }}
+                            </div>
+                            <h4 class="font-display text-xs font-bold {{ $isDone ? 'text-[#0E261C]' : 'text-gray-400' }}">
+                                {{ $stage['label'] }}
+                            </h4>
+                            <p class="text-[10px] text-gray-500 mt-0.5">{{ $stage['desc'] }}</p>
                         </div>
-                        <h4 class="font-display text-xs font-bold {{ $isDone ? 'text-[#0E261C]' : 'text-gray-400' }}">
-                            {{ $stage['label'] }}
-                        </h4>
-                        <p class="text-[10px] text-gray-500 mt-0.5">{{ $stage['desc'] }}</p>
-                    </div>
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         {{-- Order Dossier Breakdown --}}

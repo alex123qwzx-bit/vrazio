@@ -416,7 +416,7 @@ class Order extends Model
             // Restore inventory for each line item
             foreach ($this->items as $item) {
                 if ($item->product_id && $item->quantity > 0) {
-                    Product::where('id', $item->product_id)->increment('stock_quantity', (int) $item->quantity);
+                    \Illuminate\Support\Facades\DB::table('products')->where('id', $item->product_id)->increment('stock_quantity', (int) $item->quantity);
                 }
             }
 

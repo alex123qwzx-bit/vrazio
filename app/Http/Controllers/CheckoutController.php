@@ -173,7 +173,8 @@ class CheckoutController extends Controller
 
                 // For Cash on Delivery, decrement stock immediately on placement
                 if ($paymentMethod === 'cod') {
-                    Product::where('id', (int) $item['id'])
+                    DB::table('products')
+                        ->where('id', (int) $item['id'])
                         ->where('stock_quantity', '>=', (int) $item['quantity'])
                         ->decrement('stock_quantity', (int) $item['quantity']);
                 }
