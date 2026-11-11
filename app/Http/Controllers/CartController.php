@@ -21,10 +21,12 @@ class CartController extends Controller
     {
         $items = $this->cartService->getItems();
         $subtotal = $this->cartService->getSubtotal();
+        $voucher = $this->cartService->getVoucher();
+        $discount = $this->cartService->getDiscount();
         $gst = $this->cartService->getGst();
         $total = $this->cartService->getTotal('standard');
 
-        return view('cart.index', compact('items', 'subtotal', 'gst', 'total'));
+        return view('cart.index', compact('items', 'subtotal', 'voucher', 'discount', 'gst', 'total'));
     }
 
     public function add(Request $request): JsonResponse|RedirectResponse
@@ -53,6 +55,9 @@ class CartController extends Controller
                 'message' => "{$product->title} added to your cart.",
                 'item_count' => $this->cartService->getItemCount(),
                 'subtotal' => $this->cartService->getSubtotal(),
+                'discount' => $this->cartService->getDiscount(),
+                'gst' => $this->cartService->getGst(),
+                'total' => $this->cartService->getTotal(),
             ]);
         }
 
@@ -68,6 +73,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'subtotal' => $this->cartService->getSubtotal(),
+                'discount' => $this->cartService->getDiscount(),
                 'gst' => $this->cartService->getGst(),
                 'total' => $this->cartService->getTotal(),
                 'item_count' => $this->cartService->getItemCount(),
@@ -85,6 +91,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'subtotal' => $this->cartService->getSubtotal(),
+                'discount' => $this->cartService->getDiscount(),
                 'gst' => $this->cartService->getGst(),
                 'total' => $this->cartService->getTotal(),
                 'item_count' => $this->cartService->getItemCount(),
@@ -98,5 +105,46 @@ class CartController extends Controller
     {
         $this->cartService->clear();
         return redirect()->route('cart.index');
+    }
+
+    /**
+     * Apply a voucher code to the session cart.
+     */
+    public function applyVoucher(Request $request): JsonResponse|RedirectResponse
+    {
+        $code = (string) $request->input('code', '');
+        $result = $this->cartService->applyVoucher($code);
+
+        if ($request->expectsJson()) {
+            return response()->json($result, $result['success'] ? 200 : 422);
+        }
+
+        if ($result['success']) {
+            return redirect()->route('cart.index')->with('success', $result['message']);
+        }
+
+        return redirect()->route('cart.index')->with('error', $result['message']);
+    }
+
+    /**
+     * Remove the active voucher from session cart.
+     */
+    public function removeVoucher(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->cartService->removeVoucher();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Voucher privilege removed.',
+                'subtotal' => $this->cartService->getSubtotal(),
+                'discount' => 0.0,
+                'gst' => $this->cartService->getGst(),
+                'total' => $this->cartService->getTotal(),
+                'item_count' => $this->cartService->getItemCount(),
+            ]);
+        }
+
+        return redirect()->route('cart.index')->with('info', 'Voucher privilege removed.');
     }
 }

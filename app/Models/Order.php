@@ -27,6 +27,8 @@ class Order extends Model
         'shipping_address',
         'shipping_method',
         'subtotal',
+        'voucher_code',
+        'discount_amount',
         'tax_gst',
         'shipping_cost',
         'total_amount',
@@ -57,6 +59,7 @@ class Order extends Model
         return [
             'shipping_address' => 'array',
             'subtotal' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'tax_gst' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
             'total_amount' => 'decimal:2',

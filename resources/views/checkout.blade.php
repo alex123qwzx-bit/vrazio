@@ -28,6 +28,8 @@
          paymentMethod: 'cod',
          paymentSubmitting: false,
          subtotalVal: {{ $subtotal }},
+         discountVal: {{ $discount ?? 0 }},
+         voucherCode: '{{ $voucher?->code ?? '' }}',
          gstVal: {{ $gst }},
          standardTransitVal: 0,
          expressTransitVal: 999,
@@ -46,7 +48,8 @@
          },
 
          getCalculatedTotal() {
-             let base = this.subtotalVal + this.gstVal;
+             let netSubtotal = Math.max(0, this.subtotalVal - this.discountVal);
+             let base = netSubtotal + this.gstVal;
              let transit = (this.shippingMethod === 'express') ? this.expressTransitVal : this.standardTransitVal;
              let cod = this.getCodFee();
              return (base + transit + cod).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -487,6 +490,12 @@
                             <span>Subtotal:</span>
                             <span class="font-mono font-semibold">₹{{ number_format($subtotal, 2) }}</span>
                         </div>
+                        @if(($discount ?? 0) > 0)
+                            <div class="flex justify-between text-emerald-700 font-semibold">
+                                <span>Privilege ({{ $voucher?->code }}):</span>
+                                <span class="font-mono">-₹{{ number_format($discount, 2) }}</span>
+                            </div>
+                        @endif
                         <div class="flex justify-between">
                             <span>GST (3%):</span>
                             <span class="font-mono font-semibold">₹{{ number_format($gst, 2) }}</span>

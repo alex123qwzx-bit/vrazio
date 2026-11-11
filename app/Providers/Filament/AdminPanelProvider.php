@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\AdminLogin::class)
             ->brandName('VRAZIO Atelier')
             ->brandLogo(fn () => asset('images/vrazio-logo.png'))
             ->brandLogoHeight('2.5rem')
@@ -67,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
                 'Catalogue',
                 'Orders & Patrons',
                 'Storefront Design',
+                'Administration',
             ]);
     }
 }

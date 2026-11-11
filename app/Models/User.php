@@ -27,6 +27,12 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'avatar',
         'phone',
         'role',
+        'is_approved',
+        'approved_at',
+        'approved_by',
+        'admin_pin',
+        'password_confirmation_token',
+        'password_confirmation_expires_at',
         'password',
         'email_verified_at',
         'phone_verified_at',
@@ -52,6 +58,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
+            'is_approved' => 'boolean',
+            'approved_at' => 'datetime',
+            'password_confirmation_expires_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -77,11 +86,27 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     */
 
     /**
-     * Scope a query to only include admin users.
+     * Scope a query to only include admin users (including super_admin).
      */
     public function scopeAdmins(Builder $query): Builder
     {
-        return $query->where('role', 'admin');
+        return $query->whereIn('role', ['admin', 'super_admin']);
+    }
+
+    /**
+     * Scope a query to only include super admin users.
+     */
+    public function scopeSuperAdmins(Builder $query): Builder
+    {
+        return $query->where('role', 'super_admin');
+    }
+
+    /**
+     * Scope a query to only include sub-managers.
+     */
+    public function scopeSubManagers(Builder $query): Builder
+    {
+        return $query->where('role', 'sub_manager');
     }
 
     /**
@@ -92,6 +117,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $query->where('role', 'patron');
     }
 
+    /**
+     * Scope a query to all staff accounts.
+     */
+    public function scopeStaff(Builder $query): Builder
+    {
+        return $query->whereIn('role', ['super_admin', 'admin', 'sub_manager']);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Helpers
@@ -99,18 +132,66 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     */
 
     /**
-     * Determine if the user is an admin.
+     * Determine if the user is a super administrator.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Determine if the user is an admin or super admin.
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin'], true);
+    }
+
+    /**
+     * Determine if the user is a sub-manager.
+     */
+    public function isSubManager(): bool
+    {
+        return $this->role === 'sub_manager';
+    }
+
+    /**
+     * Check if the account has been approved by the Super Administrator.
+     */
+    public function isApproved(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($this->role === 'admin') {
+            return $this->is_approved !== false;
+        }
+
+        return (bool) $this->is_approved;
     }
 
     /**
      * Determine whether the user can access the Filament admin panel.
+     * Enforces super admin authority and sub-manager approval.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === 'admin';
+        // Super admins have unrestricted panel access
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Standard admins have operational access unless revoked
+        if ($this->role === 'admin') {
+            return $this->is_approved !== false;
+        }
+
+        // Sub-managers MUST be explicitly approved by Super Administrator
+        if ($this->isSubManager() && (bool) $this->is_approved) {
+            return true;
+        }
+
+        return false;
     }
 }

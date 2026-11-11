@@ -20,6 +20,18 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-600 text-red-800 text-xs sm:text-sm flex items-center justify-between rounded-xs">
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        @if(session('info'))
+            <div class="mb-6 p-4 bg-amber-50 border-l-4 border-[#D4AF37] text-amber-900 text-xs sm:text-sm flex items-center justify-between rounded-xs">
+                <span>{{ session('info') }}</span>
+            </div>
+        @endif
+
         @if(empty($items))
             <div class="bg-white border border-[#D4AF37]/20 p-16 text-center max-w-2xl mx-auto shadow-sm">
                 <div class="w-16 h-16 mx-auto text-[#D4AF37] mb-4">
@@ -113,11 +125,49 @@
                         Order Summary
                     </h2>
 
+                    {{-- Atelier Privilege Voucher Form / Applied Card --}}
+                    <div class="p-3.5 bg-[#FAF8F5] border border-[#D4AF37]/30 rounded-xs">
+                        <span class="text-[10px] uppercase font-bold text-[#D4AF37] tracking-widest block mb-2">Atelier Privilege Code</span>
+                        @if(!empty($voucher))
+                            <div class="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-300 rounded-xs">
+                                <div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-mono font-bold text-xs text-[#0E261C]">{{ $voucher->code }}</span>
+                                        <span class="text-[10px] uppercase tracking-wider font-semibold text-emerald-800">({{ $voucher->discount_label }})</span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-0.5">Privilege applied to cart</p>
+                                </div>
+                                <form action="{{ route('cart.voucher.remove') }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-[11px] font-bold text-rose-700 hover:text-rose-900 uppercase tracking-wider transition-colors cursor-pointer">
+                                        Remove
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <form action="{{ route('cart.voucher.apply') }}" method="POST" class="flex gap-2">
+                                @csrf
+                                <input type="text" name="code" placeholder="Enter code (e.g. ROYAL10)" required
+                                       class="flex-1 text-xs px-3 py-2 bg-white border border-gray-300 uppercase font-mono tracking-wider focus:border-[#D4AF37] focus:outline-none">
+                                <button type="submit" class="px-4 py-2 bg-[#0E261C] hover:bg-[#D4AF37] text-[#D4AF37] hover:text-[#0E261C] text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0">
+                                    Apply
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+
                     <div class="space-y-3 text-xs text-[#0E261C]/80">
                         <div class="flex justify-between">
                             <span>Subtotal:</span>
                             <span class="font-mono font-semibold text-[#0E261C]">₹{{ number_format($subtotal, 2) }}</span>
                         </div>
+                        @if(($discount ?? 0) > 0)
+                            <div class="flex justify-between text-emerald-700 font-semibold">
+                                <span>Privilege Discount ({{ $voucher?->code }}):</span>
+                                <span class="font-mono">-₹{{ number_format($discount, 2) }}</span>
+                            </div>
+                        @endif
                         <div class="flex justify-between">
                             <span>GST (3%):</span>
                             <span class="font-mono font-semibold text-[#0E261C]">₹{{ number_format($gst, 2) }}</span>

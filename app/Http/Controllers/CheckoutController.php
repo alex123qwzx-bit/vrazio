@@ -45,6 +45,8 @@ class CheckoutController extends Controller
 
         $items = $this->cartService->getItems();
         $subtotal = $this->cartService->getSubtotal();
+        $voucher = $this->cartService->getVoucher();
+        $discount = $this->cartService->getDiscount();
         $gst = $this->cartService->getGst();
         $standardTotal = $this->cartService->getTotal('standard');
         $expressTotal = $this->cartService->getTotal('express');
@@ -64,6 +66,8 @@ class CheckoutController extends Controller
         return view('checkout', compact(
             'items',
             'subtotal',
+            'voucher',
+            'discount',
             'gst',
             'standardTotal',
             'expressTotal',
@@ -105,13 +109,16 @@ class CheckoutController extends Controller
 
         // Calculate server-side financial numbers based on fresh database items
         $subtotal = $this->cartService->getSubtotal();
+        $voucher = $this->cartService->getVoucher();
+        $discount = $this->cartService->getDiscount();
         $gst = $this->cartService->getGst();
         $shippingMethod = $validated['shipping_method'];
         $shippingCost = $this->cartService->getShippingCost($shippingMethod);
         $stateName = $validated['shipping_address']['state'] ?? '';
         $codFee = ($paymentMethod === 'cod') ? CartService::getCodFeeForState($stateName) : 0.0;
         $shippingCost = round($shippingCost + $codFee, 2);
-        $totalAmount = round($subtotal + $gst + $shippingCost, 2);
+        $taxable = max(0.0, $subtotal - $discount);
+        $totalAmount = max(0.0, round($taxable + $gst + $shippingCost, 2));
 
         $queryLog = [];
         \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queryLog) {
@@ -149,6 +156,8 @@ class CheckoutController extends Controller
                 'shipping_address' => $validated['shipping_address'],
                 'shipping_method' => $shippingMethod,
                 'subtotal' => $subtotal,
+                'voucher_code' => $voucher?->code,
+                'discount_amount' => $discount,
                 'tax_gst' => $gst,
                 'shipping_cost' => $shippingCost,
                 'total_amount' => $totalAmount,
@@ -157,6 +166,10 @@ class CheckoutController extends Controller
                 'fulfillment_status' => 'inscribed',
                 'otp_verified_at' => $phoneVerified ? now() : null,
             ]);
+
+            if ($voucher) {
+                $voucher->increment('used_count');
+            }
 
             foreach ($items as $item) {
                 $product = $products->get($item['id']);

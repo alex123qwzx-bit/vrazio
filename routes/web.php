@@ -30,6 +30,7 @@ Route::get('/account', [CustomerAuthController::class, 'dashboard'])->name('acco
 
 // Firebase Authentication (Phone SMS & Google Sign-In)
 Route::post('/auth/firebase/session', [CustomerAuthController::class, 'handleFirebaseSession'])->middleware('throttle:10,5')->name('auth.firebase.session');
+Route::post('/admin/auth/google', [\App\Http\Controllers\Auth\AdminAuthController::class, 'handleGoogleLogin'])->middleware(['web', 'throttle:10,5'])->name('admin.auth.google');
 
 // Mobile SMS OTP Authentication & Verification
 Route::post('/auth/otp/send', [CustomerAuthController::class, 'sendLoginOtp'])->middleware('throttle:3,5')->name('auth.otp.send');
@@ -58,6 +59,8 @@ Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::patch('/cart/update/{id}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cart/voucher/apply', [CartController::class, 'applyVoucher'])->name('cart.voucher.apply');
+Route::delete('/cart/voucher/remove', [CartController::class, 'removeVoucher'])->name('cart.voucher.remove');
 
 // 3-Step Secure Escrow Checkout
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');

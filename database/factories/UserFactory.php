@@ -53,6 +53,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'role' => 'admin',
+            'is_approved' => true,
         ]);
     }
 

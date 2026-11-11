@@ -108,6 +108,43 @@
                         </div>
                     </div>
 
+                    {{-- Applicable Vouchers & Privileges --}}
+                    @php
+                        $applicableVouchers = $product->getApplicableVouchers();
+                    @endphp
+                    @if($applicableVouchers->isNotEmpty())
+                        <div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50/40 border border-[#D4AF37]/50 rounded-xs">
+                            <div class="flex items-center gap-2 mb-2.5">
+                                <svg class="w-4 h-4 text-[#D4AF37] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="text-xs uppercase tracking-widest font-bold text-[#0E261C]">Atelier Exclusive Privileges</span>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach($applicableVouchers as $v)
+                                    <div class="flex items-center justify-between bg-white border border-[#D4AF37]/30 p-2.5 shadow-2xs">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-mono font-bold text-xs text-[#0E261C] bg-[#FAF8F5] px-2 py-0.5 border border-dashed border-[#D4AF37] tracking-wider">{{ $v->code }}</span>
+                                                <span class="text-xs font-semibold text-[#9B1B30]">{{ $v->discount_label }}</span>
+                                            </div>
+                                            @if($v->description)
+                                                <p class="text-[11px] text-gray-500 mt-1">{{ $v->description }}</p>
+                                            @elseif($v->min_spend > 0)
+                                                <p class="text-[10px] text-gray-500 mt-0.5">Min. order ₹{{ number_format($v->min_spend) }}</p>
+                                            @endif
+                                        </div>
+                                        <button type="button" 
+                                                onclick="navigator.clipboard.writeText('{{ $v->code }}'); this.innerText = 'Copied!'; setTimeout(() => this.innerText = 'Copy Code', 2000);"
+                                                class="px-3 py-1 bg-[#0E261C] hover:bg-[#D4AF37] text-[#D4AF37] hover:text-[#0E261C] text-[10px] uppercase font-bold tracking-wider transition-colors shrink-0 cursor-pointer">
+                                            Copy Code
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- BIS & Certification Dossier Badge / Couture Badge --}}
                     @if($product->category === 'couture')
                         <div class="bg-[#0E261C] text-[#FAF8F5] p-5 border border-[#D4AF37]/40 mb-6 space-y-3">

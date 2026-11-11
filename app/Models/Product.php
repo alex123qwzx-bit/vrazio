@@ -99,6 +99,22 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * Get all vouchers specifically designated for this product.
+     */
+    public function vouchers(): HasMany
+    {
+        return $this->hasMany(Voucher::class);
+    }
+
+    /**
+     * Get active vouchers applicable to this product (specific or storewide).
+     */
+    public function getApplicableVouchers()
+    {
+        return Voucher::active()->forProduct($this->id)->get();
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Scopes

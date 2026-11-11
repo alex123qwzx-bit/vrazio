@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Voucher;
 use Illuminate\Support\Facades\Session;
 
 class CartService
@@ -88,6 +89,7 @@ class CartService
      * Session key for cart storage.
      */
     private const SESSION_KEY = 'cart';
+    private const VOUCHER_SESSION_KEY = 'cart_voucher';
 
     /**
      * Get all items currently in the cart with fresh live prices from the database.
@@ -199,6 +201,151 @@ class CartService
     public function clear(): void
     {
         Session::forget(self::SESSION_KEY);
+        $this->removeVoucher();
+    }
+
+    /**
+     * Apply a voucher code to the current cart.
+     *
+     * @return array{success: bool, message: string, voucher?: Voucher, discount?: float, subtotal?: float, gst?: float, total?: float}
+     */
+    public function applyVoucher(string $code): array
+    {
+        $code = strtoupper(trim($code));
+        if (empty($code)) {
+            return [
+                'success' => false,
+                'message' => 'Please enter a valid voucher code.',
+            ];
+        }
+
+        $voucher = Voucher::where('code', $code)->first();
+
+        if (! $voucher || ! $voucher->isActive()) {
+            return [
+                'success' => false,
+                'message' => "Voucher code '{$code}' is invalid, inactive, or expired.",
+            ];
+        }
+
+        $subtotal = $this->getSubtotal();
+
+        // Check minimum spend
+        if ($voucher->min_spend > 0 && $subtotal < (float) $voucher->min_spend) {
+            return [
+                'success' => false,
+                'message' => "Voucher requires a minimum spend of ₹" . number_format((float) $voucher->min_spend, 2) . ". Current subtotal is ₹" . number_format($subtotal, 2) . ".",
+            ];
+        }
+
+        // Check product exclusivity
+        if ($voucher->product_id) {
+            $hasProduct = false;
+            foreach ($this->getItems() as $item) {
+                if ((int) $item['id'] === (int) $voucher->product_id) {
+                    $hasProduct = true;
+                    break;
+                }
+            }
+
+            if (! $hasProduct) {
+                $productTitle = $voucher->product?->title ?? 'the specified atelier piece';
+                return [
+                    'success' => false,
+                    'message' => "This voucher is exclusively valid for {$productTitle}.",
+                ];
+            }
+        }
+
+        // Check usage limit
+        if ($voucher->usage_limit !== null && $voucher->used_count >= $voucher->usage_limit) {
+            return [
+                'success' => false,
+                'message' => "This voucher code has reached its maximum redemption limit.",
+            ];
+        }
+
+        Session::put(self::VOUCHER_SESSION_KEY, $voucher->code);
+
+        return [
+            'success' => true,
+            'message' => "Voucher '{$voucher->code}' successfully applied! Discount: " . $voucher->discount_label . ".",
+            'voucher' => $voucher,
+            'discount' => $this->getDiscount(),
+            'subtotal' => $subtotal,
+            'gst' => $this->getGst(),
+            'total' => $this->getTotal(),
+        ];
+    }
+
+    /**
+     * Remove applied voucher from cart.
+     */
+    public function removeVoucher(): void
+    {
+        Session::forget(self::VOUCHER_SESSION_KEY);
+    }
+
+    /**
+     * Retrieve currently applied valid voucher or null.
+     */
+    public function getVoucher(): ?Voucher
+    {
+        $code = Session::get(self::VOUCHER_SESSION_KEY);
+        if (empty($code)) {
+            return null;
+        }
+
+        $voucher = Voucher::where('code', $code)->first();
+        if (! $voucher || ! $voucher->isActive()) {
+            $this->removeVoucher();
+            return null;
+        }
+
+        $subtotal = $this->getSubtotal();
+        if ($voucher->min_spend > 0 && $subtotal < (float) $voucher->min_spend) {
+            $this->removeVoucher();
+            return null;
+        }
+
+        if ($voucher->product_id) {
+            $hasProduct = false;
+            foreach ($this->getItems() as $item) {
+                if ((int) $item['id'] === (int) $voucher->product_id) {
+                    $hasProduct = true;
+                    break;
+                }
+            }
+            if (! $hasProduct) {
+                $this->removeVoucher();
+                return null;
+            }
+        }
+
+        return $voucher;
+    }
+
+    /**
+     * Calculate discount amount provided by the active voucher.
+     */
+    public function getDiscount(): float
+    {
+        $voucher = $this->getVoucher();
+        if (! $voucher) {
+            return 0.0;
+        }
+
+        if ($voucher->product_id) {
+            $eligibleTotal = 0.0;
+            foreach ($this->getItems() as $item) {
+                if ((int) $item['id'] === (int) $voucher->product_id) {
+                    $eligibleTotal += ($item['price'] * $item['quantity']);
+                }
+            }
+            return $voucher->calculateDiscount($eligibleTotal);
+        }
+
+        return $voucher->calculateDiscount($this->getSubtotal());
     }
 
     /**
@@ -214,13 +361,14 @@ class CartService
     }
 
     /**
-     * Calculate GST amount (3% of subtotal for jewellery).
+     * Calculate GST amount (3% of net taxable amount for fine jewellery).
      */
     public function getGst(): float
     {
         $rate = (float) config('services.gst_rate', 0.03);
+        $taxable = max(0.0, $this->getSubtotal() - $this->getDiscount());
 
-        return round($this->getSubtotal() * $rate, 2);
+        return round($taxable * $rate, 2);
     }
 
     /**
@@ -232,12 +380,14 @@ class CartService
     }
 
     /**
-     * Calculate the total (subtotal + GST + shipping).
+     * Calculate the total (net subtotal + GST + shipping).
      */
     public function getTotal(string $shippingMethod = 'standard'): float
     {
+        $taxable = max(0.0, $this->getSubtotal() - $this->getDiscount());
+
         return round(
-            $this->getSubtotal() + $this->getGst() + $this->getShippingCost($shippingMethod),
+            $taxable + $this->getGst() + $this->getShippingCost($shippingMethod),
             2
         );
     }
