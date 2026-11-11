@@ -4,7 +4,7 @@
 @section('meta_description', 'Manage your VRAZIO account, view past orders, track deliveries, and check warranty claim status.')
 
 @section('content')
-<div x-data="{ editModal: {{ $errors->any() ? 'true' : 'false' }} }" class="bg-[#FAF8F5] min-h-screen py-10 md:py-14">
+<div x-data="{ editModal: {{ ($errors->any() || request()->has('edit')) ? 'true' : 'false' }} }" class="bg-[#FAF8F5] min-h-screen py-10 md:py-14">
     <div class="max-w-6xl mx-auto px-6">
         {{-- Breadcrumbs --}}
         <x-breadcrumbs :links="[
@@ -65,6 +65,14 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <button type="button" 
+                        @click="editModal = true" 
+                        class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0E261C] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0E261C] text-xs font-semibold uppercase tracking-wider rounded-xs transition-colors shadow-xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                    Edit Profile
+                </button>
                 <a href="https://wa.me/918791227210?text={{ urlencode('Hello VRAZIO Support, I need help with my account (Name: ' . $user->name . ')') }}" 
                    target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#25D366] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#1EBE5D] transition-colors rounded-xs shadow-xs">
@@ -89,9 +97,19 @@
             <div class="space-y-6">
                 {{-- Profile Info Card --}}
                 <div class="bg-white border border-[#D4AF37]/30 p-6 rounded-xs shadow-xs">
-                    <h2 class="text-xs uppercase tracking-[0.2em] text-[#0E261C] font-bold border-b border-gray-100 pb-3 mb-4">
-                        Profile Information
-                    </h2>
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                        <h2 class="text-xs uppercase tracking-[0.2em] text-[#0E261C] font-bold">
+                            Profile Information
+                        </h2>
+                        <button type="button" 
+                                @click="editModal = true" 
+                                class="inline-flex items-center gap-1 text-[11px] text-[#D4AF37] hover:text-[#0E261C] font-semibold uppercase tracking-wider transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                            </svg>
+                            Edit
+                        </button>
+                    </div>
                     <div class="space-y-3.5 text-xs">
                         <div>
                             <span class="text-gray-400 block uppercase text-[10px] tracking-wider">Full Name</span>
