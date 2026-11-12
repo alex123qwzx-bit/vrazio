@@ -21,7 +21,7 @@ class VoucherResource extends Resource
 
     protected static ?string $navigationGroup = 'Catalogue';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $recordTitleAttribute = 'code';
 

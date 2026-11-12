@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -50,6 +51,8 @@ class Product extends Model
         'title',
         'slug',
         'category',
+        'category_id',
+        'subcategory_id',
         'metal_type',
         'gross_weight_grams',
         'net_weight_grams',
@@ -81,6 +84,8 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'category_id' => 'integer',
+            'subcategory_id' => 'integer',
             'price' => 'decimal:2',
             'gst_percent' => 'decimal:2',
             'discount_percent' => 'decimal:2',
@@ -125,6 +130,19 @@ class Product extends Model
         });
 
         static::saving(function (Product $product): void {
+            // Synchronize category string with category_id
+            if (! empty($product->category_id)) {
+                $matchedSlug = Category::where('id', $product->category_id)->value('slug');
+                if ($matchedSlug) {
+                    $product->category = $matchedSlug;
+                }
+            } elseif (! empty($product->category)) {
+                $matchedId = Category::where('slug', $product->category)->value('id');
+                if ($matchedId) {
+                    $product->category_id = $matchedId;
+                }
+            }
+
             // Keep final_price synced with calculation formula
             $computedFinal = $product->calculateFinalPrice();
             $product->final_price = $computedFinal;
@@ -145,6 +163,22 @@ class Product extends Model
     | Relationships
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Get the parent category model.
+     */
+    public function categoryRelation(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    /**
+     * Get the assigned subcategory model.
+     */
+    public function subcategory(): BelongsTo
+    {
+        return $this->belongsTo(Subcategory::class, 'subcategory_id');
+    }
 
     /**
      * Get all order items for this product.
@@ -211,6 +245,7 @@ class Product extends Model
             $singular = rtrim($cat, 's');
             return $query->where(function (Builder $sub) use ($cat, $singular): void {
                 $sub->where('category', $cat)
+                    ->orWhereHas('subcategory', fn (Builder $sq) => $sq->where('slug', $cat))
                     ->orWhere(function (Builder $s) use ($cat, $singular): void {
                         $s->where('category', 'jewelry')
                           ->where(function (Builder $tm) use ($cat, $singular): void {
@@ -230,7 +265,10 @@ class Product extends Model
             });
         }
 
-        return $query->where('category', $cat);
+        return $query->where(function (Builder $q) use ($cat): void {
+            $q->where('category', $cat)
+              ->orWhereHas('subcategory', fn (Builder $sq) => $sq->where('slug', $cat));
+        });
     }
 
     /*

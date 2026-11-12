@@ -64,19 +64,25 @@
                             <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Category</label>
                             @php
                                 $activeCat = request('category', $currentCategory ?? '');
-                                $primaryCats = [
-                                    'jewelry' => 'Jewelry',
-                                    'clothing' => 'Clothing',
-                                    'watches' => 'Watches',
-                                    'footwear' => 'Footwear',
-                                ];
-                                $legacyJewelrySubs = [
-                                    'rings' => 'Rings',
-                                    'necklaces' => 'Necklaces',
-                                    'bracelets' => 'Bracelets',
-                                    'earrings' => 'Earrings',
-                                    'solitaires' => 'Solitaires',
-                                ];
+                                $dbCategories = \App\Models\Category::active()->with(['subcategories' => fn($q) => $q->active()])->orderBy('sort_order')->get();
+                                $primaryCats = $dbCategories->isNotEmpty()
+                                    ? $dbCategories->pluck('name', 'slug')->toArray()
+                                    : [
+                                        'jewelry' => 'Jewelry',
+                                        'clothing' => 'Clothing',
+                                        'watches' => 'Watches',
+                                        'footwear' => 'Footwear',
+                                    ];
+                                $jewelryCat = $dbCategories->firstWhere('slug', 'jewelry');
+                                $legacyJewelrySubs = ($jewelryCat && $jewelryCat->subcategories->isNotEmpty())
+                                    ? $jewelryCat->subcategories->pluck('name', 'slug')->toArray()
+                                    : [
+                                        'rings' => 'Rings',
+                                        'necklaces' => 'Necklaces',
+                                        'bracelets' => 'Bracelets',
+                                        'earrings' => 'Earrings',
+                                        'solitaires' => 'Solitaires',
+                                    ];
                             @endphp
                             <div class="space-y-2">
                                 <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#D4AF37]">

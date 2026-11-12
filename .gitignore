@@ -10,6 +10,8 @@
 .env.production
 /database/*.sqlite
 /database/*.sqlite-journal
+/database/backups/*
+!/database/backups/.gitkeep
 .phpunit.result.cache
 auth.json
 npm-debug.log

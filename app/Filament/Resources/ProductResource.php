@@ -67,7 +67,10 @@ class ProductResource extends Resource
                                         Forms\Components\Select::make('category')
                                             ->label('Product Category')
                                             ->required()
-                                            ->options(Product::CATEGORIES)
+                                            ->options(function (): array {
+                                                $dbCats = \App\Models\Category::active()->orderBy('sort_order')->pluck('name', 'slug')->toArray();
+                                                return !empty($dbCats) ? $dbCats : Product::CATEGORIES;
+                                            })
                                             ->default(Product::CATEGORY_JEWELRY)
                                             ->native(false)
                                             ->live()
@@ -80,8 +83,34 @@ class ProductResource extends Resource
                                                 } elseif ($state === 'watches' || $state === 'footwear') {
                                                     $set('gst_percent', 18);
                                                 }
+                                                // Reset subcategory selection when category changes
+                                                $set('subcategory_id', null);
                                             })
                                             ->helperText('Authoritative master category for storefront navigation and catalog.'),
+
+                                        Forms\Components\Select::make('subcategory_id')
+                                            ->label('Product Subcategory')
+                                            ->nullable()
+                                            ->placeholder('None (No subcategory)')
+                                            ->options(function (Forms\Get $get): array {
+                                                $catSlug = $get('category');
+                                                if (! $catSlug) {
+                                                    return [];
+                                                }
+                                                $category = \App\Models\Category::where('slug', $catSlug)->first();
+                                                if (! $category) {
+                                                    return [];
+                                                }
+                                                return \App\Models\Subcategory::where('category_id', $category->id)
+                                                    ->active()
+                                                    ->orderBy('sort_order')
+                                                    ->orderBy('name')
+                                                    ->pluck('name', 'id')
+                                                    ->toArray();
+                                            })
+                                            ->searchable()
+                                            ->native(false)
+                                            ->helperText('Subcategories loaded dynamically for the selected category. Optional.'),
 
                                         Forms\Components\TextInput::make('metal_type')
                                             ->label('Material / Metal Specification')
@@ -362,6 +391,13 @@ class ProductResource extends Resource
                         default => 'gray',
                     }),
 
+                Tables\Columns\TextColumn::make('subcategory.name')
+                    ->label('Subcategory')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('price')
                     ->label('Base Price')
                     ->money('INR')
@@ -412,6 +448,10 @@ class ProductResource extends Resource
                 Tables\Filters\SelectFilter::make('category')
                     ->label('Category')
                     ->options(Product::CATEGORIES),
+
+                Tables\Filters\SelectFilter::make('subcategory_id')
+                    ->label('Subcategory')
+                    ->relationship('subcategory', 'name'),
 
                 Tables\Filters\TernaryFilter::make('is_featured')
                     ->label('Featured'),
