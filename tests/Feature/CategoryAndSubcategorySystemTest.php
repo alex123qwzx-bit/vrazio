@@ -238,4 +238,66 @@ class CategoryAndSubcategorySystemTest extends TestCase
         $editNoSubRes = $this->get(ProductResource::getUrl('edit', ['record' => $productNoSub]));
         $editNoSubRes->assertSuccessful();
     }
+
+    /**
+     * Test Requirement 4 example workflow:
+     * Admin creates Rings category with Gold Rings, Diamond Rings, Silver Rings, and Engagement Rings.
+     * Selects Diamond Rings in product, saves, and filters dynamically.
+     */
+    public function test_example_workflow_admin_creates_category_with_subcategories_and_assigns_to_product(): void
+    {
+        $this->actingAs($this->admin);
+
+        // 1. Admin creates custom category 'Rings'
+        $ringsCat = Category::create([
+            'name' => 'Cocktail Rings',
+            'slug' => 'cocktail-rings',
+            'description' => 'Fine cocktail rings and statement pieces.',
+            'is_active' => true,
+            'sort_order' => 5,
+        ]);
+
+        // 2. Admin adds multiple subcategories
+        $subNames = ['Gold Rings', 'Diamond Rings', 'Silver Rings', 'Engagement Rings'];
+        $createdSubs = [];
+        foreach ($subNames as $name) {
+            $createdSubs[$name] = Subcategory::create([
+                'category_id' => $ringsCat->id,
+                'name' => $name,
+                'slug' => \Illuminate\Support\Str::slug($name),
+                'is_active' => true,
+            ]);
+        }
+
+        $this->assertCount(4, $ringsCat->subcategories);
+
+        // 3. Admin creates product assigning category 'Cocktail Rings' and subcategory 'Diamond Rings'
+        $diamondRingSub = $createdSubs['Diamond Rings'];
+        $product = Product::create([
+            'sku' => 'VRZ-COCKTAIL-DIA-01',
+            'title' => 'Solitaire Diamond Cocktail Ring',
+            'category_id' => $ringsCat->id,
+            'subcategory_id' => $diamondRingSub->id,
+            'price' => 85000.0,
+            'gst_percent' => 3.0,
+            'discount_percent' => 0.0,
+            'stock_quantity' => 3,
+        ]);
+
+        // 4. Verify relations and dynamic resolution
+        $this->assertEquals($ringsCat->id, $product->categoryRelation->id);
+        $this->assertEquals('Cocktail Rings', $product->categoryRelation->name);
+        $this->assertEquals('Diamond Rings', $product->subcategory->name);
+        $this->assertEquals('cocktail-rings', $product->category); // Auto-synced string
+
+        // 5. Test storefront query by subcategory slug
+        $matchedProducts = Product::byCategory('diamond-rings')->get();
+        $this->assertCount(1, $matchedProducts);
+        $this->assertEquals('VRZ-COCKTAIL-DIA-01', $matchedProducts->first()->sku);
+
+        // 6. Test storefront query by parent category slug
+        $categoryProducts = Product::byCategory('cocktail-rings')->get();
+        $this->assertCount(1, $categoryProducts);
+        $this->assertEquals('VRZ-COCKTAIL-DIA-01', $categoryProducts->first()->sku);
+    }
 }

@@ -15,7 +15,9 @@ class ListCategories extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('+ Add New Category')
+                ->icon('heroicon-o-plus-circle'),
         ];
     }
 }

@@ -64,25 +64,11 @@
                             <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Category</label>
                             @php
                                 $activeCat = request('category', $currentCategory ?? '');
-                                $dbCategories = \App\Models\Category::active()->with(['subcategories' => fn($q) => $q->active()])->orderBy('sort_order')->get();
-                                $primaryCats = $dbCategories->isNotEmpty()
-                                    ? $dbCategories->pluck('name', 'slug')->toArray()
-                                    : [
-                                        'jewelry' => 'Jewelry',
-                                        'clothing' => 'Clothing',
-                                        'watches' => 'Watches',
-                                        'footwear' => 'Footwear',
-                                    ];
-                                $jewelryCat = $dbCategories->firstWhere('slug', 'jewelry');
-                                $legacyJewelrySubs = ($jewelryCat && $jewelryCat->subcategories->isNotEmpty())
-                                    ? $jewelryCat->subcategories->pluck('name', 'slug')->toArray()
-                                    : [
-                                        'rings' => 'Rings',
-                                        'necklaces' => 'Necklaces',
-                                        'bracelets' => 'Bracelets',
-                                        'earrings' => 'Earrings',
-                                        'solitaires' => 'Solitaires',
-                                    ];
+                                $dbCategories = \App\Models\Category::active()
+                                    ->with(['subcategories' => fn($q) => $q->active()->orderBy('sort_order')->orderBy('name')])
+                                    ->orderBy('sort_order')
+                                    ->orderBy('name')
+                                    ->get();
                             @endphp
                             <div class="space-y-2">
                                 <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#D4AF37]">
@@ -91,25 +77,28 @@
                                            class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
                                     All Categories
                                 </label>
-                                @foreach($primaryCats as $slug => $label)
-                                    <label class="flex items-center text-xs font-semibold text-[#0E261C] cursor-pointer hover:text-[#D4AF37]">
-                                        <input type="radio" name="category" value="{{ $slug }}" 
-                                               {{ $activeCat === $slug ? 'checked' : '' }}
-                                               class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
-                                        {{ $label }}
-                                    </label>
-                                @endforeach
-                                <div class="pl-4 pt-1 space-y-1.5 border-l-2 border-[#D4AF37]/30 ml-2">
-                                    <span class="text-[10px] uppercase tracking-wider text-gray-400 block font-bold">Jewelry Styles</span>
-                                    @foreach($legacyJewelrySubs as $slug => $label)
-                                        <label class="flex items-center text-xs text-[#0E261C]/70 cursor-pointer hover:text-[#D4AF37]">
-                                            <input type="radio" name="category" value="{{ $slug }}" 
-                                                   {{ $activeCat === $slug ? 'checked' : '' }}
+                                @foreach($dbCategories as $cat)
+                                    <div>
+                                        <label class="flex items-center text-xs font-semibold text-[#0E261C] cursor-pointer hover:text-[#D4AF37]">
+                                            <input type="radio" name="category" value="{{ $cat->slug }}" 
+                                                   {{ $activeCat === $cat->slug ? 'checked' : '' }}
                                                    class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
-                                            {{ $label }}
+                                            {{ $cat->name }}
                                         </label>
-                                    @endforeach
-                                </div>
+                                        @if($cat->subcategories->isNotEmpty())
+                                            <div class="pl-4 pt-1 space-y-1.5 border-l-2 border-[#D4AF37]/30 ml-2 mt-1">
+                                                @foreach($cat->subcategories as $sub)
+                                                    <label class="flex items-center text-xs text-[#0E261C]/70 cursor-pointer hover:text-[#D4AF37]">
+                                                        <input type="radio" name="category" value="{{ $sub->slug }}" 
+                                                               {{ $activeCat === $sub->slug ? 'checked' : '' }}
+                                                               class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
+                                                        {{ $sub->name }}
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 

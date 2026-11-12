@@ -63,54 +63,56 @@ class ProductResource extends Resource
                                             ->unique(ignoreRecord: true)
                                             ->prefix('VRZ-'),
 
-                                        // Requirement 2: The 4 Authoritative Categories
-                                        Forms\Components\Select::make('category')
+                                        // Dynamic Admin-Controlled Category & Subcategory System
+                                        Forms\Components\Select::make('category_id')
                                             ->label('Product Category')
                                             ->required()
-                                            ->options(function (): array {
-                                                $dbCats = \App\Models\Category::active()->orderBy('sort_order')->pluck('name', 'slug')->toArray();
-                                                return !empty($dbCats) ? $dbCats : Product::CATEGORIES;
-                                            })
-                                            ->default(Product::CATEGORY_JEWELRY)
-                                            ->native(false)
+                                            ->options(fn (): array => \App\Models\Category::active()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->toArray())
+                                            ->searchable()
+                                            ->preload()
                                             ->live()
-                                            ->afterStateUpdated(function (Forms\Set $set, ?string $state): void {
-                                                // Default sensible GST rate per category
-                                                if ($state === 'jewelry') {
-                                                    $set('gst_percent', 3);
-                                                } elseif ($state === 'clothing') {
-                                                    $set('gst_percent', 12);
-                                                } elseif ($state === 'watches' || $state === 'footwear') {
-                                                    $set('gst_percent', 18);
-                                                }
+                                            ->afterStateUpdated(function (Forms\Set $set, ?int $state): void {
                                                 // Reset subcategory selection when category changes
                                                 $set('subcategory_id', null);
+
+                                                if (! $state) {
+                                                    return;
+                                                }
+
+                                                // Contextual GST suggestion based on selected category
+                                                $category = \App\Models\Category::find($state);
+                                                if ($category) {
+                                                    $slug = strtolower($category->slug);
+                                                    if ($slug === 'jewelry') {
+                                                        $set('gst_percent', 3);
+                                                    } elseif ($slug === 'clothing' || $slug === 'couture') {
+                                                        $set('gst_percent', 12);
+                                                    } elseif ($slug === 'watches' || $slug === 'footwear') {
+                                                        $set('gst_percent', 18);
+                                                    }
+                                                }
                                             })
-                                            ->helperText('Authoritative master category for storefront navigation and catalog.'),
+                                            ->helperText('Select the master category created in Manage Categories.'),
 
                                         Forms\Components\Select::make('subcategory_id')
                                             ->label('Product Subcategory')
                                             ->nullable()
                                             ->placeholder('None (No subcategory)')
                                             ->options(function (Forms\Get $get): array {
-                                                $catSlug = $get('category');
-                                                if (! $catSlug) {
+                                                $catId = $get('category_id');
+                                                if (! $catId) {
                                                     return [];
                                                 }
-                                                $category = \App\Models\Category::where('slug', $catSlug)->first();
-                                                if (! $category) {
-                                                    return [];
-                                                }
-                                                return \App\Models\Subcategory::where('category_id', $category->id)
-                                                    ->active()
+                                                return \App\Models\Subcategory::where('category_id', $catId)
+                                                    ->where('is_active', true)
                                                     ->orderBy('sort_order')
                                                     ->orderBy('name')
                                                     ->pluck('name', 'id')
                                                     ->toArray();
                                             })
                                             ->searchable()
-                                            ->native(false)
-                                            ->helperText('Subcategories loaded dynamically for the selected category. Optional.'),
+                                            ->preload()
+                                            ->helperText('Subcategories belonging to the selected category. Leave empty if none applies.'),
 
                                         Forms\Components\TextInput::make('metal_type')
                                             ->label('Material / Metal Specification')
@@ -199,7 +201,8 @@ class ProductResource extends Resource
                                                 $basePrice = (float) ($get('price') ?? 0);
                                                 $discountPercent = (float) ($get('discount_percent') ?? 0);
                                                 $gstPercent = (float) ($get('gst_percent') ?? 0);
-                                                $category = Product::CATEGORIES[$get('category')] ?? ucfirst((string) $get('category'));
+                                                $catId = $get('category_id');
+                                                $category = $catId ? (\App\Models\Category::find($catId)?->name ?? 'General') : 'General';
 
                                                 $discountAmount = round($basePrice * ($discountPercent / 100.0), 2);
                                                 $discountedPrice = max(0.0, round($basePrice - $discountAmount, 2));
@@ -379,23 +382,19 @@ class ProductResource extends Resource
                     ->weight('bold')
                     ->tooltip(fn (Product $record): string => $record->title),
 
-                Tables\Columns\TextColumn::make('category')
+                Tables\Columns\TextColumn::make('categoryRelation.name')
                     ->label('Category')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => Product::CATEGORIES[$state] ?? ucfirst($state))
-                    ->color(fn (string $state): string => match ($state) {
-                        'jewelry' => 'success',
-                        'clothing' => 'warning',
-                        'watches' => 'info',
-                        'footwear' => 'primary',
-                        default => 'gray',
-                    }),
+                    ->color('primary')
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('subcategory.name')
                     ->label('Subcategory')
                     ->placeholder('—')
                     ->badge()
                     ->color('gray')
+                    ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('price')
@@ -445,13 +444,17 @@ class ProductResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
+                Tables\Filters\SelectFilter::make('category_id')
                     ->label('Category')
-                    ->options(Product::CATEGORIES),
+                    ->relationship('categoryRelation', 'name')
+                    ->searchable()
+                    ->preload(),
 
                 Tables\Filters\SelectFilter::make('subcategory_id')
                     ->label('Subcategory')
-                    ->relationship('subcategory', 'name'),
+                    ->relationship('subcategory', 'name')
+                    ->searchable()
+                    ->preload(),
 
                 Tables\Filters\TernaryFilter::make('is_featured')
                     ->label('Featured'),

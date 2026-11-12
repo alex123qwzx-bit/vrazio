@@ -219,52 +219,47 @@ class Product extends Model
     }
 
     /**
-     * Scope a query to filter by category or legacy jewelry subcategory.
+     * Scope a query to filter by category or subcategory dynamically from the database.
      */
-    public function scopeByCategory(Builder $query, string $category): Builder
+    public function scopeByCategory(Builder $query, string|int $category): Builder
     {
-        $cat = strtolower(trim($category));
-
-        if ($cat === 'jewelry') {
-            return $query->whereIn('category', ['jewelry', 'rings', 'necklaces', 'bracelets', 'earrings', 'solitaires']);
-        }
-
-        if ($cat === 'clothing' || $cat === 'couture' || $cat === 'clothes') {
-            return $query->whereIn('category', ['clothing', 'couture', 'clothes']);
-        }
-
-        if ($cat === 'watches' || $cat === 'watch') {
-            return $query->whereIn('category', ['watches', 'watch']);
-        }
-
-        if ($cat === 'footwear' || $cat === 'shoes') {
-            return $query->whereIn('category', ['footwear', 'shoes']);
-        }
-
-        if (in_array($cat, ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires'], true)) {
-            $singular = rtrim($cat, 's');
-            return $query->where(function (Builder $sub) use ($cat, $singular): void {
-                $sub->where('category', $cat)
-                    ->orWhereHas('subcategory', fn (Builder $sq) => $sq->where('slug', $cat))
-                    ->orWhere(function (Builder $s) use ($cat, $singular): void {
-                        $s->where('category', 'jewelry')
-                          ->where(function (Builder $tm) use ($cat, $singular): void {
-                              if ($cat === 'rings') {
-                                  $tm->where(function (Builder $w) use ($singular, $cat): void {
-                                      $w->where('title', 'like', "%{$singular}%")
-                                        ->orWhere('tags', 'like', "%{$cat}%");
-                                  })->where('title', 'not like', '%earring%')
-                                    ->where('tags', 'not like', '%earring%');
-                              } else {
-                                  $tm->where('title', 'like', "%{$singular}%")
-                                     ->orWhere('tags', 'like', "%{$cat}%")
-                                     ->orWhere('tags', 'like', "%{$singular}%");
-                              }
-                          });
-                    });
+        if (is_numeric($category)) {
+            $id = (int) $category;
+            return $query->where(function (Builder $q) use ($id): void {
+                $q->where('category_id', $id)
+                  ->orWhere('subcategory_id', $id);
             });
         }
 
+        $cat = strtolower(trim((string) $category));
+
+        // 1. Direct Category Match from Database
+        $catModel = Category::where('slug', $cat)->first();
+        if ($catModel) {
+            return $query->where(function (Builder $q) use ($catModel, $cat): void {
+                $q->where('category_id', $catModel->id)
+                  ->orWhere('category', $cat);
+
+                if ($cat === 'clothing') {
+                    $q->orWhereIn('category', ['couture', 'clothes']);
+                } elseif ($cat === 'watches') {
+                    $q->orWhere('category', 'watch');
+                } elseif ($cat === 'footwear') {
+                    $q->orWhere('category', 'shoes');
+                }
+            });
+        }
+
+        // 2. Direct Subcategory Match from Database
+        $subModel = Subcategory::where('slug', $cat)->first();
+        if ($subModel) {
+            return $query->where(function (Builder $q) use ($subModel, $cat): void {
+                $q->where('subcategory_id', $subModel->id)
+                  ->orWhere('category', $cat);
+            });
+        }
+
+        // 3. Fallback to direct string match
         return $query->where(function (Builder $q) use ($cat): void {
             $q->where('category', $cat)
               ->orWhereHas('subcategory', fn (Builder $sq) => $sq->where('slug', $cat));

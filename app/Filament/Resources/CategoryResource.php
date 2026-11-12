@@ -22,6 +22,12 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationGroup = 'Catalogue';
 
+    protected static ?string $navigationLabel = 'Manage Categories';
+
+    protected static ?string $modelLabel = 'Category';
+
+    protected static ?string $pluralModelLabel = 'Manage Categories';
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'name';
@@ -32,6 +38,7 @@ class CategoryResource extends Resource
             ->schema([
                 Forms\Components\Grid::make(3)
                     ->schema([
+                        // Left column (span 2)
                         Forms\Components\Group::make()
                             ->columnSpan(2)
                             ->schema([
@@ -56,6 +63,17 @@ class CategoryResource extends Resource
                                             ->alphaDash()
                                             ->helperText('Unique identifier used in URLs and storefront catalog filtering.'),
 
+                                        Forms\Components\FileUpload::make('image')
+                                            ->label('Category Image / Banner')
+                                            ->image()
+                                            ->directory('categories')
+                                            ->imageResizeMode('cover')
+                                            ->imageCropAspectRatio('16:9')
+                                            ->imageResizeTargetWidth('1200')
+                                            ->imageResizeTargetHeight('675')
+                                            ->columnSpanFull()
+                                            ->helperText('Optional visual banner or icon for this category.'),
+
                                         Forms\Components\Textarea::make('description')
                                             ->label('Description')
                                             ->rows(3)
@@ -63,8 +81,61 @@ class CategoryResource extends Resource
                                             ->placeholder('Artisanal description of this master collection...'),
                                     ])
                                     ->columns(2),
+
+                                // Inline Repeatable Subcategories (Requirement 2)
+                                Forms\Components\Section::make('Subcategories')
+                                    ->description('Add unlimited subcategories under this category. Example: Watches -> Analog Watches, Digital Watches, Smart Watches, Luxury Watches.')
+                                    ->schema([
+                                        Forms\Components\Repeater::make('subcategories')
+                                            ->relationship('subcategories')
+                                            ->schema([
+                                                Forms\Components\Grid::make(3)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('name')
+                                                            ->label('Subcategory Name')
+                                                            ->required()
+                                                            ->maxLength(100)
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function (Forms\Set $set, ?string $state): void {
+                                                                if (filled($state)) {
+                                                                    $set('slug', Str::slug($state));
+                                                                }
+                                                            }),
+
+                                                        Forms\Components\TextInput::make('slug')
+                                                            ->label('URL Slug')
+                                                            ->required()
+                                                            ->maxLength(100)
+                                                            ->alphaDash()
+                                                            ->helperText('Unique within this category.'),
+
+                                                        Forms\Components\TextInput::make('sort_order')
+                                                            ->label('Display Order')
+                                                            ->numeric()
+                                                            ->default(0),
+                                                    ]),
+
+                                                Forms\Components\Grid::make(2)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('description')
+                                                            ->label('Short Description')
+                                                            ->placeholder('e.g. Traditional or modern silhouette...'),
+
+                                                        Forms\Components\Toggle::make('is_active')
+                                                            ->label('Active in Storefront')
+                                                            ->default(true),
+                                                    ]),
+                                            ])
+                                            ->addActionLabel('+ Add Subcategory')
+                                            ->reorderable('sort_order')
+                                            ->collapsible()
+                                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                                            ->defaultItems(0)
+                                            ->columnSpanFull(),
+                                    ]),
                             ]),
 
+                        // Right column (span 1)
                         Forms\Components\Group::make()
                             ->columnSpan(1)
                             ->schema([
@@ -73,7 +144,7 @@ class CategoryResource extends Resource
                                         Forms\Components\Toggle::make('is_active')
                                             ->label('Active in Storefront')
                                             ->default(true)
-                                            ->helperText('Visible in catalog navigation.'),
+                                            ->helperText('Visible in catalog navigation and product selection.'),
 
                                         Forms\Components\TextInput::make('sort_order')
                                             ->label('Display Order')
@@ -90,6 +161,11 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image')
+                    ->label('Image')
+                    ->circular()
+                    ->defaultImageUrl(asset('images/favicon-32x32.png')),
+
                 Tables\Columns\TextColumn::make('name')
                     ->label('Category Name')
                     ->searchable()
