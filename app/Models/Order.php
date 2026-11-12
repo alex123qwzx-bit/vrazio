@@ -174,6 +174,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
     /**
      * Get the warranty claim associated with this order.
      */
@@ -221,8 +226,8 @@ class Order extends Model
     {
         $user = $user ?? auth()->user();
 
-        // 1. Admin can access everything
-        if ($user && $user->role === 'admin') {
+        // 1. Admin / Super Admin can access everything
+        if ($user && ($user->isAdmin() || in_array($user->role, ['admin', 'super_admin'], true))) {
             return true;
         }
 

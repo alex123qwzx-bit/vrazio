@@ -1,47 +1,54 @@
 @php
-    $heroConfig = $themeSettings['hero_config'] ?? [];
-    if (is_string($heroConfig)) {
-        $heroConfig = json_decode($heroConfig, true) ?? [];
+    $rawSlides = $homepageConfig['hero_slides'] ?? [];
+    $now = now();
+    $slides = [];
+
+    if (!empty($rawSlides) && is_array($rawSlides)) {
+        foreach ($rawSlides as $slide) {
+            $isActive = !isset($slide['is_active']) || $slide['is_active'];
+            if (!$isActive) {
+                continue;
+            }
+
+            if (!empty($slide['start_at']) && $now->lt(\Carbon\Carbon::parse($slide['start_at']))) {
+                continue;
+            }
+
+            if (!empty($slide['end_at']) && $now->gt(\Carbon\Carbon::parse($slide['end_at']))) {
+                continue;
+            }
+
+            $img = $slide['image'] ?? 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=85';
+            $imgUrl = \Illuminate\Support\Str::startsWith($img, ['http://', 'https://', '/']) ? $img : asset('storage/' . $img);
+
+            $slides[] = [
+                'badge' => $slide['badge'] ?? 'Haute Joaillerie • Atelier Privé',
+                'headline' => $slide['headline'] ?? 'Exquisite Craftsmanship, Timeless Elegance',
+                'subtitle' => $slide['subtitle'] ?? 'Discover our curated collection of BIS Hallmarked fine jewellery & solitaires, crafted by master artisans.',
+                'image' => $imgUrl,
+                'cta_primary_label' => $slide['cta_primary_label'] ?? 'Explore Collections',
+                'cta_primary_link' => $slide['cta_primary_link'] ?? route('products.index'),
+                'cta_secondary_label' => $slide['cta_secondary_label'] ?? 'Atelier Heritage',
+                'cta_secondary_link' => $slide['cta_secondary_link'] ?? route('pages.about'),
+            ];
+        }
     }
 
-    $defaultHeadline = $heroConfig['headline'] ?? 'Exquisite Craftsmanship, Timeless Elegance';
-    $defaultSubtitle = $heroConfig['subtitle'] ?? 'Discover our curated collection of BIS Hallmarked fine jewellery & solitaires, crafted by master artisans.';
-    $defaultBgImage = $heroConfig['background_image'] ?? 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=85';
-    $defaultCtaLabel = $heroConfig['cta_label'] ?? 'Explore Collections';
-    $defaultCtaLink = $heroConfig['cta_link'] ?? route('products.index');
-
-    $slides = [
-        [
-            'badge' => 'Haute Joaillerie • Atelier Privé',
-            'headline' => $defaultHeadline,
-            'subtitle' => $defaultSubtitle,
-            'image' => $defaultBgImage,
-            'cta_primary_label' => $defaultCtaLabel,
-            'cta_primary_link' => $defaultCtaLink,
-            'cta_secondary_label' => 'Atelier Heritage',
-            'cta_secondary_link' => route('pages.about'),
-        ],
-        [
-            'badge' => 'Haute Couture & Royal Apparel',
-            'headline' => 'Imperial Zardozi & Banarasi Heirlooms',
-            'subtitle' => 'Bespoke bridal lehengas, handwoven Banarasi Katan silks, and royal micro-velvet sherwanis embellished with authentic 24KT gold zari.',
-            'image' => 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=2000&q=85',
-            'cta_primary_label' => 'Explore Couture',
-            'cta_primary_link' => route('products.couture'),
-            'cta_secondary_label' => 'Bridal Lehengas',
-            'cta_secondary_link' => route('products.couture', ['tag' => 'Bridal Lehenga']),
-        ],
-        [
-            'badge' => 'Rare Solitaires & Sovereign Emeralds',
-            'headline' => 'Flawless Brilliance, Forged in Platinum',
-            'subtitle' => 'Triple-excellent cut D-Flawless diamonds certified by GIA and untreated Zambian emeralds, sculpted in dense Platinum 950 and 18KT gold.',
-            'image' => 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=2000&q=85',
-            'cta_primary_label' => 'View Solitaires',
-            'cta_primary_link' => url('/collections/solitaires'),
-            'cta_secondary_label' => 'Private Concierge',
-            'cta_secondary_link' => route('pages.contact'),
-        ],
-    ];
+    // Fallback if all slides inactive or empty
+    if (empty($slides)) {
+        $slides = [
+            [
+                'badge' => 'Haute Joaillerie • Atelier Privé',
+                'headline' => 'Exquisite Craftsmanship, Timeless Elegance',
+                'subtitle' => 'Discover our curated collection of BIS Hallmarked fine jewellery & solitaires, crafted by master artisans.',
+                'image' => 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=85',
+                'cta_primary_label' => 'Explore Collections',
+                'cta_primary_link' => route('products.index'),
+                'cta_secondary_label' => 'Atelier Heritage',
+                'cta_secondary_link' => route('pages.about'),
+            ],
+        ];
+    }
 @endphp
 
 <section class="relative min-h-[88vh] md:min-h-[94vh] flex items-center justify-center overflow-hidden bg-[#0A1C15]"
@@ -77,7 +84,7 @@
          @mouseleave="isHovered = false">
 
     {{-- ═══════════════════════════════════════════════════════════════════
-         3 ANIMATED BANNER PICTURES WITH KEN BURNS SLOW ZOOM & CROSS-FADE
+         ANIMATED BANNER PICTURES WITH KEN BURNS SLOW ZOOM & CROSS-FADE
     ═══════════════════════════════════════════════════════════════════ --}}
     @foreach($slides as $index => $slide)
         <div class="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none"
@@ -134,51 +141,37 @@
                 </div>
             </div>
         @endforeach
-
-        {{-- Certifications Strip --}}
-        <div class="mt-20 pt-8 border-t border-[#D4AF37]/20 flex flex-wrap items-center justify-center gap-6 md:gap-10 text-[11px] uppercase tracking-[0.2em] text-[#FAF8F5]/70">
-            <span class="flex items-center gap-2">
-                <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                100% BIS Hallmarked Gold &amp; Silk Mark
-            </span>
-            <span class="flex items-center gap-2">
-                <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                GIA &bull; IGI &bull; SGL Certified Diamonds
-            </span>
-            <span class="flex items-center gap-2">
-                <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                Complimentary Armoured Doorstep Transit
-            </span>
-        </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════════
          INTERACTIVE NAVIGATION CONTROLS (NEXT / PREV & SLIDE INDICATORS)
     ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- Previous Arrow --}}
-    <button @click="prev()" 
-            aria-label="Previous Slide"
-            class="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center border border-[#D4AF37]/30 text-[#D4AF37] bg-[#0E261C]/50 hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300">
-        <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/></svg>
-    </button>
+    @if(count($slides) > 1)
+        {{-- Previous Arrow --}}
+        <button @click="prev()" 
+                aria-label="Previous Slide"
+                class="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center border border-[#D4AF37]/30 text-[#D4AF37] bg-[#0E261C]/50 hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300">
+            <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
 
-    {{-- Next Arrow --}}
-    <button @click="next()" 
-            aria-label="Next Slide"
-            class="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center border border-[#D4AF37]/30 text-[#D4AF37] bg-[#0E261C]/50 hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300">
-        <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg>
-    </button>
+        {{-- Next Arrow --}}
+        <button @click="next()" 
+                aria-label="Next Slide"
+                class="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center border border-[#D4AF37]/30 text-[#D4AF37] bg-[#0E261C]/50 hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300">
+            <svg width="20" height="20" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
 
-    {{-- Numbered Slide Indicators with Progress Bar --}}
-    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
-        @foreach($slides as $index => $slide)
-            <button @click="goTo({{ $index }})" 
-                    class="group flex items-center gap-2 py-2 px-3 text-xs font-mono transition-all duration-300"
-                    :class="activeSlide === {{ $index }} ? 'text-[#D4AF37]' : 'text-white/50 hover:text-white'">
-                <span class="text-[10px] tracking-widest font-semibold">0{{ $index + 1 }}</span>
-                <span class="block h-0.5 transition-all duration-500 rounded-full"
-                      :class="activeSlide === {{ $index }} ? 'w-8 bg-[#D4AF37]' : 'w-3 bg-white/30 group-hover:bg-white/60'"></span>
-            </button>
-        @endforeach
-    </div>
+        {{-- Numbered Slide Indicators with Progress Bar --}}
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+            @foreach($slides as $index => $slide)
+                <button @click="goTo({{ $index }})" 
+                        class="group flex items-center gap-2 py-2 px-3 text-xs font-mono transition-all duration-300"
+                        :class="activeSlide === {{ $index }} ? 'text-[#D4AF37]' : 'text-white/50 hover:text-white'">
+                    <span class="text-[10px] tracking-widest font-semibold">0{{ $index + 1 }}</span>
+                    <span class="block h-0.5 transition-all duration-500 rounded-full"
+                          :class="activeSlide === {{ $index }} ? 'w-8 bg-[#D4AF37]' : 'w-3 bg-white/30 group-hover:bg-white/60'"></span>
+                </button>
+            @endforeach
+        </div>
+    @endif
 </section>

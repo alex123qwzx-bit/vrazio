@@ -14,7 +14,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('ASSET_URL') ? rtrim(env('ASSET_URL'), '/') . '/storage' : '/storage',
             'visibility' => 'public',
             'throw' => false,
         ],

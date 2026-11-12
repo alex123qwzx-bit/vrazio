@@ -22,7 +22,7 @@ class ThemeCustomizer extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Storefront Design';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $title = 'Theme & Layout Customizer';
 

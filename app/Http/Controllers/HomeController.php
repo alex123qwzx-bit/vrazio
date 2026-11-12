@@ -4,65 +4,115 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductReview;
+use App\Services\HomepageManagerService;
 use App\Services\ThemeService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
     public function __construct(
-        protected ThemeService $themeService
+        protected ThemeService $themeService,
+        protected HomepageManagerService $homepageService
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $themeSettings = $this->themeService->getSettings();
         
-        $featuredProducts = Product::featured()
-            ->inStock()
+        // Support Draft Preview for authenticated administrators
+        $isPreview = false;
+        if ($request->query('preview') === 'draft' && Auth::check() && Auth::user()->isAdmin()) {
+            $homepageConfig = $this->homepageService->getDraft();
+            $isPreview = true;
+        } else {
+            $homepageConfig = $this->homepageService->getPublished();
+        }
+
+        // 1. Featured Products / Atelier Curations based on configuration
+        $prodConfig = $homepageConfig['featured_products_section'] ?? [];
+        $collectionType = $prodConfig['collection_type'] ?? 'featured';
+        $limit = max(1, (int) ($prodConfig['limit'] ?? 8));
+
+        if ($collectionType === 'manual' && !empty($prodConfig['selected_product_ids'])) {
+            $featuredProducts = Product::whereIn('id', (array) $prodConfig['selected_product_ids'])
+                ->inStock()
+                ->get();
+        } elseif ($collectionType === 'new_arrivals') {
+            $featuredProducts = Product::inStock()
+                ->latest()
+                ->take($limit)
+                ->get();
+        } else {
+            $featuredProducts = Product::featured()
+                ->inStock()
+                ->latest()
+                ->take($limit)
+                ->get();
+
+            // Graceful fallback if no products are marked as featured yet
+            if ($featuredProducts->isEmpty()) {
+                $featuredProducts = Product::inStock()
+                    ->latest()
+                    ->take($limit)
+                    ->get();
+            }
+        }
+
+        // 2. Curated Categories from configuration or active DB categories
+        $catConfig = $homepageConfig['category_section'] ?? [];
+        $rawCatItems = $catConfig['items'] ?? [];
+        
+        $curatedCategories = [];
+        if (!empty($rawCatItems) && is_array($rawCatItems)) {
+            foreach ($rawCatItems as $item) {
+                if (!isset($item['is_active']) || $item['is_active']) {
+                    $curatedCategories[] = [
+                        'name' => $item['name'] ?? 'Collection',
+                        'slug' => $item['slug'] ?? 'collections',
+                        'image' => $item['image'] ?? 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80',
+                        'description' => $item['description'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        // If config is empty, fallback to database categories
+        if (empty($curatedCategories)) {
+            $dbCategories = Category::active()->orderBy('sort_order')->take(6)->get();
+            foreach ($dbCategories as $cat) {
+                $curatedCategories[] = [
+                    'name' => $cat->name,
+                    'slug' => $cat->slug,
+                    'image' => $cat->image ?? 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80',
+                    'description' => $cat->description ?? '',
+                ];
+            }
+        }
+
+        // 3. Customer Testimonials & Reviews
+        $testimonialConfig = $homepageConfig['testimonials_section'] ?? [];
+        $reviewLimit = max(1, (int) ($testimonialConfig['review_count'] ?? 3));
+        
+        $featuredReviews = ProductReview::approved()
+            ->featured()
+            ->with(['user', 'product'])
+            ->orderBy('sort_order')
             ->latest()
-            ->take(8)
+            ->take($reviewLimit)
             ->get();
 
-        $curatedCategories = [
-            [
-                'name' => 'Rings',
-                'slug' => 'rings',
-                'image' => 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80',
-                'description' => 'Solitaires, cocktail & eternity bands crafted in 18KT gold.',
-            ],
-            [
-                'name' => 'Necklaces',
-                'slug' => 'necklaces',
-                'image' => 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80',
-                'description' => 'Imperial chokers, diamond pendants & bespoke haute colliers.',
-            ],
-            [
-                'name' => 'Bracelets',
-                'slug' => 'bracelets',
-                'image' => 'https://images.unsplash.com/photo-1611591475810-7e3fbe3f8f1c?auto=format&fit=crop&w=800&q=80',
-                'description' => 'Tennis bracelets and sculpted cuffs in Platinum 950.',
-            ],
-            [
-                'name' => 'Earrings',
-                'slug' => 'earrings',
-                'image' => 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=800&q=80',
-                'description' => 'Cascade chandeliers, diamond studs & royal drop earrings.',
-            ],
-            [
-                'name' => 'Solitaires',
-                'slug' => 'solitaires',
-                'image' => 'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=800&q=80',
-                'description' => 'GIA certified triple-excellent cut diamond solitaires.',
-            ],
-            [
-                'name' => 'Haute Couture',
-                'slug' => 'couture',
-                'image' => 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
-                'description' => 'Bridal lehengas, pure Banarasi silks & royal velvet sherwanis.',
-            ],
-        ];
-
-        return view('home', compact('themeSettings', 'featuredProducts', 'curatedCategories'));
+        return view('home', compact(
+            'themeSettings',
+            'homepageConfig',
+            'featuredProducts',
+            'curatedCategories',
+            'featuredReviews',
+            'isPreview'
+        ));
     }
 }

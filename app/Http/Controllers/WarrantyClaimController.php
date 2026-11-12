@@ -219,7 +219,7 @@ class WarrantyClaimController extends Controller
             ->where('claim_number', trim($claimNumber))
             ->firstOrFail();
 
-        if (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $claim->user_id && auth()->id() !== $claim->order->user_id)) {
+        if (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $claim->user_id && ! $claim->order->isAccessibleBy(auth()->user()))) {
             abort(403, 'Unauthorized access to warranty claim details.');
         }
 
@@ -233,7 +233,7 @@ class WarrantyClaimController extends Controller
     {
         $image = WarrantyClaimImage::with('claim.order')->findOrFail($id);
 
-        if (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $image->claim->user_id && auth()->id() !== $image->claim->order->user_id)) {
+        if (! auth()->check() || (! auth()->user()->isAdmin() && auth()->id() !== $image->claim->user_id && ! $image->claim->order->isAccessibleBy(auth()->user()))) {
             abort(403, 'Unauthorized access to warranty evidence photo.');
         }
 
@@ -250,15 +250,24 @@ class WarrantyClaimController extends Controller
 
     /**
      * API check status for real-time customer polling.
+     * Enforces authentication and order ownership authorization.
      */
     public function checkStatus(string $orderNumber): JsonResponse
     {
+        if (! auth()->check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
         $order = Order::with('warrantyClaim')
             ->where('order_number', trim($orderNumber))
             ->first();
 
         if (! $order) {
             return response()->json(['exists' => false], 404);
+        }
+
+        if (! $order->isAccessibleBy(auth()->user())) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access to order warranty status.'], 403);
         }
 
         if (! $order->warrantyClaim) {

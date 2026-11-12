@@ -127,7 +127,8 @@ class CategoryResource extends Resource
                                                     ]),
                                             ])
                                             ->addActionLabel('+ Add Subcategory')
-                                            ->reorderable('sort_order')
+                                            ->reorderable()
+                                            ->orderColumn('sort_order')
                                             ->collapsible()
                                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                                             ->defaultItems(0)

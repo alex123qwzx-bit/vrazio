@@ -37,6 +37,7 @@ Route::post('/auth/otp/send', [CustomerAuthController::class, 'sendLoginOtp'])->
 Route::post('/auth/otp/verify', [CustomerAuthController::class, 'verifyLoginOtp'])->middleware('throttle:5,5')->name('auth.otp.verify');
 Route::post('/account/phone/verify', [CustomerAuthController::class, 'verifyDashboardPhone'])->middleware(['auth', 'throttle:5,5'])->name('account.phone.verify');
 Route::post('/account/profile', [CustomerAuthController::class, 'updateProfile'])->middleware(['auth', 'throttle:10,1'])->name('account.profile.update');
+Route::get('/account/reviews', [\App\Http\Controllers\ProductReviewController::class, 'customerReviews'])->middleware(['auth'])->name('account.reviews');
 
 // Email Verification
 Route::get('/email/verify', [CustomerAuthController::class, 'showVerifyEmail'])->name('verification.notice');
@@ -51,6 +52,8 @@ Route::get('/collections/couture', [ProductController::class, 'couture']);
 Route::get('/collections/clothes', [ProductController::class, 'couture']);
 Route::get('/collections/{category}', [ProductController::class, 'category'])->name('products.category');
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('products.show');
+Route::post('/product/{slug}/reviews', [\App\Http\Controllers\ProductReviewController::class, 'store'])->middleware(['auth', 'throttle:5,1'])->name('products.reviews.store');
+Route::get('/product/{slug}/reviews/eligibility', [\App\Http\Controllers\ProductReviewController::class, 'checkEligibility'])->name('products.reviews.eligibility');
 Route::get('/search', [ProductController::class, 'search'])->name('products.search');
 
 // Bespoke Bag / Cart
@@ -92,7 +95,7 @@ Route::get('/warranty/claim/{orderNumber}', [\App\Http\Controllers\WarrantyClaim
 Route::post('/warranty/claim', [\App\Http\Controllers\WarrantyClaimController::class, 'store'])->name('warranty.store');
 Route::get('/warranty/claim/view/{claimNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'show'])->name('warranty.show');
 Route::get('/warranty/claim/image/{id}', [\App\Http\Controllers\WarrantyClaimController::class, 'streamImage'])->name('warranty.image');
-Route::get('/api/warranty/check/{orderNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'checkStatus'])->name('api.warranty.check');
+Route::get('/api/warranty/check/{orderNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'checkStatus'])->middleware(['auth'])->name('api.warranty.check');
 
 // VRAZIO PRIVÉ CLUB Membership System
 Route::get('/prive-club', [\App\Http\Controllers\PriveClubController::class, 'index'])->name('prive-club.index');

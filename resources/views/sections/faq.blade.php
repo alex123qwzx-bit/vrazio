@@ -1,48 +1,68 @@
+@php
+    $fConfig = $homepageConfig['faq_section'] ?? [];
+    $fBadge = $fConfig['badge'] ?? 'Clientele Concierge';
+    $fHeading = $fConfig['heading'] ?? 'Frequently Asked Questions';
+    $fDesc = $fConfig['description'] ?? 'Insights into hallmarking authentication, armoured transit logistics, and our master atelier protocols.';
+    
+    $rawFaqs = $fConfig['items'] ?? [];
+    $faqs = [];
+    if (!empty($rawFaqs) && is_array($rawFaqs)) {
+        foreach ($rawFaqs as $item) {
+            if (!isset($item['is_active']) || $item['is_active']) {
+                $faqs[] = [
+                    'q' => $item['q'] ?? '',
+                    'a' => $item['a'] ?? '',
+                ];
+            }
+        }
+    }
+
+    if (empty($faqs)) {
+        $faqs = [
+            [
+                'q' => 'How does VRAZIO verify BIS Hallmarking and Gemstone Certifications?',
+                'a' => 'Every gold jewel crafted at VRAZIO bears the official Bureau of Indian Standards (BIS) hallmark, featuring the BIS logo, purity grade in karats/fineness (e.g., 750 for 18KT, 916 for 22KT), 6-digit HUID code, and assaying center emblem. All solitaire diamonds above 0.30 carats come with GIA, IGI, or SGL dossiers verifiable online in global gemological registries.'
+            ],
+            [
+                'q' => 'What is the procedure for Armoured Doorstep Transit and Insurance?',
+                'a' => 'All orders are dispatched in tamper-evident sealed security vaults via specialized armoured logistical partners (such as Sequel Logistics / Brink’s). Shipments are 100% insured until delivery. For security reasons, transit requires OTP confirmation by the patron upon handover.'
+            ],
+            [
+                'q' => 'Why is Phone SMS OTP verification mandatory before payment?',
+                'a' => 'To safeguard patron security and ensure secure consignment delivery, every order requires two-factor validation via SMS OTP powered by Fast2SMS. This ensures only authorized patrons commission high-value pieces and provides seamless dispatch coordination.'
+            ],
+            [
+                'q' => 'What payment gateways are supported for high jewellery purchases?',
+                'a' => 'We utilize Razorpay with enterprise-level 256-bit encryption. We accept Indian and International Credit/Debit Cards, Net Banking across all major banks, UPI, and verified Bank Wire / NEFT / RTGS transfers with escrow settlement.'
+            ],
+            [
+                'q' => 'Can I commission a bespoke design or customized solitaire setting?',
+                'a' => 'Yes. Our private atelier welcomes bespoke commissions. You may schedule a private consultation with our Master Goldsmith to select custom rough gems, custom metal alloys, and personalized hand inscriptions.'
+            ],
+            [
+                'q' => 'What is the VRAZIO return and exchange policy?',
+                'a' => 'We offer a 15-day complimentary inspection and exchange period for standard collection pieces in original condition with security tags intact. Bespoke and custom engraved commissions are non-refundable but covered under our Lifetime Craftsmanship Warranty.'
+            ]
+        ];
+    }
+@endphp
+
 <section class="py-20 md:py-28 bg-[#0E261C] text-[#FAF8F5]">
     <div class="max-w-4xl mx-auto px-6">
         <div class="text-center max-w-2xl mx-auto mb-16">
             <span class="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
-                Clientele Concierge
+                {{ $fBadge }}
             </span>
             <h2 class="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[#FAF8F5] mt-2">
-                Frequently Asked Questions
+                {{ $fHeading }}
             </h2>
             <div class="w-16 h-px bg-[#D4AF37] mx-auto my-4"></div>
             <p class="text-sm md:text-base text-[#FAF8F5]/70 font-light">
-                Insights into hallmarking authentication, armoured transit logistics, and our master atelier protocols.
+                {{ $fDesc }}
             </p>
         </div>
 
         <div class="space-y-4" x-data="{ active: null }">
-            @php
-                $faqs = [
-                    [
-                        'q' => 'How does VRAZIO verify BIS Hallmarking and Gemstone Certifications?',
-                        'a' => 'Every gold jewel crafted at VRAZIO bears the official Bureau of Indian Standards (BIS) hallmark, featuring the BIS logo, purity grade in karats/fineness (e.g., 750 for 18KT, 916 for 22KT), 6-digit HUID code, and assaying center emblem. All solitaire diamonds above 0.30 carats come with GIA, IGI, or SGL dossiers verifiable online in global gemological registries.'
-                    ],
-                    [
-                        'q' => 'What is the procedure for Armoured Doorstep Transit and Insurance?',
-                        'a' => 'All orders are dispatched in tamper-evident sealed security vaults via specialized armoured logistical partners (such as Sequel Logistics / Brink’s). Shipments are 100% insured until delivery. For security reasons, transit requires OTP confirmation by the patron upon handover.'
-                    ],
-                    [
-                        'q' => 'Why is Phone SMS OTP verification mandatory before payment?',
-                        'a' => 'To safeguard patron security and ensure secure consignment delivery, every order requires two-factor validation via SMS OTP powered by Fast2SMS. This ensures only authorized patrons commission high-value pieces and provides seamless dispatch coordination.'
-                    ],
-                    [
-                        'q' => 'What payment gateways are supported for high jewellery purchases?',
-                        'a' => 'We utilize Razorpay with enterprise-level 256-bit encryption. We accept Indian and International Credit/Debit Cards, Net Banking across all major banks, UPI, and verified Bank Wire / NEFT / RTGS transfers with escrow settlement.'
-                    ],
-                    [
-                        'q' => 'Can I commission a bespoke design or customized solitaire setting?',
-                        'a' => 'Yes. Our private atelier welcomes bespoke commissions. You may schedule a private consultation with our Master Goldsmith to select custom rough gems, custom metal alloys, and personalized hand inscriptions.'
-                    ],
-                    [
-                        'q' => 'What is the VRAZIO return and exchange policy?',
-                        'a' => 'We offer a 15-day complimentary inspection and exchange period for standard collection pieces in original condition with security tags intact. Bespoke and custom engraved commissions are non-refundable but covered under our Lifetime Craftsmanship Warranty.'
-                    ]
-                ];
-            @endphp
-
             @foreach($faqs as $index => $item)
                 <div class="border border-[#D4AF37]/20 bg-[#0A1C15]/70 overflow-hidden transition-all duration-200">
                     <button @click="active = (active === {{ $index }} ? null : {{ $index }})" 
@@ -71,22 +91,25 @@
     </div>
 
     {{-- JSON-LD FAQPage Schema --}}
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        @foreach($faqs as $index => $item)
-        {
-          "@type": "Question",
-          "name": "{{ addslashes($item['q']) }}",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "{{ addslashes($item['a']) }}"
-          }
-        }@if(!$loop->last),@endif
-        @endforeach
-      ]
-    }
-    </script>
+    @if($homepageConfig['seo']['enable_faq_schema'] ?? true)
+        @php
+            $faqSchema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(function ($item) {
+                    return [
+                        '@type' => 'Question',
+                        'name' => (string) ($item['q'] ?? ''),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => (string) ($item['a'] ?? ''),
+                        ],
+                    ];
+                }, $faqs),
+            ];
+        @endphp
+        <script type="application/ld+json">
+        {!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!}
+        </script>
+    @endif
 </section>

@@ -80,6 +80,18 @@ class PriveClubController extends Controller
                     currency: 'INR'
                 );
                 $razorpayOrderId = is_object($rpOrder) ? ($rpOrder->id ?? ($rpOrder['id'] ?? null)) : ($rpOrder['id'] ?? null);
+
+                if ($razorpayOrderId) {
+                    session([
+                        'pending_prive_enrollment' => [
+                            'plan_id' => $plan->id,
+                            'plan_slug' => $plan->slug,
+                            'razorpay_order_id' => $razorpayOrderId,
+                            'amount' => (float) $plan->price,
+                            'user_id' => $user->id,
+                        ],
+                    ]);
+                }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error('Razorpay membership order creation failed: ' . $e->getMessage(), [
                     'plan' => $plan->slug,
@@ -155,6 +167,26 @@ class PriveClubController extends Controller
             return back()->with('error', $msg);
         }
 
+        // Verify that the order ID matches the pending session enrollment to prevent order swapping / tier manipulation
+        $pending = session('pending_prive_enrollment');
+        if ($pending && is_array($pending)) {
+            if (($pending['user_id'] ?? null) !== $user->id || ($pending['plan_slug'] ?? null) !== $plan->slug) {
+                $msg = 'Membership enrollment session does not match the requested tier plan.';
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->with('error', $msg);
+            }
+
+            if (!empty($pending['razorpay_order_id']) && $pending['razorpay_order_id'] !== $orderId) {
+                $msg = 'Payment order reference does not match this membership transaction.';
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->with('error', $msg);
+            }
+        }
+
         try {
             $membership = DB::transaction(function () use ($user, $plan, $paymentId, $orderId): Membership {
                 $now = now();
@@ -174,6 +206,8 @@ class PriveClubController extends Controller
                     'next_order_discount_used' => false,
                 ]);
             });
+
+            session()->forget('pending_prive_enrollment');
 
             if ($request->wantsJson()) {
                 return response()->json([

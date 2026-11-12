@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Share theme settings with all views
+        // Share theme and homepage settings with all views
         view()->composer('*', function ($view) {
             $themeSettings = Cache::remember('site_theme_settings', 86400, function () {
                 if (class_exists(\App\Models\SiteThemeSetting::class)) {
@@ -37,7 +37,10 @@ class AppServiceProvider extends ServiceProvider
                 return $this->defaultThemeSettings();
             });
 
-            $view->with('themeSettings', $themeSettings);
+            $homepageConfig = app(\App\Services\HomepageManagerService::class)->getPublished();
+
+            $view->with('themeSettings', $themeSettings)
+                 ->with('homepageConfig', $homepageConfig);
         });
     }
 

@@ -1,77 +1,88 @@
 @extends('layouts.app')
 
-@section('title', 'Haute Joaillerie & Master Atelier')
-@section('meta_description', 'Welcome to VRAZIO Haute Joaillerie. Discover handcrafted fine jewellery, BIS hallmarked gold, GIA certified diamond solitaires, and royal bridal couture.')
+@section('title', $homepageConfig['seo']['meta_title'] ?? 'Haute Joaillerie & Master Atelier')
+@section('meta_description', $homepageConfig['seo']['meta_description'] ?? 'Welcome to VRAZIO Haute Joaillerie. Discover handcrafted fine jewellery, BIS hallmarked gold, GIA certified diamond solitaires, and royal bridal couture.')
+@section('meta_keywords', $homepageConfig['seo']['meta_keywords'] ?? 'VRAZIO, fine jewellery, diamond ring, haute joaillerie, BIS hallmarked gold, GIA certified diamond')
+
+@if(!empty($homepageConfig['seo']['og_image']))
+    @section('og_image', Str::startsWith($homepageConfig['seo']['og_image'], ['http://', 'https://', '/']) ? $homepageConfig['seo']['og_image'] : asset('storage/' . $homepageConfig['seo']['og_image']))
+@endif
 
 @section('content')
+
+{{-- Draft Preview Mode Bar for Administrators --}}
+@if(!empty($isPreview))
+    <div class="sticky top-0 z-50 bg-[#9B1B30] text-white px-6 py-2.5 shadow-lg flex items-center justify-between text-xs tracking-widest uppercase font-semibold">
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span>Atelier Draft Preview Active — Changes are not yet published to public patrons</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="{{ url('/admin/homepage-manager') }}" class="underline hover:text-amber-300">
+                Back to Homepage Manager &rarr;
+            </a>
+            <a href="{{ route('home') }}" class="px-2.5 py-1 bg-black/30 hover:bg-black/50 text-white rounded-xs">
+                Exit Preview
+            </a>
+        </div>
+    </div>
+@endif
+
 @php
-    $rawSections = $themeSettings['active_sections'] ?? ['hero', 'categories', 'heritage', 'showcase', 'testimonials', 'faq'];
-    if (is_string($rawSections)) {
-        $activeSections = json_decode($rawSections, true) ?? ['hero', 'categories', 'heritage', 'showcase', 'testimonials', 'faq'];
-    } else {
-        $activeSections = (array) $rawSections;
-    }
+    $orderedSections = $homepageConfig['sections_order'] ?? [
+        ['id' => 'hero', 'is_active' => true],
+        ['id' => 'trust_strip', 'is_active' => true],
+        ['id' => 'categories', 'is_active' => true],
+        ['id' => 'featured_products', 'is_active' => true],
+        ['id' => 'heritage', 'is_active' => true],
+        ['id' => 'gallery', 'is_active' => true],
+        ['id' => 'testimonials', 'is_active' => true],
+        ['id' => 'faq', 'is_active' => true],
+    ];
 @endphp
 
-@foreach($activeSections as $section)
-    @switch($section)
-        @case('hero')
-            @include('sections.hero')
-            @break
+@foreach($orderedSections as $sectionItem)
+    @php
+        $sectionId = is_array($sectionItem) ? ($sectionItem['id'] ?? '') : (string) $sectionItem;
+        $isActive = is_array($sectionItem) ? ($sectionItem['is_active'] ?? true) : true;
+    @endphp
 
-        @case('categories')
-            @include('sections.categories')
+    @if($isActive)
+        @switch($sectionId)
+            @case('hero')
+                @include('sections.hero')
+                @break
 
-            {{-- Signature Pieces Catalog Spotlight --}}
-            @if($featuredProducts->isNotEmpty())
-                <section class="py-20 bg-white border-y border-[#D4AF37]/15">
-                    <div class="max-w-7xl mx-auto px-6">
-                        <div class="text-center max-w-2xl mx-auto mb-16">
-                            <span class="text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
-                                Atelier Curations
-                            </span>
-                            <h2 class="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[#0E261C] mt-2">
-                                Signature Pieces
-                            </h2>
-                            <div class="w-16 h-px bg-[#D4AF37] mx-auto my-4"></div>
-                            <p class="text-sm md:text-base text-[#0E261C]/70 font-light">
-                                Individually hallmarked creations exemplifying our highest standards of craftsmanship.
-                            </p>
-                        </div>
+            @case('trust_strip')
+                @include('sections.trust_strip')
+                @break
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                            @foreach($featuredProducts as $product)
-                                <x-product-card :product="$product" />
-                            @endforeach
-                        </div>
+            @case('categories')
+                @include('sections.categories')
+                @break
 
-                        <div class="mt-14 text-center">
-                            <a href="{{ route('products.index') }}" 
-                               class="inline-flex items-center justify-center px-10 py-4 text-xs font-semibold uppercase tracking-[0.25em] bg-[#0E261C] text-[#D4AF37] border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0E261C] transition-all duration-300">
-                                View Entire High Jewellery Vault
-                            </a>
-                        </div>
-                    </div>
-                </section>
-            @endif
-            @break
+            @case('featured_products')
+                @include('sections.featured_products')
+                @break
 
-        @case('heritage')
-            @include('sections.heritage')
-            @break
+            @case('heritage')
+                @include('sections.heritage')
+                @break
 
-        @case('showcase')
-            @include('sections.showcase')
-            @break
+            @case('gallery')
+            @case('showcase')
+                @include('sections.showcase')
+                @break
 
-        @case('testimonials')
-            @include('sections.testimonials')
-            @break
+            @case('testimonials')
+                @include('sections.testimonials')
+                @break
 
-        @case('faq')
-            @include('sections.faq')
-            @break
-    @endswitch
+            @case('faq')
+                @include('sections.faq')
+                @break
+        @endswitch
+    @endif
 @endforeach
 
 @endsection

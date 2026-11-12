@@ -203,7 +203,13 @@ class ProductController extends Controller
             ->take(4)
             ->get();
 
-        return view('products.show', compact('product', 'relatedProducts'));
+        $approvedReviews = $product->approvedReviews()
+            ->with(['user', 'replier'])
+            ->paginate(6, ['*'], 'reviews_page');
+
+        $ratingBreakdown = $product->rating_breakdown;
+
+        return view('products.show', compact('product', 'relatedProducts', 'approvedReviews', 'ratingBreakdown'));
     }
 
     /**

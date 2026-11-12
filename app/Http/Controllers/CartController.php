@@ -79,7 +79,11 @@ class CartController extends Controller
 
     public function update(Request $request, string $id): JsonResponse|RedirectResponse
     {
-        $quantity = (int) $request->input('quantity', 1);
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:0', 'max:50'],
+        ]);
+
+        $quantity = (int) $validated['quantity'];
         $this->cartService->updateQuantity($id, $quantity);
 
         if ($request->expectsJson()) {

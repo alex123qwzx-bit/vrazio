@@ -25,8 +25,8 @@ class OrderController extends Controller
         $user = auth()->user();
         $query = Order::with(['items.product', 'warrantyClaim', 'cancellations.refunds', 'creditNotes'])->latest();
 
-        if ($user->role === 'admin') {
-            // Admins can search across all orders
+        if ($user->isAdmin() || in_array($user->role, ['admin', 'super_admin'], true)) {
+            // Admins and Super Admins can search across all orders
             $search = $request->query('search');
             if ($search) {
                 $query->where(function ($q) use ($search) {

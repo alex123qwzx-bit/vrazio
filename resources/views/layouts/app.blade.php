@@ -1105,6 +1105,22 @@
     {{-- ═══════════════════════════════════════════════════════════════════
          FOOTER
     ═══════════════════════════════════════════════════════════════════ --}}
+    @php
+        $siteFooter = $homepageConfig['footer'] ?? [];
+        $footerBio = !empty($siteFooter['brand_description']) ? $siteFooter['brand_description'] : 'Fine Jewellery and Couture crafted with care and passion. Every piece brings together beauty, certified quality, and timeless style.';
+        $footerPhone = !empty($siteFooter['phone']) ? $siteFooter['phone'] : '+91 87912 27210';
+        $footerEmail = !empty($siteFooter['email']) ? $siteFooter['email'] : 'vrazioofficail@gmail.com';
+        $footerHours = !empty($siteFooter['business_hours']) ? $siteFooter['business_hours'] : 'Monday — Saturday: 10:00 AM — 8:00 PM IST';
+        $footerInsta = !empty($siteFooter['instagram_url']) ? $siteFooter['instagram_url'] : 'https://www.instagram.com/vrazio.official/';
+        $footerFb = !empty($siteFooter['facebook_url']) ? $siteFooter['facebook_url'] : 'https://www.facebook.com/share/1CJBJZbnkG/';
+        $footerWa = !empty($siteFooter['whatsapp_number']) ? $siteFooter['whatsapp_number'] : '+91 87912 27210';
+        $footerWaDigits = preg_replace('/[^0-9]/', '', $footerWa);
+        $footerWaText = urlencode(!empty($siteFooter['whatsapp_text']) ? $siteFooter['whatsapp_text'] : 'Hi VRAZIO, I have a query');
+        $footerCopyright = !empty($siteFooter['copyright_text']) ? $siteFooter['copyright_text'] : ('© ' . date('Y') . ' VRAZIO Haute Joaillerie. All rights reserved.');
+        $footerUdyam = !empty($siteFooter['udyam_registration']) ? $siteFooter['udyam_registration'] : 'UDYAM-UP-59-0089382';
+        $showPaymentBadges = $siteFooter['show_payment_badges'] ?? true;
+        $showBisBadge = $siteFooter['show_bis_badge'] ?? true;
+    @endphp
     <footer class="bg-vrazio-forest text-white/80">
         {{-- Main Footer --}}
         <div class="max-w-7xl mx-auto px-6 py-16 lg:py-20">
@@ -1119,7 +1135,7 @@
                         </span>
                     </a>
                     <p class="text-sm leading-relaxed text-white/70 mb-5">
-                        Fine Jewellery and Couture crafted with care and passion. Every piece brings together beauty, certified quality, and timeless style.
+                        {{ $footerBio }}
                     </p>
                     <div class="flex items-center gap-3">
                         {{-- Instagram --}}
@@ -1182,15 +1198,15 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <a href="tel:+918791227210" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">+91 87912 27210</a>
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $footerPhone) }}" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">{{ $footerPhone }}</a>
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            <a href="mailto:vrazioofficail@gmail.com" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">vrazioofficail@gmail.com</a>
+                            <a href="mailto:{{ $footerEmail }}" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">{{ $footerEmail }}</a>
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="text-xs text-white/60">Monday — Saturday: 10:00 AM — 8:00 PM IST</p>
+                            <p class="text-xs text-white/60">{{ $footerHours }}</p>
                         </div>
                     </div>
                 </div>
@@ -1202,9 +1218,9 @@
             <div class="max-w-7xl mx-auto px-6 py-6">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-white/50">
-                        <span>© {{ date('Y') }} VRAZIO Haute Joaillerie. All rights reserved.</span>
+                        <span>{{ $footerCopyright }}</span>
                         <span class="text-white/20">•</span>
-                        <span class="font-mono text-vrazio-gold/90 font-medium">UDYAM: UDYAM-UP-59-0089382</span>
+                        <span class="font-mono text-vrazio-gold/90 font-medium">UDYAM: {{ $footerUdyam }}</span>
                         <span class="text-white/20">•</span>
                         <a href="{{ route('pages.privacy') }}" class="hover:text-vrazio-gold transition-colors">Privacy &amp; Cookies</a>
                         <span class="text-white/20">•</span>
@@ -1213,14 +1229,18 @@
                         <a href="{{ route('sitemap') }}" target="_blank" class="hover:text-vrazio-gold transition-colors">Sitemap</a>
                     </div>
                     <div class="flex items-center gap-4">
+                        @if($showBisBadge)
                         {{-- BIS Hallmark Badge --}}
                         <div class="flex items-center gap-1.5 text-xs text-white/50">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             BIS Hallmarked
                         </div>
-
+                        @if($showPaymentBadges)
                         <span class="text-white/20">|</span>
+                        @endif
+                        @endif
 
+                        @if($showPaymentBadges)
                         {{-- Payment Icons --}}
                         <div class="flex items-center gap-2 text-xs text-white/50">
                             <span>Visa</span>
@@ -1235,6 +1255,7 @@
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                             Secured by Razorpay
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -1297,7 +1318,7 @@
                :class="showCookieBanner ? 'bottom-24 sm:bottom-24' : 'bottom-4 sm:bottom-6'"
                style="position: fixed; right: 16px; bottom: 16px; z-index: 50;"
                class="fixed right-4 sm:right-6 z-50 transition-all duration-300">
-            <a href="https://wa.me/918791227210?text=Hi%20VRAZIO%2C%20I%20have%20a%20query%20about%20an%20order%20or%20warranty" 
+            <a href="https://wa.me/{{ $footerWaDigits }}?text={{ $footerWaText }}" 
                target="_blank" 
                rel="noopener noreferrer"
                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #25D366; color: #ffffff; border-radius: 9999px; text-decoration: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3);"

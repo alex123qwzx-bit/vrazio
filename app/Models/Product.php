@@ -197,6 +197,75 @@ class Product extends Model
     }
 
     /**
+     * Relationship to customer reviews.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Approved reviews ordered by latest.
+     */
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class)->approved()->latest();
+    }
+
+    /**
+     * Calculate average star rating.
+     */
+    public function getAverageRatingAttribute(): float
+    {
+        $avg = $this->approvedReviews()->avg('rating');
+        return $avg ? round((float) $avg, 1) : 5.0;
+    }
+
+    /**
+     * Total count of approved reviews.
+     */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Rating distribution calculation.
+     */
+    public function getRatingBreakdownAttribute(): array
+    {
+        $reviews = $this->approvedReviews()->get();
+        $total = $reviews->count();
+        $counts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+
+        if ($total === 0) {
+            return [
+                'total' => 0,
+                'percentages' => [5 => 100, 4 => 0, 3 => 0, 2 => 0, 1 => 0],
+                'counts' => $counts,
+            ];
+        }
+
+        foreach ($reviews as $r) {
+            $star = (int) $r->rating;
+            if (isset($counts[$star])) {
+                $counts[$star]++;
+            }
+        }
+
+        $percentages = [];
+        foreach ($counts as $star => $count) {
+            $percentages[$star] = (int) round(($count / $total) * 100);
+        }
+
+        return [
+            'total' => $total,
+            'percentages' => $percentages,
+            'counts' => $counts,
+        ];
+    }
+
+    /**
      * Get active vouchers applicable to this product (specific or storewide).
      */
     public function getApplicableVouchers()

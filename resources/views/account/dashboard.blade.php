@@ -354,6 +354,11 @@
                             <span class="font-medium">Official Email</span>
                             <span class="text-gray-500">vrazioofficail@gmail.com</span>
                         </a>
+                        <a href="{{ route('account.reviews') }}" 
+                           class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#0E261C]/5 hover:text-[#0E261C] text-gray-700 transition-colors border border-gray-100 rounded-xs">
+                            <span class="font-medium">My Reviews &amp; Testimonials</span>
+                            <span class="text-[#D4AF37] font-semibold">&rarr;</span>
+                        </a>
                         <a href="{{ route('orders.index') }}" 
                            class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#0E261C]/5 hover:text-[#0E261C] text-gray-700 transition-colors border border-gray-100 rounded-xs">
                             <span class="font-medium">Find Any Order by Number</span>
@@ -373,6 +378,11 @@
                             </h2>
                             <p class="text-xs text-gray-500 mt-0.5">Orders placed with your account or phone number</p>
                         </div>
+                        <a href="{{ route('account.reviews') }}" 
+                           class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#0E261C]/5 hover:text-[#0E261C] text-gray-700 transition-colors border border-gray-100 rounded-xs">
+                            <span class="font-medium">My Reviews &amp; Testimonials</span>
+                            <span class="text-[#D4AF37] font-semibold">&rarr;</span>
+                        </a>
                         <a href="{{ route('orders.index') }}" class="text-xs font-semibold text-[#D4AF37] hover:text-[#0E261C] uppercase tracking-wider">
                             Search All &rarr;
                         </a>
