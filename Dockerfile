@@ -40,8 +40,12 @@ RUN if [ ! -f .env ]; then \
         sed -i 's|^DB_PORT=.*|DB_PORT=5432|' .env && \
         sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env && \
         sed -i 's|^APP_ENV=.*|APP_ENV=production|' .env && \
-        sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=stderr|' .env; \
-    fi
+        sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=stderr|' .env && \
+        sed -i 's|^RAZORPAY_KEY=.*|RAZORPAY_KEY=rzp_test_TxIRu4ikTk6H9S|' .env && \
+        sed -i 's|^RAZORPAY_SECRET=.*|RAZORPAY_SECRET=5AjwGkluZW7mcnOzQw3jQaXy|' .env; \
+    fi && \
+    sed -i 's|^RAZORPAY_KEY=.*|RAZORPAY_KEY=rzp_test_TxIRu4ikTk6H9S|' .env && \
+    sed -i 's|^RAZORPAY_SECRET=.*|RAZORPAY_SECRET=5AjwGkluZW7mcnOzQw3jQaXy|' .env
 
 # Restore production Vite build assets into public/build from public/css and public/js
 RUN mkdir -p public/build/assets public/build/.vite \

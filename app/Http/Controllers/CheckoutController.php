@@ -241,6 +241,19 @@ class CheckoutController extends Controller
                 ]);
             }
 
+            // For online payments, ensure Razorpay is genuinely configured
+            if (! app()->environment('testing') && $this->razorpayService->isSimulated()) {
+                if (isset($order) && $order->exists) {
+                    $order->items()->delete();
+                    $order->delete();
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Online payment gateway is temporarily undergoing maintenance. Please select Cash on Delivery (COD) to complete your order, or contact our atelier concierge.',
+                ], 503);
+            }
+
             // Create Razorpay Order
             $razorpayOrder = $this->razorpayService->createOrder(
                 receipt: $order->order_number,

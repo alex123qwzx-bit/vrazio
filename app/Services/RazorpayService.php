@@ -65,14 +65,22 @@ class RazorpayService
                     'payment_capture' => 1,
                 ]);
             } catch (\Throwable $e) {
-                Log::warning('Razorpay Order API call failed. Falling back to simulated order for continuity.', [
+                Log::error('Razorpay Order API call failed: ' . $e->getMessage(), [
                     'error' => $e->getMessage(),
                     'receipt' => $receipt,
                 ]);
+
+                if (! app()->environment('testing')) {
+                    throw $e;
+                }
             }
         }
 
-        // Seamless fallback simulation for client demos, staging, and development
+        if (! app()->environment('testing')) {
+            throw new \RuntimeException('Razorpay payment gateway is not initialized with live credentials.');
+        }
+
+        // Seamless fallback simulation ONLY for automated unit/feature tests
         return (object) [
             'id' => 'order_sim_' . bin2hex(random_bytes(8)),
             'receipt' => $receipt,
@@ -91,9 +99,9 @@ class RazorpayService
             return false;
         }
 
-        // Only allow simulated verification if the order is explicitly simulated
+        // Only allow simulated verification in automated testing environment
         if (str_starts_with($orderId, 'order_sim_')) {
-            return $this->isSimulated || str_starts_with($signature, 'sig_sim_');
+            return app()->environment('testing') && str_starts_with($signature, 'sig_sim_');
         }
 
         if ($this->api && ! $this->isSimulated) {

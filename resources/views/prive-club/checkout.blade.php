@@ -81,9 +81,20 @@
                         <span>Razorpay Gateway Notice</span>
                     </div>
                     <p class="font-mono text-[11px] leading-relaxed break-all">{{ $razorpayError }}</p>
-                    @if(config('app.debug'))
-                        <p class="mt-2 text-[10px] text-gray-600 italic">Debug mode active: Direct test enrollment will be used if payment order was not generated.</p>
-                    @endif
+                </div>
+            @endif
+
+            @if(str_starts_with((string)$razorpayKey, 'rzp_test_'))
+                <div class="mb-4 p-3 bg-amber-50 border border-amber-200/80 rounded text-left text-xs">
+                    <p class="font-bold text-amber-900 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                        <span>Razorpay Test Sandbox Instructions</span>
+                    </p>
+                    <p class="mt-1 text-[11px] text-amber-800 leading-relaxed">
+                        • <strong>Domestic Test Card (India):</strong> <code class="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded text-amber-950">4100 2800 0000 1007</code> (CVV: 123, Exp: any future)<br>
+                        • <strong>Instant UPI Test:</strong> <code class="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded text-amber-950">success@razorpay</code><br>
+                        • <em>Note: Cards like 4012... are international Stripe cards and are declined by Razorpay India sandbox.</em>
+                    </p>
                 </div>
             @endif
 

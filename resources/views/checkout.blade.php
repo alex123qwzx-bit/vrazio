@@ -97,28 +97,10 @@
                             return;
                         }
 
-                        // Handle Simulated / Demo Razorpay (ensures client demo never fails on missing gateway keys)
-                        if (data.is_simulated || (data.key && data.key.includes('simulated'))) {
-                            const verifyRes = await fetch('{{ route('checkout.verify-payment') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    razorpay_order_id: data.razorpay_order_id,
-                                    razorpay_payment_id: 'pay_sim_' + Math.random().toString(36).substring(2, 11),
-                                    razorpay_signature: 'sig_sim_demo_approved'
-                                })
-                            });
-                            const verifyData = await verifyRes.json();
-                            if (verifyData.success && verifyData.redirect_url) {
-                                window.location.href = verifyData.redirect_url;
-                            } else {
-                                this.errorMessage = verifyData.message || 'Payment simulation failed.';
-                                this.paymentSubmitting = false;
-                            }
+                        // Verify Razorpay credentials were provided
+                        if (!data.key || data.key === '' || !data.razorpay_order_id || data.key.includes('simulated')) {
+                            this.errorMessage = data.message || 'Online payment initialization failed. Please choose Cash on Delivery (COD) or contact our atelier concierge.';
+                            this.paymentSubmitting = false;
                             return;
                         }
 
@@ -446,6 +428,20 @@
                             </div>
                         </div>
                     </div>
+
+                    @if(str_starts_with((string)config('services.razorpay.key'), 'rzp_test_'))
+                        <div x-show="paymentMethod === 'razorpay'" class="p-3 bg-amber-50 border border-amber-200/80 rounded text-xs text-amber-900">
+                            <p class="font-bold flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                <span>Razorpay Test Sandbox Instructions</span>
+                            </p>
+                            <p class="mt-1 text-[11px] text-amber-800 leading-relaxed">
+                                • <strong>Domestic Test Card (India):</strong> <code class="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded text-amber-950">4100 2800 0000 1007</code> (CVV: 123, Exp: any future)<br>
+                                • <strong>Instant UPI Test:</strong> <code class="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded text-amber-950">success@razorpay</code><br>
+                                • <em>Note: Cards like 4012... are international Stripe cards and are declined by Razorpay India sandbox.</em>
+                            </p>
+                        </div>
+                    @endif
 
                     <div x-show="paymentMethod === 'cod'" x-cloak class="p-4 border border-[#D4AF37]/30 bg-[#0E261C] text-[#FAF8F5]">
                         <div class="flex items-center gap-3">
