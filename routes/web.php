@@ -73,7 +73,14 @@ Route::get('/order/track/{orderNumber?}', [OrderController::class, 'track'])->na
 Route::get('/orders/track/{orderNumber?}', [OrderController::class, 'track'])->name('orders.track');
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('/account/orders', [OrderController::class, 'index'])->name('account.orders');
+Route::get('/orders/{orderNumber}/cancel-eligibility', [OrderController::class, 'checkCancellationEligibility'])->name('order.cancel.eligibility');
 Route::post('/orders/{orderNumber}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+
+// GST Credit Notes & Adjustments
+Route::get('/order/{orderNumber}/credit-note', [\App\Http\Controllers\CreditNoteController::class, 'forOrder'])->name('order.credit_note');
+Route::get('/credit-note/{creditNoteNumber}', [\App\Http\Controllers\CreditNoteController::class, 'show'])->name('credit_note.show');
+Route::get('/credit-note/{creditNoteNumber}/pdf', [\App\Http\Controllers\CreditNoteController::class, 'download'])->name('credit_note.download');
+Route::get('/credit-note/{creditNoteNumber}/export-pdf', [\App\Http\Controllers\CreditNoteController::class, 'download'])->name('credit_note.pdf');
 
 // Luxury Order Invoices (Web View, PDF Download, Stream)
 Route::get('/order/{orderNumber}/invoice', [InvoiceController::class, 'show'])->name('order.invoice');
@@ -86,6 +93,12 @@ Route::post('/warranty/claim', [\App\Http\Controllers\WarrantyClaimController::c
 Route::get('/warranty/claim/view/{claimNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'show'])->name('warranty.show');
 Route::get('/warranty/claim/image/{id}', [\App\Http\Controllers\WarrantyClaimController::class, 'streamImage'])->name('warranty.image');
 Route::get('/api/warranty/check/{orderNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'checkStatus'])->name('api.warranty.check');
+
+// VRAZIO PRIVÉ CLUB Membership System
+Route::get('/prive-club', [\App\Http\Controllers\PriveClubController::class, 'index'])->name('prive-club.index');
+Route::get('/prive-club/join/{slug}', [\App\Http\Controllers\PriveClubController::class, 'checkout'])->name('prive-club.checkout');
+Route::post('/prive-club/enroll', [\App\Http\Controllers\PriveClubController::class, 'processEnrollment'])->name('prive-club.enroll');
+Route::get('/prive-club/verify/{memberId}', [\App\Http\Controllers\PriveClubController::class, 'verify'])->name('prive-club.verify');
 
 // Editorial & Legal Atelier Pages
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');

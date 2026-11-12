@@ -281,7 +281,7 @@
                     +91 87912 27210
                 </span>
                 <span class="text-[#D4AF37]">•</span>
-                <span>vrazioofficial@gmail.com</span>
+                <span>vrazioofficail@gmail.com</span>
                 <span class="text-[#D4AF37]">•</span>
                 <span>@vrazio.official</span>
             </div>

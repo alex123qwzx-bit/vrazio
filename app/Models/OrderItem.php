@@ -24,6 +24,9 @@ class OrderItem extends Model
         'quantity',
         'size',
         'line_total',
+        'status',
+        'cancelled_at',
+        'refunded_amount',
     ];
 
     /**
@@ -36,7 +39,19 @@ class OrderItem extends Model
         return [
             'unit_price' => 'decimal:2',
             'line_total' => 'decimal:2',
+            'refunded_amount' => 'decimal:2',
+            'cancelled_at' => 'datetime',
         ];
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status !== 'cancelled';
     }
 
     /*

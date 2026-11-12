@@ -22,11 +22,24 @@ class CartController extends Controller
         $items = $this->cartService->getItems();
         $subtotal = $this->cartService->getSubtotal();
         $voucher = $this->cartService->getVoucher();
-        $discount = $this->cartService->getDiscount();
+        $voucherDiscount = $this->cartService->getDiscount();
+        $priveDiscount = $this->cartService->getPriveDiscount();
+        $discount = $this->cartService->getTotalDiscount();
         $gst = $this->cartService->getGst();
         $total = $this->cartService->getTotal('standard');
+        $membership = auth()->check() ? auth()->user()->activeMembership() : null;
 
-        return view('cart.index', compact('items', 'subtotal', 'voucher', 'discount', 'gst', 'total'));
+        return view('cart.index', compact(
+            'items',
+            'subtotal',
+            'voucher',
+            'voucherDiscount',
+            'priveDiscount',
+            'discount',
+            'membership',
+            'gst',
+            'total'
+        ));
     }
 
     public function add(Request $request): JsonResponse|RedirectResponse

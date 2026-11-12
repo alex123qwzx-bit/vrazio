@@ -26,6 +26,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'google_id',
         'avatar',
         'phone',
+        'date_of_birth',
         'role',
         'is_approved',
         'approved_at',
@@ -56,6 +57,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     protected function casts(): array
     {
         return [
+            'date_of_birth' => 'date',
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'is_approved' => 'boolean',
@@ -77,6 +79,40 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get all VRAZIO PRIVÉ CLUB memberships for this user.
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(Membership::class)->latest();
+    }
+
+    /**
+     * Get currently active PRIVÉ CLUB membership if any.
+     */
+    public function activeMembership(): ?Membership
+    {
+        return $this->memberships()
+            ->active()
+            ->first();
+    }
+
+    /**
+     * Check if user is an active PRIVÉ CLUB member.
+     */
+    public function isPriveMember(): bool
+    {
+        return $this->activeMembership() !== null;
+    }
+
+    /**
+     * Get active PRIVÉ CLUB membership object or null.
+     */
+    public function priveMember(): ?Membership
+    {
+        return $this->activeMembership();
     }
 
     /*

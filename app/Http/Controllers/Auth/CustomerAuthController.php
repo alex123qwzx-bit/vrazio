@@ -446,6 +446,7 @@ class CustomerAuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'regex:/^[0-9+\s\-()]{10,20}$/'],
+            'date_of_birth' => ['nullable', 'date'],
             'current_password' => ['nullable', 'required_with:new_password', 'string'],
             'new_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
@@ -468,6 +469,9 @@ class CustomerAuthController extends Controller
         }
 
         $user->name = trim($validated['name']);
+        if (array_key_exists('date_of_birth', $validated)) {
+            $user->date_of_birth = $validated['date_of_birth'] ? $validated['date_of_birth'] : null;
+        }
 
         // Handle phone update
         if (array_key_exists('phone', $validated)) {

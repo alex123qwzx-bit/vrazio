@@ -58,6 +58,26 @@ class WarrantyClaimResource extends Resource
                         ->options(WarrantyClaim::STATUSES)
                         ->native(false),
 
+                    Forms\Components\TextInput::make('member_id')
+                        ->label('VRAZIO PRIVÉ CLUB Member ID')
+                        ->disabled(),
+
+                    Forms\Components\TextInput::make('remedy_requested')
+                        ->label('Remedy Requested by Patron')
+                        ->disabled(),
+
+                    Forms\Components\Select::make('admin_remedy')
+                        ->label('Atelier Remedy Resolution')
+                        ->options([
+                            'complimentary_repair' => 'Complimentary Vault Repair & Polishing',
+                            'stone_replacement' => 'Certified Gemstone / Diamond Replacement',
+                            'vault_refurbishment' => 'Full Atelier Refurbishment & Ultrasonic Cleansing',
+                            'replacement' => 'Complete Brand New Piece Replacement',
+                            'assay_inspection' => 'Assay / BIS Laboratory Re-certification',
+                            'declined_out_of_warranty' => 'Declined (Outside Warranty Scope)',
+                        ])
+                        ->native(false),
+
                     Forms\Components\Toggle::make('is_checked')
                         ->label('Mark as Concierge Checked')
                         ->helperText('Enable to mark this claim as examined by an atelier specialist.')
@@ -83,6 +103,15 @@ class WarrantyClaimResource extends Resource
                     ->weight('bold')
                     ->copyable()
                     ->copyMessage('Claim number copied'),
+
+                Tables\Columns\TextColumn::make('member_id')
+                    ->label('Privé Member')
+                    ->badge()
+                    ->color('warning')
+                    ->fontFamily('mono')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('Non-Member'),
 
                 Tables\Columns\TextColumn::make('order.order_number')
                     ->label('Order Ref')

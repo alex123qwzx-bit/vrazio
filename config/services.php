@@ -52,7 +52,8 @@ return [
         'name' => env('ENTERPRISE_NAME', 'VRAZIO'),
         'udyam_registration' => env('UDYAM_REGISTRATION', 'UDYAM-UP-59-0089382'),
         'whatsapp_support' => env('WHATSAPP_SUPPORT', '+91 8791227210'),
-        'support_email' => env('SUPPORT_EMAIL', 'vrazioofficial@gmail.com'),
+        'support_phone' => env('SUPPORT_PHONE', '8791227210'),
+        'support_email' => env('SUPPORT_EMAIL', 'vrazioofficail@gmail.com'),
     ],
 
     'shipping' => [

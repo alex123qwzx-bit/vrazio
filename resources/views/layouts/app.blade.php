@@ -263,9 +263,9 @@
                         <svg width="14" height="14" style="width: 14px; height: 14px; display: inline-block;" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.99.54 1.761.821 2.796.821h.005c3.18 0 5.767-2.586 5.768-5.766 0-3.18-2.587-5.766-5.773-5.768zm7.135 5.769c-.002 3.935-3.201 7.134-7.136 7.134-1.257 0-2.434-.332-3.468-.944l-4.562 1.196 1.217-4.444c-.672-1.076-1.027-2.327-1.026-3.61.002-3.935 3.202-7.135 7.137-7.135 3.935 0 7.138 3.2 7.138 7.133z"/></svg>
                         <span>WhatsApp: +91 87912 27210</span>
                     </a>
-                    <a href="mailto:vrazioofficial@gmail.com" class="flex items-center gap-1.5 hover:text-vrazio-gold transition-colors">
+                    <a href="mailto:vrazioofficail@gmail.com" class="flex items-center gap-1.5 hover:text-vrazio-gold transition-colors">
                         <svg width="14" height="14" style="width: 14px; height: 14px; display: inline-block;" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        <span>vrazioofficial@gmail.com</span>
+                        <span>vrazioofficail@gmail.com</span>
                     </a>
                 </div>
                 <div class="flex items-center gap-6">
@@ -305,13 +305,13 @@
                 </a>
 
                 {{-- Desktop Navigation Links --}}
-                <div class="hidden lg:flex items-center gap-10">
-                    {{-- Collections Dropdown --}}
+                <div class="hidden lg:flex items-center gap-6 xl:gap-8">
+                    {{-- 1. JEWELRY Dropdown --}}
                     <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative">
-                        <a href="{{ route('products.index') ?? '#' }}"
-                           class="flex items-center gap-1 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2">
-                            Collections
-                            <svg width="14" height="14" class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <a href="{{ url('/collections?category=jewelry') }}"
+                           class="flex items-center gap-1 text-xs xl:text-sm font-semibold tracking-widest uppercase {{ request('category') === 'jewelry' ? 'text-vrazio-gold' : 'text-vrazio-forest' }} hover:text-vrazio-gold transition-colors py-2">
+                            Jewelry
+                            <svg width="12" height="12" class="w-3 h-3 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </a>
@@ -323,30 +323,116 @@
                              x-transition:leave-start="opacity-100 translate-y-0"
                              x-transition:leave-end="opacity-0 -translate-y-2"
                              x-cloak
-                             class="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-lg shadow-xl border border-vrazio-gold/10 py-3 z-50">
-                            <a href="{{ url('/collections?category=rings') }}" class="block px-5 py-2.5 text-sm text-vrazio-forest hover:bg-vrazio-gold/5 hover:text-vrazio-gold transition-colors tracking-wide">Rings</a>
-                            <a href="{{ url('/collections?category=necklaces') }}" class="block px-5 py-2.5 text-sm text-vrazio-forest hover:bg-vrazio-gold/5 hover:text-vrazio-gold transition-colors tracking-wide">Necklaces</a>
-                            <a href="{{ url('/collections?category=bracelets') }}" class="block px-5 py-2.5 text-sm text-vrazio-forest hover:bg-vrazio-gold/5 hover:text-vrazio-gold transition-colors tracking-wide">Bracelets</a>
-                            <a href="{{ url('/collections?category=earrings') }}" class="block px-5 py-2.5 text-sm text-vrazio-forest hover:bg-vrazio-gold/5 hover:text-vrazio-gold transition-colors tracking-wide">Earrings</a>
-                            <a href="{{ url('/collections?category=solitaires') }}" class="block px-5 py-2.5 text-sm text-vrazio-forest hover:bg-vrazio-gold/5 hover:text-vrazio-gold transition-colors tracking-wide">Solitaires</a>
-                            <a href="{{ route('products.couture') }}" class="flex items-center justify-between px-5 py-2.5 text-sm text-vrazio-forest hover:bg-vrazio-gold/5 hover:text-vrazio-gold transition-colors tracking-wide bg-vrazio-gold/5 font-semibold">
-                                <span>Haute Couture &amp; Clothes</span>
-                                <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#9B1B30] text-white font-bold rounded-sm">New</span>
-                            </a>
-                            <div class="border-t border-vrazio-gold/10 mt-2 pt-2">
-                                <a href="{{ route('products.index') ?? '#' }}" class="block px-5 py-2.5 text-sm font-medium text-vrazio-gold hover:bg-vrazio-gold/5 transition-colors tracking-wide">View All →</a>
+                             class="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-vrazio-gold/20 py-3 z-50">
+                            <div class="px-4 py-1.5 text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] border-b border-gray-100 mb-1">Fine Joaillerie</div>
+                            <a href="{{ url('/collections?category=rings') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Rings &amp; Bands</a>
+                            <a href="{{ url('/collections?category=necklaces') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Necklaces &amp; Chokers</a>
+                            <a href="{{ url('/collections?category=bracelets') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Bracelets &amp; Bangles</a>
+                            <a href="{{ url('/collections?category=earrings') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Earrings &amp; Studs</a>
+                            <a href="{{ url('/collections?category=solitaires') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Solitaires &amp; Diamonds</a>
+                            <div class="border-t border-gray-100 mt-2 pt-2">
+                                <a href="{{ url('/collections?category=jewelry') }}" class="block px-4 py-1.5 text-xs font-bold text-vrazio-gold hover:underline">All Jewelry &rarr;</a>
                             </div>
                         </div>
                     </div>
 
-                    <a href="{{ route('products.couture') }}" class="text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2 flex items-center gap-1.5">
-                        <span>Couture</span>
-                        <span class="px-1.5 py-0.5 bg-[#9B1B30] text-white text-[9px] font-bold rounded-sm tracking-wider">New</span>
-                    </a>
-                    <a href="{{ url('/about') }}" class="text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2">About</a>
-                    <a href="{{ url('/contact') }}" class="text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2">Contact</a>
-                </div>
+                    {{-- 2. CLOTHING Dropdown --}}
+                    <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative">
+                        <a href="{{ url('/collections?category=clothing') }}"
+                           class="flex items-center gap-1 text-xs xl:text-sm font-semibold tracking-widest uppercase {{ request('category') === 'clothing' || request()->routeIs('products.couture') ? 'text-vrazio-gold' : 'text-vrazio-forest' }} hover:text-vrazio-gold transition-colors py-2">
+                            Clothing
+                            <svg width="12" height="12" class="w-3 h-3 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </a>
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-2"
+                             x-cloak
+                             class="absolute top-full left-0 mt-1 w-60 bg-white rounded-lg shadow-xl border border-vrazio-gold/20 py-3 z-50">
+                            <div class="px-4 py-1.5 text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] border-b border-gray-100 mb-1">Haute Couture &amp; Apparel</div>
+                            <a href="{{ route('products.couture') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Haute Couture Atelier</a>
+                            <a href="{{ url('/couture?tag=Bridal+Lehenga') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Bridal Lehengas</a>
+                            <a href="{{ url('/couture?tag=Royal+Sherwani') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Royal Sherwanis &amp; Capes</a>
+                            <a href="{{ url('/couture?tag=Banarasi+Silk') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Banarasi &amp; Katan Silk</a>
+                            <div class="border-t border-gray-100 mt-2 pt-2">
+                                <a href="{{ url('/collections?category=clothing') }}" class="block px-4 py-1.5 text-xs font-bold text-vrazio-gold hover:underline">All Clothing &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
 
+                    {{-- 3. WATCHES Dropdown --}}
+                    <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative">
+                        <a href="{{ url('/collections?category=watches') }}"
+                           class="flex items-center gap-1 text-xs xl:text-sm font-semibold tracking-widest uppercase {{ request('category') === 'watches' ? 'text-vrazio-gold' : 'text-vrazio-forest' }} hover:text-vrazio-gold transition-colors py-2">
+                            Watches
+                            <svg width="12" height="12" class="w-3 h-3 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </a>
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-2"
+                             x-cloak
+                             class="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-vrazio-gold/20 py-3 z-50">
+                            <div class="px-4 py-1.5 text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] border-b border-gray-100 mb-1">Luxury Horology</div>
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Diamond &amp; Gem Timepieces</a>
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Automatic Atelier Movements</a>
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Chronographs &amp; Complications</a>
+                            <div class="border-t border-gray-100 mt-2 pt-2">
+                                <a href="{{ url('/collections?category=watches') }}" class="block px-4 py-1.5 text-xs font-bold text-vrazio-gold hover:underline">All Watches &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. FOOTWEAR Dropdown --}}
+                    <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative">
+                        <a href="{{ url('/collections?category=footwear') }}"
+                           class="flex items-center gap-1 text-xs xl:text-sm font-semibold tracking-widest uppercase {{ request('category') === 'footwear' ? 'text-vrazio-gold' : 'text-vrazio-forest' }} hover:text-vrazio-gold transition-colors py-2">
+                            Footwear
+                            <svg width="12" height="12" class="w-3 h-3 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </a>
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-2"
+                             x-cloak
+                             class="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-vrazio-gold/20 py-3 z-50">
+                            <div class="px-4 py-1.5 text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] border-b border-gray-100 mb-1">Bespoke Footwear</div>
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Bespoke Formal Shoes</a>
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Royal Embroidered Mojaris</a>
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-4 py-2 text-xs text-vrazio-forest hover:bg-vrazio-gold/10 hover:text-vrazio-gold transition-colors">Handcrafted Velvet Loafers</a>
+                            <div class="border-t border-gray-100 mt-2 pt-2">
+                                <a href="{{ url('/collections?category=footwear') }}" class="block px-4 py-1.5 text-xs font-bold text-vrazio-gold hover:underline">All Footwear &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 5. PRIVÉ CLUB Luxury Badge Link --}}
+                    <a href="{{ url('/prive-club') }}" 
+                       class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#0E261C] to-[#1c3f30] text-[#D4AF37] border border-[#D4AF37]/60 hover:border-[#D4AF37] hover:shadow-md transition-all text-xs font-bold tracking-wider uppercase group">
+                        <svg class="w-3.5 h-3.5 text-[#D4AF37] group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        <span>PRIVÉ CLUB</span>
+                    </a>
+
+                    <a href="{{ url('/about') }}" class="text-xs xl:text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2">About</a>
+                    <a href="{{ url('/contact') }}" class="text-xs xl:text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors py-2">Contact</a>
+                </div>
                 {{-- Right Actions --}}
                 <div class="flex items-center gap-3 lg:gap-4">
                     {{-- Search --}}
@@ -451,35 +537,28 @@
                             All Pieces
                         </a>
                         <span class="text-vrazio-gold/40">|</span>
-                        <a href="{{ url('/collections?category=rings') }}" 
-                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'rings' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
-                            Rings
+                        <a href="{{ url('/collections?category=jewelry') }}" 
+                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'jewelry' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
+                            💎 Jewelry
                         </a>
-                        <a href="{{ url('/collections?category=necklaces') }}" 
-                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'necklaces' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
-                            Necklaces
+                        <a href="{{ url('/collections?category=clothing') }}" 
+                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'clothing' || request()->routeIs('products.couture') ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
+                            👗 Clothing
                         </a>
-                        <a href="{{ url('/collections?category=bracelets') }}" 
-                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'bracelets' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
-                            Bracelets
+                        <a href="{{ url('/collections?category=watches') }}" 
+                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'watches' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
+                            ⌚ Watches
                         </a>
-                        <a href="{{ url('/collections?category=earrings') }}" 
-                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'earrings' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
-                            Earrings
-                        </a>
-                        <a href="{{ url('/collections?category=solitaires') }}" 
-                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'solitaires' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
-                            Solitaires
+                        <a href="{{ url('/collections?category=footwear') }}" 
+                           class="px-2.5 py-1 rounded transition-colors {{ request('category') === 'footwear' ? 'bg-vrazio-forest text-vrazio-gold' : 'text-vrazio-forest/80 hover:text-vrazio-gold hover:bg-vrazio-gold/10' }}">
+                            👞 Footwear
                         </a>
                         <span class="text-vrazio-gold/40">|</span>
-                        {{-- Dedicated Clothes & Couture Link with Highlight Badge --}}
-                        <a href="{{ route('products.couture') }}" 
-                           class="px-3 py-1 rounded flex items-center gap-1.5 transition-all {{ request()->routeIs('products.couture') || request('category') === 'couture' ? 'bg-vrazio-forest text-vrazio-gold border border-vrazio-gold/60 shadow-sm' : 'bg-vrazio-gold/15 text-vrazio-forest font-bold hover:bg-vrazio-gold/25 border border-vrazio-gold/30' }}">
-                            <span>👗 Haute Couture &amp; Clothes</span>
-                            <span class="px-1.5 py-0.2 bg-[#9B1B30] text-white text-[9px] font-bold rounded-sm uppercase tracking-widest">New</span>
+                        <a href="{{ url('/prive-club') }}" 
+                           class="px-3 py-1 rounded flex items-center gap-1.5 transition-all bg-gradient-to-r from-[#0E261C] to-[#1c3f30] text-[#D4AF37] border border-[#D4AF37]/50 shadow-xs hover:border-[#D4AF37]">
+                            <span>✦ PRIVÉ CLUB</span>
                         </a>
                     </div>
-
                     {{-- Trending Product Tags (Desktop) --}}
                     <div class="hidden xl:flex items-center gap-1.5 text-[11px] text-vrazio-forest/70 whitespace-nowrap pl-4 border-l border-vrazio-gold/20">
                         <span class="text-vrazio-gold font-bold uppercase tracking-widest text-[10px]">Trending Tags:</span>
@@ -534,36 +613,94 @@
 
                 {{-- Drawer Links --}}
                 <nav class="flex-1 overflow-y-auto py-4">
-                    <div x-data="{ collectionsOpen: false }" class="px-4">
-                        <button @click="collectionsOpen = !collectionsOpen"
-                                class="w-full flex items-center justify-between px-3 py-3 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
-                            Collections
-                            <svg width="16" height="16" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': collectionsOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- 1. JEWELRY --}}
+                    <div x-data="{ open: false }" class="px-4">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold tracking-wider uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
+                            <span>💎 Jewelry</span>
+                            <svg width="16" height="16" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
-                        <div x-show="collectionsOpen" x-collapse x-cloak class="pl-4 mt-1 space-y-1">
-                            <a href="{{ url('/collections?category=rings') }}" class="block px-3 py-2.5 text-sm text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Rings</a>
-                            <a href="{{ url('/collections?category=necklaces') }}" class="block px-3 py-2.5 text-sm text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Necklaces</a>
-                            <a href="{{ url('/collections?category=bracelets') }}" class="block px-3 py-2.5 text-sm text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Bracelets</a>
-                            <a href="{{ url('/collections?category=earrings') }}" class="block px-3 py-2.5 text-sm text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Earrings</a>
-                            <a href="{{ url('/collections?category=solitaires') }}" class="block px-3 py-2.5 text-sm text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Solitaires</a>
-                            <a href="{{ route('products.couture') }}" class="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg bg-vrazio-gold/10">
-                                <span>👗 Haute Couture &amp; Clothes</span>
-                                <span class="text-[9px] uppercase px-1.5 py-0.2 bg-[#9B1B30] text-white font-bold rounded-sm">New</span>
-                            </a>
-                            <a href="{{ route('products.index') ?? '#' }}" class="block px-3 py-2.5 text-sm font-medium text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">View All Jewellery →</a>
+                        <div x-show="open" x-collapse x-cloak class="pl-4 mt-1 space-y-1">
+                            <a href="{{ url('/collections?category=rings') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Rings &amp; Bands</a>
+                            <a href="{{ url('/collections?category=necklaces') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Necklaces &amp; Chokers</a>
+                            <a href="{{ url('/collections?category=bracelets') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Bracelets &amp; Bangles</a>
+                            <a href="{{ url('/collections?category=earrings') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Earrings &amp; Studs</a>
+                            <a href="{{ url('/collections?category=solitaires') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Solitaires &amp; Diamonds</a>
+                            <a href="{{ url('/collections?category=jewelry') }}" class="block px-3 py-2 text-xs font-bold text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">View All Jewelry &rarr;</a>
                         </div>
                     </div>
-                    <div class="px-4 mt-1">
-                        <a href="{{ route('products.couture') }}" class="flex items-center justify-between px-3 py-3 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
-                            <span>Haute Couture</span>
-                            <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#9B1B30] text-white font-bold rounded-sm">New</span>
-                        </a>
-                        <a href="{{ url('/about') }}" class="block px-3 py-3 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">About</a>
-                        <a href="{{ url('/contact') }}" class="block px-3 py-3 text-sm font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Contact</a>
+
+                    {{-- 2. CLOTHING --}}
+                    <div x-data="{ open: false }" class="px-4 mt-1">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold tracking-wider uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
+                            <span>👗 Clothing</span>
+                            <svg width="16" height="16" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-collapse x-cloak class="pl-4 mt-1 space-y-1">
+                            <a href="{{ route('products.couture') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Haute Couture Atelier</a>
+                            <a href="{{ url('/couture?tag=Bridal+Lehenga') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Bridal Lehengas</a>
+                            <a href="{{ url('/couture?tag=Royal+Sherwani') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Royal Sherwanis</a>
+                            <a href="{{ url('/couture?tag=Banarasi+Silk') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Banarasi &amp; Katan Silk</a>
+                            <a href="{{ url('/collections?category=clothing') }}" class="block px-3 py-2 text-xs font-bold text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">View All Clothing &rarr;</a>
+                        </div>
                     </div>
 
+                    {{-- 3. WATCHES --}}
+                    <div x-data="{ open: false }" class="px-4 mt-1">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold tracking-wider uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
+                            <span>⌚ Watches</span>
+                            <svg width="16" height="16" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-collapse x-cloak class="pl-4 mt-1 space-y-1">
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Diamond Timepieces</a>
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Automatic Movements</a>
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Chronographs</a>
+                            <a href="{{ url('/collections?category=watches') }}" class="block px-3 py-2 text-xs font-bold text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">View All Watches &rarr;</a>
+                        </div>
+                    </div>
+
+                    {{-- 4. FOOTWEAR --}}
+                    <div x-data="{ open: false }" class="px-4 mt-1">
+                        <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold tracking-wider uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">
+                            <span>👞 Footwear</span>
+                            <svg width="16" height="16" class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-collapse x-cloak class="pl-4 mt-1 space-y-1">
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Bespoke Formal Shoes</a>
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Royal Embroidered Mojaris</a>
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-3 py-2 text-xs text-vrazio-forest/80 hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Handcrafted Velvet Loafers</a>
+                            <a href="{{ url('/collections?category=footwear') }}" class="block px-3 py-2 text-xs font-bold text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">View All Footwear &rarr;</a>
+                        </div>
+                    </div>
+
+                    {{-- 5. PRIVÉ CLUB Featured Link --}}
+                    <div class="px-4 mt-2">
+                        <a href="{{ url('/prive-club') }}" class="flex items-center justify-between px-3 py-2.5 text-xs font-bold tracking-wider uppercase text-[#D4AF37] rounded-lg bg-gradient-to-r from-[#0E261C] to-[#1c3f30] border border-[#D4AF37]/50 shadow-xs">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                <span>VRAZIO PRIVÉ CLUB</span>
+                            </span>
+                            <span class="text-[9px] uppercase px-1.5 py-0.5 bg-[#D4AF37] text-[#0E261C] font-bold rounded-xs">VIP</span>
+                        </a>
+                    </div>
+
+                    <div class="px-4 mt-2 space-y-1 border-t border-vrazio-gold/10 pt-2">
+                        <a href="{{ url('/about') }}" class="block px-3 py-2 text-xs font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">About Atelier</a>
+                        <a href="{{ url('/contact') }}" class="block px-3 py-2 text-xs font-medium tracking-widest uppercase text-vrazio-forest hover:text-vrazio-gold transition-colors rounded-lg hover:bg-vrazio-gold/5">Contact Concierge</a>
+                    </div>
                     {{-- Mobile Trending Tags --}}
                     <div class="px-7 py-3">
                         <span class="text-[10px] uppercase font-bold tracking-widest text-vrazio-gold block mb-2">Trending Tags</span>
@@ -619,9 +756,9 @@
                         <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         +91 98765 43210
                     </a>
-                    <a href="mailto:concierge@vrazio.com" class="flex items-center gap-2 text-xs text-vrazio-forest/60 hover:text-vrazio-gold transition-colors">
+                    <a href="mailto:vrazioofficail@gmail.com" class="flex items-center gap-2 text-xs text-vrazio-forest/60 hover:text-vrazio-gold transition-colors">
                         <svg width="14" height="14" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        concierge@vrazio.com
+                        vrazioofficail@gmail.com
                     </a>
                 </div>
             </div>
@@ -1049,7 +1186,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            <a href="mailto:vrazioofficial@gmail.com" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">vrazioofficial@gmail.com</a>
+                            <a href="mailto:vrazioofficail@gmail.com" class="text-sm text-white/80 hover:text-vrazio-gold transition-colors">vrazioofficail@gmail.com</a>
                         </div>
                         <div class="flex items-center gap-3">
                             <svg width="16" height="16" class="w-4 h-4 text-vrazio-gold flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

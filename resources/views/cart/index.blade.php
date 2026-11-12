@@ -164,12 +164,18 @@
                         </div>
                         @if(($discount ?? 0) > 0)
                             <div class="flex justify-between text-emerald-700 font-semibold">
-                                <span>Privilege Discount ({{ $voucher?->code }}):</span>
+                                <span>Voucher Discount ({{ $voucher?->code }}):</span>
+                            </div>
+                        @endif
+                        @if(($priveDiscount ?? 0) > 0)
+                            <div class="flex justify-between text-amber-700 font-semibold">
+                                <span>✦ PRIVÉ Club ({{ $membership?->tier_name }}):</span>
+                                <span class="font-mono">-₹{{ number_format($priveDiscount, 2) }}</span>
                                 <span class="font-mono">-₹{{ number_format($discount, 2) }}</span>
                             </div>
                         @endif
                         <div class="flex justify-between">
-                            <span>GST (3%):</span>
+                            <span>Estimated GST (Included):</span>
                             <span class="font-mono font-semibold text-[#0E261C]">₹{{ number_format($gst, 2) }}</span>
                         </div>
                         <div class="flex justify-between text-green-700">

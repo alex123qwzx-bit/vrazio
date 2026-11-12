@@ -49,7 +49,7 @@
 
          getCalculatedTotal() {
              let netSubtotal = Math.max(0, this.subtotalVal - this.discountVal);
-             let base = netSubtotal + this.gstVal;
+             let base = netSubtotal; // GST already included
              let transit = (this.shippingMethod === 'express') ? this.expressTransitVal : this.standardTransitVal;
              let cod = this.getCodFee();
              return (base + transit + cod).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -167,7 +167,11 @@
 
                  const rzp = new Razorpay(options);
                  rzp.on('payment.failed', function (response){
-                     alert('Payment declined: ' + response.error.description);
+                     let desc = response.error ? (response.error.description || 'Payment failed') : 'Payment failed';
+                      if (desc.toLowerCase().includes('international')) {
+                          desc += "\n\n💡 Tip: Use Indian Domestic Test Card: 4100 2800 0000 1007 (CVV: 123) or UPI (success@razorpay).";
+                      }
+                      alert('Payment declined: ' + desc);
                  });
                  rzp.open();
                  this.paymentSubmitting = false;
@@ -497,7 +501,7 @@
                             </div>
                         @endif
                         <div class="flex justify-between">
-                            <span>GST (3%):</span>
+                            <span>Estimated GST (Included):</span>
                             <span class="font-mono font-semibold">₹{{ number_format($gst, 2) }}</span>
                         </div>
                         <div class="flex justify-between">

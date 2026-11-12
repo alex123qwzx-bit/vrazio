@@ -46,10 +46,13 @@ class CheckoutController extends Controller
         $items = $this->cartService->getItems();
         $subtotal = $this->cartService->getSubtotal();
         $voucher = $this->cartService->getVoucher();
-        $discount = $this->cartService->getDiscount();
+        $voucherDiscount = $this->cartService->getDiscount();
+        $priveDiscount = $this->cartService->getPriveDiscount();
+        $discount = $this->cartService->getTotalDiscount();
         $gst = $this->cartService->getGst();
         $standardTotal = $this->cartService->getTotal('standard');
         $expressTotal = $this->cartService->getTotal('express');
+        $membership = auth()->check() ? auth()->user()->activeMembership() : null;
 
         $verifiedPhone = session('order_phone_verified');
         if (! $verifiedPhone && auth()->check() && auth()->user()->phone_verified_at && !empty(auth()->user()->phone)) {
@@ -68,6 +71,8 @@ class CheckoutController extends Controller
             'subtotal',
             'voucher',
             'discount',
+            'priveDiscount',
+            'membership',
             'gst',
             'standardTotal',
             'expressTotal',
@@ -110,7 +115,21 @@ class CheckoutController extends Controller
         // Calculate server-side financial numbers based on fresh database items
         $subtotal = $this->cartService->getSubtotal();
         $voucher = $this->cartService->getVoucher();
-        $discount = $this->cartService->getDiscount();
+        $voucherDiscount = $this->cartService->getDiscount();
+        $priveDiscount = $this->cartService->getPriveDiscount();
+        $user = auth()->user();
+        $membership = $user?->activeMembership();
+        $priveMemberId = null;
+        $appliedPriveDiscount = 0.0;
+
+        if ($priveDiscount > 0 && $priveDiscount >= $voucherDiscount) {
+            $discount = $priveDiscount;
+            $appliedPriveDiscount = $priveDiscount;
+            $priveMemberId = $membership?->member_id;
+        } else {
+            $discount = $voucherDiscount;
+        }
+
         $gst = $this->cartService->getGst();
         $shippingMethod = $validated['shipping_method'];
         $shippingCost = $this->cartService->getShippingCost($shippingMethod);
@@ -156,8 +175,10 @@ class CheckoutController extends Controller
                 'shipping_address' => $validated['shipping_address'],
                 'shipping_method' => $shippingMethod,
                 'subtotal' => $subtotal,
-                'voucher_code' => $voucher?->code,
+                'voucher_code' => ($appliedPriveDiscount > 0) ? null : $voucher?->code,
+                'prive_member_id' => $priveMemberId,
                 'discount_amount' => $discount,
+                'prive_discount_amount' => $appliedPriveDiscount,
                 'tax_gst' => $gst,
                 'shipping_cost' => $shippingCost,
                 'total_amount' => $totalAmount,
@@ -167,7 +188,19 @@ class CheckoutController extends Controller
                 'otp_verified_at' => $phoneVerified ? now() : null,
             ]);
 
-            if ($voucher) {
+            if ($appliedPriveDiscount > 0 && $membership) {
+                if (! $membership->next_order_discount_used) {
+                    $membership->update([
+                        'next_order_discount_used' => true,
+                        'next_order_discount_used_at' => now(),
+                        'next_order_order_id' => $order->id,
+                    ]);
+                } else {
+                    $membership->update([
+                        'birthday_coupon_used_year' => (int) now()->format('Y'),
+                    ]);
+                }
+            } elseif ($voucher) {
                 $voucher->increment('used_count');
             }
 
@@ -249,7 +282,8 @@ class CheckoutController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'We made a mistake while initializing your order. Our team has been notified. Please try again shortly.',
+                'message' => config('app.debug') ? ('Order error: ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine()) : 'We made a mistake while initializing your order. Our team has been notified. Please try again shortly.',
+                'error_detail' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -373,6 +407,43 @@ class CheckoutController extends Controller
                 if ($order) {
                     $this->finalizePayment($order, (string) $rzpPaymentId);
                     Log::info("Order {$order->order_number} marked paid via Razorpay webhook.");
+                }
+            }
+        } elseif ($event === 'refund.processed') {
+            $rzpRefundId = $data['payload']['refund']['entity']['id'] ?? null;
+            $amountInPaise = (int) ($data['payload']['refund']['entity']['amount'] ?? 0);
+            $amountInRupees = round($amountInPaise / 100, 2);
+
+            if ($rzpRefundId) {
+                $refund = \App\Models\OrderRefund::where('razorpay_refund_id', $rzpRefundId)->first();
+                if ($refund && $refund->status !== \App\Models\OrderRefund::STATUS_REFUNDED) {
+                    $refund->update([
+                        'status' => \App\Models\OrderRefund::STATUS_REFUNDED,
+                        'completed_at' => now(),
+                        'gateway_response' => $data['payload']['refund']['entity'] ?? null,
+                    ]);
+                    $refund->order?->increment('total_refunded', $amountInRupees);
+                    $refund->order?->update(['refund_status' => 'refunded']);
+                    if ($refund->cancellation) {
+                        $refund->cancellation->update(['status' => \App\Models\OrderCancellation::STATUS_COMPLETED]);
+                    }
+                    Log::info("Razorpay refund {$rzpRefundId} marked refunded via webhook.");
+                }
+            }
+        } elseif ($event === 'refund.failed') {
+            $rzpRefundId = $data['payload']['refund']['entity']['id'] ?? null;
+            $failureReason = $data['payload']['refund']['entity']['error_description'] ?? 'Gateway failed processing refund';
+
+            if ($rzpRefundId) {
+                $refund = \App\Models\OrderRefund::where('razorpay_refund_id', $rzpRefundId)->first();
+                if ($refund && $refund->status !== \App\Models\OrderRefund::STATUS_FAILED) {
+                    $refund->update([
+                        'status' => \App\Models\OrderRefund::STATUS_FAILED,
+                        'failure_reason' => $failureReason,
+                        'gateway_response' => $data['payload']['refund']['entity'] ?? null,
+                    ]);
+                    $refund->order?->update(['refund_status' => 'failed']);
+                    Log::warning("Razorpay refund {$rzpRefundId} marked failed via webhook: {$failureReason}");
                 }
             }
         }

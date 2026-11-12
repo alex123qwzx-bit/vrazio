@@ -114,6 +114,45 @@ class RazorpayService
     }
 
     /**
+     * Create a refund through Razorpay API.
+     *
+     * @param  string  $paymentId  Razorpay payment ID (e.g. pay_xxx)
+     * @param  float   $amount     Amount in INR
+     * @param  array   $notes      Optional metadata notes
+     * @return object  Razorpay Refund object or simulated refund object
+     */
+    public function createRefund(string $paymentId, float $amount, array $notes = []): object
+    {
+        $amountInPaise = (int) round($amount * 100);
+
+        if ($this->api && ! $this->isSimulated) {
+            try {
+                return $this->api->payment->fetch($paymentId)->refund([
+                    'amount' => $amountInPaise,
+                    'notes' => $notes,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Razorpay Refund API call failed: ' . $e->getMessage(), [
+                    'payment_id' => $paymentId,
+                    'amount' => $amount,
+                ]);
+                throw $e;
+            }
+        }
+
+        // Simulated refund response for continuity, tests, and mock mode
+        return (object) [
+            'id' => 'rfnd_sim_' . bin2hex(random_bytes(8)),
+            'payment_id' => $paymentId,
+            'amount' => $amountInPaise,
+            'currency' => 'INR',
+            'status' => 'processed',
+            'notes' => $notes,
+            'created_at' => time(),
+        ];
+    }
+
+    /**
      * Get the Razorpay publishable key for frontend integration.
      */
     public function getKey(): string

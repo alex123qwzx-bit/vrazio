@@ -34,6 +34,12 @@ class SitemapController extends Controller
                 'priority' => '0.9',
             ],
             [
+                'loc' => route('prive-club.index'),
+                'lastmod' => now()->startOfWeek()->toAtomString(),
+                'changefreq' => 'weekly',
+                'priority' => '0.9',
+            ],
+            [
                 'loc' => route('pages.about'),
                 'lastmod' => now()->startOfMonth()->toAtomString(),
                 'changefreq' => 'monthly',
@@ -78,10 +84,13 @@ class SitemapController extends Controller
         ];
 
         // Categories
-        $categories = ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires'];
+        $categories = Product::select('category')->distinct()->whereNotNull('category')->pluck('category')->toArray();
+        if (empty($categories)) {
+            $categories = ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires', 'jewelry', 'clothing', 'watches', 'footwear'];
+        }
         foreach ($categories as $cat) {
             $staticUrls[] = [
-                'loc' => route('products.index', ['category' => $cat]),
+                'loc' => route('products.category', ['category' => $cat]),
                 'lastmod' => now()->startOfWeek()->toAtomString(),
                 'changefreq' => 'weekly',
                 'priority' => '0.8',

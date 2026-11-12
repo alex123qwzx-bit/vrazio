@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Order extends Model
@@ -28,7 +29,9 @@ class Order extends Model
         'shipping_method',
         'subtotal',
         'voucher_code',
+        'prive_member_id',
         'discount_amount',
+        'prive_discount_amount',
         'tax_gst',
         'shipping_cost',
         'total_amount',
@@ -47,6 +50,10 @@ class Order extends Model
         'estimated_delivery_at',
         'delivery_time_slot',
         'otp_verified_at',
+        'cancellation_status',
+        'refund_status',
+        'total_refunded',
+        'cancelled_at',
     ];
 
     /**
@@ -60,6 +67,7 @@ class Order extends Model
             'shipping_address' => 'array',
             'subtotal' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'prive_discount_amount' => 'decimal:2',
             'tax_gst' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
             'total_amount' => 'decimal:2',
@@ -69,6 +77,8 @@ class Order extends Model
             'delivered_at' => 'datetime',
             'estimated_delivery_at' => 'datetime',
             'otp_verified_at' => 'datetime',
+            'total_refunded' => 'decimal:2',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -167,6 +177,38 @@ class Order extends Model
     /**
      * Get the warranty claim associated with this order.
      */
+        /**
+     * Get all cancellation requests filed for this order.
+     */
+    public function cancellations(): HasMany
+    {
+        return $this->hasMany(OrderCancellation::class);
+    }
+
+    /**
+     * Get the active or most recent cancellation docket.
+     */
+    public function activeCancellation(): HasOne
+    {
+        return $this->hasOne(OrderCancellation::class)->latestOfMany();
+    }
+
+    /**
+     * Get all financial refunds processed for this order.
+     */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(OrderRefund::class);
+    }
+
+    /**
+     * Get all official GST credit notes issued for this order.
+     */
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
     public function warrantyClaim(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(WarrantyClaim::class);
@@ -398,7 +440,11 @@ class Order extends Model
      */
     public function canBeCancelled(): bool
     {
-        if ($this->fulfillment_status === 'cancelled') {
+        if (in_array($this->fulfillment_status, ['cancelled', 'shipped', 'out_for_delivery', 'delivered'], true)) {
+            return false;
+        }
+
+        if ($this->cancellation_status === 'cancelled') {
             return false;
         }
 

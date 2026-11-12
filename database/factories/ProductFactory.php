@@ -60,6 +60,8 @@ class ProductFactory extends Factory
             'gross_weight_grams' => $grossWeight,
             'net_weight_grams' => $netWeight,
             'price' => $price,
+            'gst_percent' => 3.00,
+            'discount_percent' => 0.00,
             'sale_price' => $hasSalePrice ? round($price * fake()->randomFloat(2, 0.80, 0.95), 2) : null,
             'stock_quantity' => fake()->numberBetween(0, 15),
             'is_featured' => fake()->boolean(25),

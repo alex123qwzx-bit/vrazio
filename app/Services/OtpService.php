@@ -108,7 +108,7 @@ class OtpService
                     'dev_otp' => $otp,
                 ];
             }
-            return ['success' => false, 'message' => 'We made a mistake reaching our SMS gateway. Please try again shortly.'];
+            return ['success' => false, 'message' => config('app.debug') ? ('SMS Gateway error: ' . $e->getMessage()) : 'We made a mistake reaching our SMS gateway. Please try again shortly.'];
         }
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\SiteThemeSetting;
 use App\Models\Voucher;
 use Illuminate\Support\Facades\Session;
 
@@ -57,7 +58,7 @@ class CartService
      */
     public static function getCodFeeForState(?string $state): float
     {
-        $rates = \App\Models\SiteThemeSetting::getSetting('cod_state_rates', []);
+        $rates = SiteThemeSetting::getSetting('cod_state_rates', []);
         if (! is_array($rates)) {
             $rates = json_decode((string)$rates, true) ?: [];
         }
@@ -94,7 +95,7 @@ class CartService
     /**
      * Get all items currently in the cart with fresh live prices from the database.
      *
-     * @return array<string, array{id: int, title: string, slug: string, price: float, image: ?string, quantity: int, size: ?string}>
+     * @return array<string, array{id: int, title: string, slug: string, price: float, base_price: float, gst_percent: float, discount_percent: float, image: ?string, quantity: int, size: ?string}>
      */
     public function getItems(): array
     {
@@ -120,13 +121,17 @@ class CartService
                 continue; // Product has been removed from catalog
             }
 
-            $price = (float) ($product->sale_price ?? $product->price);
+            // Effective taxable price (Base price minus product-level discount if any)
+            $price = (float) ($product->calculateDiscountedPrice() ?? $product->price);
 
             $freshCart[(string) $key] = [
                 'id' => $product->id,
                 'title' => $product->title,
                 'slug' => $product->slug,
                 'price' => $price,
+                'base_price' => (float) $product->price,
+                'gst_percent' => (float) ($product->gst_percent ?? 3.0),
+                'discount_percent' => (float) ($product->discount_percent ?? 0.0),
                 'image' => $product->primary_image,
                 'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
                 'size' => $item['size'] ?? null,
@@ -349,7 +354,70 @@ class CartService
     }
 
     /**
-     * Calculate the subtotal (sum of live price × quantity for all items).
+     * Calculate active VRAZIO PRIVÉ CLUB membership discount if applicable.
+     */
+    public function getPriveDiscount(): float
+    {
+        if (! auth()->check()) {
+            return 0.0;
+        }
+
+        $user = auth()->user();
+        $membership = $user->activeMembership();
+        if (! $membership) {
+            return 0.0;
+        }
+
+        $plan = $membership->plan;
+        if (! $plan) {
+            return 0.0;
+        }
+
+        $subtotal = $this->getSubtotal();
+
+        // 1. One-time Next Order Privilege
+        if (! $membership->next_order_discount_used) {
+            if ($subtotal >= (float) $plan->next_order_min_cart) {
+                $discount = $subtotal * ((float) $plan->next_order_discount_percent / 100.0);
+                return round(min($discount, (float) $plan->next_order_max_discount), 2);
+            }
+        }
+
+        // 2. Birthday month privilege
+        if ($user->date_of_birth && (float) $plan->birthday_discount_percent > 0) {
+            $birthMonth = (int) $user->date_of_birth->format('n');
+            $currentMonth = (int) now()->format('n');
+            $currentYear = (int) now()->format('Y');
+
+            if ($birthMonth === $currentMonth && (int) $membership->birthday_coupon_used_year !== $currentYear) {
+                if ($subtotal >= (float) $plan->birthday_min_cart) {
+                    $bDiscount = $subtotal * ((float) $plan->birthday_discount_percent / 100.0);
+                    return round(min($bDiscount, (float) $plan->birthday_max_discount), 2);
+                }
+            }
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Get effective combined discount avoiding voucher stacking conflict.
+     */
+    public function getTotalDiscount(): float
+    {
+        $voucherDisc = $this->getDiscount();
+        $priveDisc = $this->getPriveDiscount();
+
+        if ($voucherDisc > 0 && $priveDisc > 0) {
+            // Apply higher privilege benefit
+            return max($voucherDisc, $priveDisc);
+        }
+
+        return round($voucherDisc + $priveDisc, 2);
+    }
+
+    /**
+     * Calculate the subtotal (sum of customer GST-inclusive price × quantity for all items).
      */
     public function getSubtotal(): float
     {
@@ -361,14 +429,26 @@ class CartService
     }
 
     /**
-     * Calculate GST amount (3% of net taxable amount for fine jewellery).
+     * Calculate GST amount across items based on their product GST rates.
      */
     public function getGst(): float
     {
-        $rate = (float) config('services.gst_rate', 0.03);
-        $taxable = max(0.0, $this->getSubtotal() - $this->getDiscount());
+        $subtotal = $this->getSubtotal();
+        if ($subtotal <= 0) {
+            return 0.0;
+        }
 
-        return round($taxable * $rate, 2);
+        $orderDiscount = $this->getTotalDiscount();
+        $taxableRatio = max(0.0, ($subtotal - $orderDiscount) / $subtotal);
+
+        $totalGst = 0.0;
+        foreach ($this->getItems() as $item) {
+            $gstRate = (float) ($item['gst_percent'] ?? 3.0);
+            $lineNet = (float) ($item['price'] * $item['quantity']) * $taxableRatio;
+            $totalGst += ($lineNet * ($gstRate / 100.0));
+        }
+
+        return round($totalGst, 2);
     }
 
     /**
@@ -380,11 +460,11 @@ class CartService
     }
 
     /**
-     * Calculate the total (net subtotal + GST + shipping).
+     * Calculate the final customer total (Subtotal - Discount + GST + Shipping).
      */
     public function getTotal(string $shippingMethod = 'standard'): float
     {
-        $taxable = max(0.0, $this->getSubtotal() - $this->getDiscount());
+        $taxable = max(0.0, $this->getSubtotal() - $this->getTotalDiscount());
 
         return round(
             $taxable + $this->getGst() + $this->getShippingCost($shippingMethod),

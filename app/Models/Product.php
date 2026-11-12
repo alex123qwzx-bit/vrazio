@@ -14,6 +14,33 @@ class Product extends Model
     use HasFactory;
 
     /**
+     * The 4 authoritative product categories.
+     */
+    public const string CATEGORY_JEWELRY = 'jewelry';
+    public const string CATEGORY_CLOTHING = 'clothing';
+    public const string CATEGORY_WATCHES = 'watches';
+    public const string CATEGORY_FOOTWEAR = 'footwear';
+
+    public const array CATEGORIES = [
+        self::CATEGORY_JEWELRY => 'Jewelry',
+        self::CATEGORY_CLOTHING => 'Clothing',
+        self::CATEGORY_WATCHES => 'Watches',
+        self::CATEGORY_FOOTWEAR => 'Footwear',
+    ];
+
+    /**
+     * Standard GST Rates supported across product categories.
+     */
+    public const array GST_RATES = [
+        0 => '0% (Exempt)',
+        3 => '3% (Precious Fine Jewellery)',
+        5 => '5% (Footwear & Apparel < ₹1,000)',
+        12 => '12% (Haute Couture & Apparel)',
+        18 => '18% (Luxury Timepieces & Footwear)',
+        28 => '28% (Luxury Goods & Special Articles)',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -27,10 +54,18 @@ class Product extends Model
         'gross_weight_grams',
         'net_weight_grams',
         'price',
+        'gst_percent',
+        'discount_percent',
+        'final_price',
         'sale_price',
         'stock_quantity',
         'is_featured',
         'bis_hallmarked',
+        'is_warranty_eligible',
+        'warranty_period_months',
+        'warranty_coverage',
+        'warranty_exclusions',
+        'warranty_remedies',
         'certification',
         'description',
         'specs',
@@ -47,11 +82,16 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'gst_percent' => 'decimal:2',
+            'discount_percent' => 'decimal:2',
+            'final_price' => 'decimal:2',
             'sale_price' => 'decimal:2',
             'gross_weight_grams' => 'decimal:2',
             'net_weight_grams' => 'decimal:2',
             'is_featured' => 'boolean',
             'bis_hallmarked' => 'boolean',
+            'is_warranty_eligible' => 'boolean',
+            'warranty_period_months' => 'integer',
             'specs' => 'array',
             'images' => 'array',
             'tags' => 'array',
@@ -81,6 +121,21 @@ class Product extends Model
                     $product->slug = $originalSlug . '-' . $counter;
                     $counter++;
                 }
+            }
+        });
+
+        static::saving(function (Product $product): void {
+            // Keep final_price synced with calculation formula
+            $computedFinal = $product->calculateFinalPrice();
+            $product->final_price = $computedFinal;
+
+            if ($product->discount_percent !== null && (float) $product->discount_percent > 0) {
+                $product->sale_price = $product->calculateDiscountedPrice();
+            }
+
+            // Ensure images array is never empty for new or updated products
+            if (empty($product->images) || !is_array($product->images) || count($product->images) === 0) {
+                $product->images = [self::getCategoryFallbackImage($product->category)];
             }
         });
     }
@@ -134,7 +189,121 @@ class Product extends Model
      */
     public function scopeByCategory(Builder $query, string $category): Builder
     {
-        return $query->where('category', $category);
+        $cat = strtolower(trim($category));
+        $mapped = match ($cat) {
+            'rings', 'necklaces', 'bracelets', 'earrings', 'solitaires', 'jewelry' => 'jewelry',
+            'couture', 'clothes', 'clothing' => 'clothing',
+            'watches', 'watch' => 'watches',
+            'footwear', 'shoes' => 'footwear',
+            default => $cat,
+        };
+
+        return $query->where('category', $mapped);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Price & Calculation Engine (Requirements 3, 4, 5, 6)
+    |--------------------------------------------------------------------------
+    | Formula:
+    | 1. Discount Amount = Base Price * Discount Percentage / 100
+    | 2. Discounted Price = Base Price - Discount Amount
+    | 3. GST Amount = Discounted Price * GST Percentage / 100
+    | 4. Final Customer-Facing Price = Discounted Price + GST Amount
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Calculate the discount amount.
+     */
+    public function calculateDiscountAmount(?float $basePrice = null, ?float $discountPercent = null): float
+    {
+        $base = $basePrice ?? (float) $this->price;
+        $disc = $discountPercent ?? (float) ($this->discount_percent ?? 0);
+
+        if ($base <= 0 || $disc <= 0) {
+            return 0.0;
+        }
+
+        return round($base * ($disc / 100.0), 2);
+    }
+
+    /**
+     * Calculate the discounted taxable price.
+     */
+    public function calculateDiscountedPrice(?float $basePrice = null, ?float $discountPercent = null): float
+    {
+        $base = $basePrice ?? (float) $this->price;
+        $discountAmount = $this->calculateDiscountAmount($base, $discountPercent);
+
+        return max(0.0, round($base - $discountAmount, 2));
+    }
+
+    /**
+     * Calculate the GST amount based on discounted taxable price.
+     */
+    public function calculateGstAmount(?float $basePrice = null, ?float $discountPercent = null, ?float $gstPercent = null): float
+    {
+        $discounted = $this->calculateDiscountedPrice($basePrice, $discountPercent);
+        $gst = $gstPercent ?? (float) ($this->gst_percent ?? 0);
+
+        if ($discounted <= 0 || $gst <= 0) {
+            return 0.0;
+        }
+
+        return round($discounted * ($gst / 100.0), 2);
+    }
+
+    /**
+     * Calculate the final customer-facing GST-inclusive price.
+     */
+    public function calculateFinalPrice(?float $basePrice = null, ?float $discountPercent = null, ?float $gstPercent = null): float
+    {
+        $discounted = $this->calculateDiscountedPrice($basePrice, $discountPercent);
+        $gstAmount = $this->calculateGstAmount($basePrice, $discountPercent, $gstPercent);
+
+        return round($discounted + $gstAmount, 2);
+    }
+
+    /**
+     * Determine if this product has a customer-facing discount configured.
+     */
+    public function hasDiscount(): bool
+    {
+        return (float) ($this->discount_percent ?? 0) > 0;
+    }
+
+    /**
+     * Get the discount badge label (e.g. '20% OFF').
+     */
+    protected function discountBadge(): Attribute
+    {
+        return Attribute::make(
+            get: function (): ?string {
+                if (! $this->hasDiscount()) {
+                    return null;
+                }
+
+                $disc = (float) $this->discount_percent;
+                $formatted = ($disc == (int) $disc) ? (string) (int) $disc : rtrim(rtrim(number_format($disc, 2), '0'), '.');
+
+                return $formatted . '% OFF';
+            },
+        );
+    }
+
+    /**
+     * Get the final GST-inclusive price formatted in Indian currency format.
+     */
+    protected function formattedFinalPrice(): Attribute
+    {
+        return Attribute::make(
+            get: function (): string {
+                $amount = (float) ($this->final_price ?? $this->calculateFinalPrice());
+
+                return '₹' . $this->formatIndianNumber($amount);
+            },
+        );
     }
 
     /**
@@ -164,12 +333,12 @@ class Product extends Model
     */
 
     /**
-     * Get the effective price (sale price if available, otherwise regular price).
+     * Get the effective price (final GST-inclusive price if available, otherwise sale/regular price).
      */
     protected function effectivePrice(): Attribute
     {
         return Attribute::make(
-            get: fn (): string => $this->sale_price ?? $this->price,
+            get: fn (): string => (string) ($this->final_price ?? $this->sale_price ?? $this->price),
         );
     }
 
@@ -180,7 +349,7 @@ class Product extends Model
     {
         return Attribute::make(
             get: function (): string {
-                $amount = (float) ($this->sale_price ?? $this->price);
+                $amount = (float) ($this->final_price ?? $this->sale_price ?? $this->price);
 
                 return '₹' . $this->formatIndianNumber($amount);
             },
@@ -188,7 +357,7 @@ class Product extends Model
     }
 
     /**
-     * Get the primary image URL or a placeholder.
+     * Get the primary image URL or a category-appropriate placeholder.
      */
     protected function primaryImage(): Attribute
     {
@@ -197,10 +366,10 @@ class Product extends Model
                 $images = $this->images;
 
                 if (is_array($images) && count($images) > 0 && !empty($images[0])) {
-                    return self::resolveImageUrl((string) $images[0]);
+                    return self::resolveImageUrl((string) $images[0], $this->category);
                 }
 
-                return 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80';
+                return self::getCategoryFallbackImage($this->category);
             },
         );
     }
@@ -220,10 +389,10 @@ class Product extends Model
                 }
 
                 if (empty($images)) {
-                    return ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=85'];
+                    return [self::getCategoryFallbackImage($this->category)];
                 }
 
-                return array_values(array_map(fn ($img) => self::resolveImageUrl((string) $img), $images));
+                return array_values(array_map(fn ($img) => self::resolveImageUrl((string) $img, $this->category), $images));
             },
         );
     }
@@ -235,12 +404,33 @@ class Product extends Model
     */
 
     /**
-     * Resolve an image path or URL into a fully-qualified or asset URL.
+     * Get a high-resolution, luxury photograph matching product category.
      */
-    public static function resolveImageUrl(?string $path): string
+    public static function getCategoryFallbackImage(?string $category = null): string
+    {
+        $normalized = strtolower(trim((string) $category));
+
+        return match ($normalized) {
+            'rings' => 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=85',
+            'necklaces' => 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=85',
+            'bracelets' => 'https://images.unsplash.com/photo-1611591475155-42e924a10977?auto=format&fit=crop&w=1200&q=85',
+            'earrings' => 'https://images.unsplash.com/photo-1630019852942-f89202989a59?auto=format&fit=crop&w=1200&q=85',
+            'solitaires' => 'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=1200&q=85',
+            'clothing', 'couture' => 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1200&q=85',
+            'watches' => 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=85',
+            'footwear' => 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1200&q=85',
+            default => 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=85',
+        };
+    }
+
+    /**
+     * Resolve an image path or URL into a fully-qualified or asset URL.
+     * Verifies disk presence to prevent broken 404 image icons.
+     */
+    public static function resolveImageUrl(?string $path, ?string $category = null): string
     {
         if (empty($path)) {
-            return 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80';
+            return self::getCategoryFallbackImage($category);
         }
 
         // External URLs (e.g. Unsplash, CDN, S3, http/https/protocol-relative)
@@ -250,18 +440,23 @@ class Product extends Model
 
         $cleanPath = ltrim($path, '/');
 
-        // Already prefixed with storage/
-        if (str_starts_with($cleanPath, 'storage/')) {
-            return asset($cleanPath);
-        }
-
         // Local public directory assets like images/... or uploads/... if present
         if (file_exists(public_path($cleanPath))) {
             return asset($cleanPath);
         }
 
-        // Otherwise assume public disk storage path (e.g. products/xyz.jpg)
-        return asset('storage/' . $cleanPath);
+        // Check public storage disk
+        if (str_starts_with($cleanPath, 'storage/')) {
+            $diskSubPath = substr($cleanPath, 8);
+            if (file_exists(storage_path('app/public/' . $diskSubPath))) {
+                return asset($cleanPath);
+            }
+        } elseif (file_exists(storage_path('app/public/' . $cleanPath))) {
+            return asset('storage/' . $cleanPath);
+        }
+
+        // If local file is missing on disk, return high-res category fallback instead of a broken 404
+        return self::getCategoryFallbackImage($category);
     }
 
     /**

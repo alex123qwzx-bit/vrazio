@@ -192,6 +192,35 @@ class OrderResource extends Resource
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large),
                             ]),
 
+                        Infolists\Components\Section::make('Cancellation & Refund Protocol')
+                            ->visible(fn (Order $record): bool => $record->cancellations()->exists() || $record->cancellation_status !== null)
+                            ->columns(3)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('cancellation_status')
+                                    ->label('Cancellation Status')
+                                    ->badge()
+                                    ->color(fn (?string $state): string => match ($state) {
+                                        'cancelled' => 'danger',
+                                        'partially_cancelled' => 'warning',
+                                        default => 'gray',
+                                    }),
+
+                                Infolists\Components\TextEntry::make('refund_status')
+                                    ->label('Refund Status')
+                                    ->badge()
+                                    ->color(fn (?string $state): string => match ($state) {
+                                        'refunded' => 'success',
+                                        'initiated', 'processing' => 'warning',
+                                        'failed' => 'danger',
+                                        default => 'gray',
+                                    }),
+
+                                Infolists\Components\TextEntry::make('total_refunded')
+                                    ->label('Total Disbursed Refund')
+                                    ->money('INR')
+                                    ->weight('bold'),
+                            ]),
+
                         Infolists\Components\Section::make('Order Items')
                             ->columnSpanFull()
                             ->schema([
@@ -460,6 +489,48 @@ class OrderResource extends Resource
                             ->success()
                             ->send();
                     }),
+
+                Tables\Actions\Action::make('cancel_consignment')
+                    ->label('Cancel')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (Order $record): bool => $record->canBeCancelled())
+                    ->modalHeading(fn (Order $record): string => 'Cancel Consignment — ' . $record->order_number)
+                    ->modalDescription('Cancelling will release reserved vault inventory, issue a GST Credit Note, initiate online Razorpay refund, and notify patron.')
+                    ->form([
+                        Forms\Components\Select::make('reason')
+                            ->label('Cancellation Reason')
+                            ->required()
+                            ->options(\App\Models\OrderCancellation::REASONS)
+                            ->default('Changed my mind'),
+
+                        Forms\Components\Textarea::make('admin_notes')
+                            ->label('Internal Concierge Notes')
+                            ->placeholder('Optional staff notes...'),
+                    ])
+                    ->action(function (Order $record, array $data): void {
+                        $service = app(\App\Services\CancellationRefundService::class);
+                        $cancellation = $service->requestCancellation(
+                            order: $record,
+                            reason: $data['reason'],
+                            customerNotes: $data['admin_notes'] ?? null,
+                            user: auth()->user(),
+                        );
+
+                        Notification::make()
+                            ->title('Consignment Cancelled')
+                            ->body(sprintf('Order %s cancelled under docket %s.', $record->order_number, $cancellation->cancellation_number))
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('credit_note')
+                    ->label('Credit Note')
+                    ->icon('heroicon-o-receipt-percent')
+                    ->color('gray')
+                    ->visible(fn (Order $record): bool => $record->creditNotes()->exists())
+                    ->url(fn (Order $record): ?string => $record->creditNotes()->first() ? route('credit_note.show', $record->creditNotes()->first()->credit_note_number) : null)
+                    ->openUrlInNewTab(),
 
                 Tables\Actions\Action::make('invoice')
                     ->label('Invoice')

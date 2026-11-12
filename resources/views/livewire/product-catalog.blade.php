@@ -13,40 +13,64 @@
                 {{-- Category Filter --}}
                 <div class="border-t border-gray-100 pt-5">
                     <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Category</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer">
-                            <input type="radio" wire:model.live="category" value="" class="text-[#0E261C] mr-2">
+                    <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                            <input type="radio" wire:model.live="category" value="" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
                             All Categories
                         </label>
-                        @foreach(['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires'] as $cat)
-                            <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer">
-                                <input type="radio" wire:model.live="category" value="{{ $cat }}" class="text-[#0E261C] mr-2">
-                                {{ ucfirst($cat) }}
+                        @php
+                            $categoryLabels = [
+                                'rings' => 'Rings',
+                                'necklaces' => 'Necklaces',
+                                'bracelets' => 'Bracelets',
+                                'earrings' => 'Earrings',
+                                'solitaires' => 'Solitaires',
+                                'jewelry' => 'Fine Jewelry',
+                                'clothing' => 'Haute Couture & Clothes',
+                                'couture' => 'Couture Creations',
+                                'watches' => 'Timepieces & Watches',
+                                'footwear' => 'Bespoke Footwear',
+                            ];
+                        @endphp
+                        @foreach($categories as $cat)
+                            <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                                <input type="radio" wire:model.live="category" value="{{ $cat }}" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
+                                {{ $categoryLabels[$cat] ?? ucfirst($cat) }}
                             </label>
                         @endforeach
                     </div>
                 </div>
 
-                {{-- Metal Type --}}
+                {{-- Price Segment Filter --}}
                 <div class="border-t border-gray-100 pt-5">
-                    <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Precious Alloy</label>
+                    <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Price Segment</label>
                     <div class="space-y-2">
-                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer">
-                            <input type="radio" wire:model.live="metalType" value="" class="text-[#0E261C] mr-2">
-                            All Metals
+                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                            <input type="radio" wire:model.live="priceRange" value="" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
+                            All Prices
                         </label>
-                        @foreach($metalTypes as $metal)
-                            <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer">
-                                <input type="radio" wire:model.live="metalType" value="{{ $metal }}" class="text-[#0E261C] mr-2">
-                                {{ $metal }}
-                            </label>
-                        @endforeach
+                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                            <input type="radio" wire:model.live="priceRange" value="under_50k" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
+                            Under ₹50,000
+                        </label>
+                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                            <input type="radio" wire:model.live="priceRange" value="50k_100k" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
+                            ₹50,000 – ₹1,00,000
+                        </label>
+                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                            <input type="radio" wire:model.live="priceRange" value="100k_250k" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
+                            ₹1,00,000 – ₹2,50,000
+                        </label>
+                        <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
+                            <input type="radio" wire:model.live="priceRange" value="above_250k" class="text-[#0E261C] mr-2 focus:ring-[#D4AF37]">
+                            Above ₹2,50,000
+                        </label>
                     </div>
                 </div>
 
                 {{-- Certification --}}
                 <div class="border-t border-gray-100 pt-5">
-                    <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer">
+                    <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#0E261C]">
                         <input type="checkbox" wire:model.live="certifiedOnly" class="rounded text-[#0E261C] mr-2">
                         GIA / IGI Certified Only
                     </label>

@@ -23,7 +23,7 @@ class OrderController extends Controller
         }
 
         $user = auth()->user();
-        $query = Order::with(['items.product', 'warrantyClaim'])->latest();
+        $query = Order::with(['items.product', 'warrantyClaim', 'cancellations.refunds', 'creditNotes'])->latest();
 
         if ($user->role === 'admin') {
             // Admins can search across all orders
@@ -70,7 +70,7 @@ class OrderController extends Controller
             return redirect()->route('home');
         }
 
-        $order = Order::with(['items.product', 'warrantyClaim'])
+        $order = Order::with(['items.product', 'warrantyClaim', 'cancellations.refunds', 'creditNotes'])
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
@@ -101,7 +101,7 @@ class OrderController extends Controller
                 $cleanedWithPrefix = $cleaned;
             }
 
-            $locatedOrder = Order::with(['items.product', 'warrantyClaim.images'])
+            $locatedOrder = Order::with(['items.product', 'warrantyClaim.images', 'cancellations.refunds', 'creditNotes'])
                 ->where('order_number', $cleaned)
                 ->orWhere('order_number', $cleanedWithPrefix)
                 ->latest()
@@ -120,23 +120,88 @@ class OrderController extends Controller
     }
 
     /**
-     * Cancel an active order by customer.
+     * Get real-time cancellation eligibility and refund breakdown for an order or item.
      */
-    public function cancel(Request $request, string $orderNumber): RedirectResponse
+    public function checkCancellationEligibility(Request $request, string $orderNumber): \Illuminate\Http\JsonResponse
     {
-        $order = Order::with('items')->where('order_number', $orderNumber)->firstOrFail();
+        $order = Order::with('items')->where('order_number', trim($orderNumber))->firstOrFail();
+
+        if (! $order->isAccessibleBy(auth()->user())) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
+        }
+
+        $itemId = $request->query('item_id');
+        $item = $itemId ? $order->items->firstWhere('id', (int) $itemId) : null;
+
+        $service = app(\App\Services\CancellationRefundService::class);
+        $eligibility = $service->checkEligibility($order, $item);
+
+        return response()->json([
+            'success' => true,
+            'eligibility' => $eligibility,
+            'order' => [
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'payment_gateway' => $order->payment_gateway,
+                'total_amount' => (float) $order->total_amount,
+            ],
+            'item' => $item ? [
+                'id' => $item->id,
+                'title' => $item->product_title,
+                'line_total' => (float) $item->line_total,
+            ] : null,
+        ]);
+    }
+
+    /**
+     * Cancel an active order or individual item by customer.
+     */
+    public function cancel(Request $request, string $orderNumber): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $order = Order::with('items')->where('order_number', trim($orderNumber))->firstOrFail();
 
         if (! $order->isAccessibleBy(auth()->user())) {
             abort(403, 'Unauthorized access to cancel this order.');
         }
 
-        if (! $order->canBeCancelled()) {
-            return back()->with('error', 'This order cannot be cancelled as it is already being processed or in transit.');
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:255'],
+            'customer_notes' => ['nullable', 'string', 'max:1000'],
+            'order_item_id' => ['nullable', 'integer', 'exists:order_items,id'],
+        ]);
+
+        $reason = $validated['reason'] ?? 'Cancelled by customer via portal';
+        $comments = $validated['customer_notes'] ?? null;
+        $itemId = $validated['order_item_id'] ?? null;
+        $item = $itemId ? $order->items->firstWhere('id', (int) $itemId) : null;
+
+        $service = app(\App\Services\CancellationRefundService::class);
+
+        try {
+            $cancellation = $service->requestCancellation($order, $reason, $comments, $item, auth()->user());
+
+            $msg = $cancellation->isPending()
+                ? "Cancellation request for order #{$order->order_number} has been submitted for immediate atelier manager review."
+                : "Order #{$order->order_number} has been successfully cancelled. Reserved inventory was restored to stock.";
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'cancellation' => $cancellation,
+                ]);
+            }
+
+            return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
-
-        $reason = $request->input('reason', 'Cancelled by customer via portal');
-        $order->cancel($reason);
-
-        return back()->with('success', "Order #{$order->order_number} has been successfully cancelled. Reserved inventory was restored to stock.");
     }
 }

@@ -11,9 +11,10 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     /**
-     * Supported categories across jewellery & couture atelier.
+     * Supported categories across luxury e-commerce catalog.
      */
-    protected const CATEGORIES = ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires', 'couture'];
+    protected const PRIMARY_CATEGORIES = ['jewelry', 'clothing', 'watches', 'footwear'];
+    protected const LEGACY_SUBCATEGORIES = ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires', 'couture', 'clothes'];
 
     /**
      * Display product catalog with multi-dimensional filtering.
@@ -24,9 +25,24 @@ class ProductController extends Controller
 
         // Category filter
         if ($request->filled('category')) {
-            $category = $request->input('category');
-            if (in_array($category, self::CATEGORIES, true)) {
-                $query->where('category', $category);
+            $cat = strtolower(trim((string) $request->input('category')));
+
+            if ($cat === 'jewelry') {
+                $query->where('category', 'jewelry');
+            } elseif ($cat === 'clothing' || $cat === 'couture' || $cat === 'clothes') {
+                $query->where('category', 'clothing');
+            } elseif ($cat === 'watches' || $cat === 'watch') {
+                $query->where('category', 'watches');
+            } elseif ($cat === 'footwear' || $cat === 'shoes') {
+                $query->where('category', 'footwear');
+            } elseif (in_array($cat, ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires'], true)) {
+                $query->where('category', 'jewelry')
+                    ->where(function ($q) use ($cat): void {
+                        $singular = rtrim($cat, 's');
+                        $q->where('title', 'like', "%{$singular}%")
+                          ->orWhere('tags', 'like', "%{$singular}%")
+                          ->orWhere('tags', 'like', "%{$cat}%");
+                    });
             }
         }
 
@@ -44,12 +60,14 @@ class ProductController extends Controller
             $query->where('metal_type', $request->input('metal_type'));
         }
 
-        // Price range
+        // Price range (using effective / final price)
         if ($request->filled('min_price')) {
-            $query->where('price', '>=', (float) $request->input('min_price'));
+            $minP = (float) $request->input('min_price');
+            $query->whereRaw('COALESCE(final_price, sale_price, price) >= ?', [$minP]);
         }
         if ($request->filled('max_price')) {
-            $query->where('price', '<=', (float) $request->input('max_price'));
+            $maxP = (float) $request->input('max_price');
+            $query->whereRaw('COALESCE(final_price, sale_price, price) <= ?', [$maxP]);
         }
 
         // Search keyword
@@ -65,8 +83,8 @@ class ProductController extends Controller
         // Sorting
         $sort = $request->input('sort', 'latest');
         match ($sort) {
-            'price_low' => $query->orderBy('price', 'asc'),
-            'price_high' => $query->orderBy('price', 'desc'),
+            'price_low' => $query->orderByRaw('COALESCE(final_price, sale_price, price) ASC'),
+            'price_high' => $query->orderByRaw('COALESCE(final_price, sale_price, price) DESC'),
             'title_asc' => $query->orderBy('title', 'asc'),
             default => $query->latest(),
         };
@@ -75,7 +93,11 @@ class ProductController extends Controller
 
         $metalTypes = Product::select('metal_type')->whereNotNull('metal_type')->distinct()->pluck('metal_type');
 
-        return view('products.index', compact('products', 'metalTypes'));
+        return view('products.index', [
+            'products' => $products,
+            'metalTypes' => $metalTypes,
+            'currentCategory' => $request->input('category'),
+        ]);
     }
 
     /**
@@ -83,22 +105,37 @@ class ProductController extends Controller
      */
     public function category(string $category): View
     {
+        $cat = strtolower(trim($category));
+        $validCategories = array_merge(self::PRIMARY_CATEGORIES, self::LEGACY_SUBCATEGORIES);
+
         abort_unless(
-            in_array($category, self::CATEGORIES, true),
+            in_array($cat, $validCategories, true),
             404
         );
 
-        // If category is couture, redirect or use couture view
-        if ($category === 'couture') {
+        // If category is couture/clothes, map to clothing or use dedicated view
+        if ($cat === 'couture' || $cat === 'clothes') {
             return $this->couture(request());
         }
 
-        $products = Product::where('category', $category)
-            ->inStock()
-            ->latest()
-            ->paginate(12);
+        $query = Product::query()->inStock();
 
-        $metalTypes = Product::where('category', $category)
+        if (in_array($cat, self::PRIMARY_CATEGORIES, true)) {
+            $query->where('category', $cat);
+        } else {
+            // Legacy subcategory within jewelry
+            $singular = rtrim($cat, 's');
+            $query->where('category', 'jewelry')
+                ->where(function ($q) use ($cat, $singular): void {
+                    $q->where('title', 'like', "%{$singular}%")
+                      ->orWhere('tags', 'like', "%{$singular}%")
+                      ->orWhere('tags', 'like', "%{$cat}%");
+                });
+        }
+
+        $products = $query->latest()->paginate(12);
+
+        $metalTypes = Product::where('category', in_array($cat, self::PRIMARY_CATEGORIES, true) ? $cat : 'jewelry')
             ->select('metal_type')
             ->distinct()
             ->pluck('metal_type');
@@ -106,7 +143,7 @@ class ProductController extends Controller
         return view('products.index', [
             'products' => $products,
             'metalTypes' => $metalTypes,
-            'currentCategory' => $category,
+            'currentCategory' => $cat,
         ]);
     }
 
@@ -115,7 +152,7 @@ class ProductController extends Controller
      */
     public function couture(Request $request): View
     {
-        $query = Product::where('category', 'couture')->inStock();
+        $query = Product::whereIn('category', ['clothing', 'couture'])->inStock();
 
         // Tag filter (e.g. Bridal Lehenga, Banarasi Silk, Sherwani, etc.)
         if ($request->filled('tag') && $request->input('tag') !== 'All Couture') {
@@ -169,7 +206,7 @@ class ProductController extends Controller
             'Wedding',
         ];
 
-        $fabrics = Product::where('category', 'couture')
+        $fabrics = Product::whereIn('category', ['clothing', 'couture'])
             ->select('metal_type')
             ->whereNotNull('metal_type')
             ->distinct()

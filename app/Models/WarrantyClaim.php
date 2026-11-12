@@ -44,11 +44,16 @@ class WarrantyClaim extends Model
         'claim_number',
         'order_id',
         'user_id',
+        'member_id',
+        'product_id',
+        'product_sku',
         'customer_name',
         'phone',
         'email',
         'product_name',
         'issue_type',
+        'remedy_requested',
+        'admin_remedy',
         'description',
         'status',
         'is_checked',
@@ -93,6 +98,16 @@ class WarrantyClaim extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function membership(): BelongsTo
+    {
+        return $this->belongsTo(Membership::class, 'member_id', 'member_id');
     }
 
     public function checkedByUser(): BelongsTo

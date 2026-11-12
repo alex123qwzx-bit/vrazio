@@ -57,8 +57,8 @@
                 <div>
                     <span class="text-xs uppercase tracking-widest text-[#D4AF37] font-bold block mb-1">Email Us</span>
                     <p class="text-xs sm:text-sm text-[#0E261C] font-mono">
-                        <a href="mailto:vrazioofficial@gmail.com" class="hover:text-[#D4AF37] transition-colors underline">
-                            vrazioofficial@gmail.com
+                        <a href="mailto:vrazioofficail@gmail.com" class="hover:text-[#D4AF37] transition-colors underline">
+                            vrazioofficail@gmail.com
                         </a>
                     </p>
                     <p class="text-[11px] text-gray-500 mt-0.5">We typically respond within 2 to 4 business hours.</p>

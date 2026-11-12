@@ -96,6 +96,61 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {{-- Left Column: Account Details & Verification Cards --}}
             <div class="space-y-6">
+                {{-- VRAZIO PRIVÉ CLUB Section --}}
+                @php
+                    $priveMembership = $user->activeMembership();
+                @endphp
+                @if($priveMembership)
+                    <div class="bg-white border-2 border-[#D4AF37] p-5 rounded-2xl shadow-md">
+                        <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-2.5">
+                            <span class="text-[10px] uppercase font-bold tracking-[0.2em] text-[#D4AF37]">
+                                ✦ PRIVÉ CLUB MEMBER ✦
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold uppercase tracking-wider">
+                                Active Pass
+                            </span>
+                        </div>
+
+                        @include('prive-club.card', ['membership' => $priveMembership])
+
+                        <div class="mt-4 pt-3 border-t border-gray-100 space-y-2 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-500">Next Order Privilege:</span>
+                                @if($priveMembership->next_order_discount_used)
+                                    <span class="text-gray-400 font-medium italic">Redeemed</span>
+                                @else
+                                    <span class="text-emerald-700 font-bold">Available (Auto-applied in cart)</span>
+                                @endif
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-500">Warranty Protection:</span>
+                                <span class="text-emerald-700 font-bold">Active Coverage</span>
+                            </div>
+                            <div class="pt-2 text-center">
+                                <a href="{{ route('prive-club.verify', $priveMembership->member_id) }}" target="_blank" class="text-[11px] text-[#D4AF37] hover:underline font-bold uppercase tracking-wider">
+                                    Open QR Verification Docket &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="bg-gradient-to-br from-[#0E261C] to-[#16382b] text-white p-6 rounded-2xl border border-[#D4AF37]/50 shadow-lg">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-4 h-4 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            <span class="text-[10px] uppercase font-bold tracking-[0.25em] text-[#D4AF37]">VRAZIO PRIVÉ CLUB</span>
+                        </div>
+                        <h3 class="font-heading text-lg font-bold text-white mb-2">Elevate Your Atelier Privileges</h3>
+                        <p class="text-xs text-gray-300 leading-relaxed mb-4">
+                            Unlock members-only warranty claims, celebratory birthday month gifts, and instant order savings with our 100% digital pass.
+                        </p>
+                        <a href="{{ url('/prive-club') }}" class="block text-center py-2.5 bg-[#D4AF37] text-[#0E261C] hover:bg-white text-xs font-bold uppercase tracking-[0.15em] rounded transition-all shadow-sm">
+                            Join Privé Club &rarr;
+                        </a>
+                    </div>
+                @endif
+
                 {{-- Profile Info Card --}}
                 <div class="bg-white border border-[#D4AF37]/30 p-6 rounded-xs shadow-xs">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
@@ -243,7 +298,11 @@
                                 @endif
                             </div>
 
-                            {{-- Inline Phone Verification Form --}}
+                            <div>
+                            <span class="text-gray-400 block uppercase text-[10px] tracking-wider">Date of Birth</span>
+                            <span class="font-medium text-gray-800 text-xs">{{ $user->date_of_birth ? $user->date_of_birth->format('M d, Y') : 'Not provided' }}</span>
+                        </div>
+                        {{-- Inline Phone Verification Form --}}
                             @if(!$user->phone_verified_at)
                                 <div x-show="open" x-cloak class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xs space-y-2.5 text-xs">
                                     <div x-show="msg" :class="isError ? 'text-red-600 bg-red-50 p-2' : 'text-emerald-700 bg-emerald-50 p-2'" x-text="msg" class="rounded-xs"></div>
@@ -290,10 +349,10 @@
                             <span class="font-medium">WhatsApp Support</span>
                             <span class="font-mono font-semibold">+91 87912 27210</span>
                         </a>
-                        <a href="mailto:vrazioofficial@gmail.com" 
+                        <a href="mailto:vrazioofficail@gmail.com" 
                            class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#0E261C]/5 hover:text-[#0E261C] text-gray-700 transition-colors border border-gray-100 rounded-xs">
                             <span class="font-medium">Official Email</span>
-                            <span class="text-gray-500">vrazioofficial@gmail.com</span>
+                            <span class="text-gray-500">vrazioofficail@gmail.com</span>
                         </a>
                         <a href="{{ route('orders.index') }}" 
                            class="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-[#0E261C]/5 hover:text-[#0E261C] text-gray-700 transition-colors border border-gray-100 rounded-xs">

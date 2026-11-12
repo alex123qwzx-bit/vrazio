@@ -3,7 +3,9 @@
 @php
     $images = $product->image_urls;
     $specs = is_array($product->specs) ? $product->specs : json_decode($product->specs ?? '[]', true);
-    $hasDiscount = !empty($product->sale_price) && $product->sale_price < $product->price;
+    $discountPercent = (float) ($product->discount_percent ?? 0);
+    $hasDiscount = $discountPercent > 0;
+    $finalPrice = (float) ($product->final_price ?? $product->sale_price ?? $product->price);
 @endphp
 
 @section('title', $product->title)
@@ -35,7 +37,8 @@
                     <img :src="activeImage" 
                          alt="{{ $product->title }}" 
                          class="w-full h-full object-cover object-center transition-transform duration-500 ease-out cursor-crosshair group-hover:scale-150 origin-center"
-                         id="mainProductImage">
+                         id="mainProductImage"
+                         onerror="this.onerror=null; this.src='{{ \App\Models\Product::getCategoryFallbackImage($product->category) }}';">
 
                     {{-- Badges --}}
                     <div class="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
@@ -60,7 +63,7 @@
                                 @click="activeImage = '{{ $img }}'" 
                                 :class="activeImage === '{{ $img }}' ? 'border-[#D4AF37] ring-1 ring-[#D4AF37]' : 'border-gray-200 opacity-60 hover:opacity-100'"
                                 class="w-20 h-20 bg-white border shrink-0 overflow-hidden transition-all duration-200">
-                            <img src="{{ $img }}" alt="{{ $product->title }} angle" class="w-full h-full object-cover">
+                            <img src="{{ $img }}" alt="{{ $product->title }} angle" onerror="this.onerror=null; this.src='{{ \App\Models\Product::getCategoryFallbackImage($product->category) }}';" class="w-full h-full object-cover">
                         </button>
                     @endforeach
                 </div>
@@ -84,21 +87,17 @@
                     <div class="p-4 bg-white border border-[#D4AF37]/25 mb-6 flex items-baseline justify-between">
                         <div>
                             <span class="text-[10px] uppercase tracking-widest text-gray-400 block mb-1">Price:</span>
-                            @if($hasDiscount)
-                                <div class="flex items-baseline gap-3">
-                                    <span class="font-display text-3xl font-bold text-[#9B1B30]">
-                                        ₹{{ number_format((float) $product->sale_price, 0) }}
+                            <div class="flex items-center gap-3">
+                                @if($hasDiscount)
+                                    <span class="px-2.5 py-1 rounded bg-[#9B1B30] text-white text-xs font-bold uppercase tracking-wider">
+                                        {{ ((float) $discountPercent + 0) }}% OFF
                                     </span>
-                                    <span class="text-sm text-gray-400 line-through">
-                                        ₹{{ number_format((float) $product->price, 0) }}
-                                    </span>
-                                </div>
-                            @else
+                                @endif
                                 <span class="font-display text-3xl font-bold text-[#0E261C]">
-                                    ₹{{ number_format((float) $product->price, 0) }}
+                                    ₹{{ number_format($finalPrice, 0) }}
                                 </span>
-                            @endif
-                            <span class="text-[10px] text-gray-500 block mt-1">Inclusive of 3% GST &amp; Free Delivery</span>
+                            </div>
+
                         </div>
 
                         <div class="text-right">
@@ -284,6 +283,15 @@
                             <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             <span>15-Day Easy Returns</span>
                         </div>
+                        @if($product->is_warranty_eligible)
+                        <div class="col-span-2 mt-2 p-2.5 bg-white border border-[#D4AF37]/30 rounded-xs flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-[#D4AF37] shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span class="text-xs text-[#0E261C]"><strong>{{ $product->warranty_period_months ?? 12 }}-Month Warranty Protection</strong></span>
+                            </div>
+                            <a href="{{ url('/prive-club') }}" class="text-[10px] font-bold uppercase tracking-wider text-[#D4AF37] hover:underline bg-[#0E261C] px-2 py-1 rounded-xs">PRIVÉ Privilege &rarr;</a>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

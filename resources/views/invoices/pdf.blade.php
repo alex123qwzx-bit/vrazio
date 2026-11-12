@@ -551,7 +551,7 @@
                     <td class="footer-contacts">
                         <span>WhatsApp: +91 87912 27210</span>
                         <span class="footer-bullet">|</span>
-                        <span>vrazioofficial@gmail.com</span>
+                        <span>vrazioofficail@gmail.com</span>
                         <span class="footer-bullet">|</span>
                         <span>@vrazio.official</span>
                     </td>

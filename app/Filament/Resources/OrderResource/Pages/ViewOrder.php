@@ -115,6 +115,50 @@ class ViewOrder extends ViewRecord
                     $this->refreshFormData(['fulfillment_status', 'tracking_courier', 'tracking_number', 'tracking_notes', 'packed_at', 'shipped_at', 'delivered_at']);
                 }),
 
+            Actions\Action::make('cancel_consignment')
+                ->label('Cancel Consignment')
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->visible(fn (): bool => $this->record->canBeCancelled())
+                ->modalHeading(fn (): string => 'Cancel Consignment — ' . $this->record->order_number)
+                ->modalDescription('Cancelling will release reserved vault inventory, issue a GST Credit Note, initiate online Razorpay refund, and notify patron.')
+                ->form([
+                    \Filament\Forms\Components\Select::make('reason')
+                        ->label('Cancellation Reason')
+                        ->required()
+                        ->options(\App\Models\OrderCancellation::REASONS)
+                        ->default('Changed my mind'),
+
+                    \Filament\Forms\Components\Textarea::make('admin_notes')
+                        ->label('Internal Concierge Notes')
+                        ->placeholder('Optional staff notes...'),
+                ])
+                ->action(function (array $data): void {
+                    $service = app(\App\Services\CancellationRefundService::class);
+                    $cancellation = $service->requestCancellation(
+                        order: $this->record,
+                        reason: $data['reason'],
+                        customerNotes: $data['admin_notes'] ?? null,
+                        user: auth()->user(),
+                    );
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Consignment Cancelled')
+                        ->body(sprintf('Order %s cancelled under docket %s.', $this->record->order_number, $cancellation->cancellation_number))
+                        ->success()
+                        ->send();
+
+                    $this->refreshFormData(['fulfillment_status', 'cancellation_status', 'refund_status', 'total_refunded']);
+                }),
+
+            Actions\Action::make('credit_note')
+                ->label('View Credit Note')
+                ->icon('heroicon-o-receipt-percent')
+                ->color('gray')
+                ->visible(fn (): bool => $this->record->creditNotes()->exists())
+                ->url(fn (): string => route('credit_note.show', $this->record->creditNotes()->first()->credit_note_number))
+                ->openUrlInNewTab(),
+
             Actions\Action::make('invoice')
                 ->label('View Invoice')
                 ->icon('heroicon-o-document-text')

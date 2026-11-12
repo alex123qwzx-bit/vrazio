@@ -63,29 +63,46 @@
                         <div class="border-t border-gray-100 pt-5">
                             <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Category</label>
                             <div class="space-y-2">
-                                @foreach(['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires', 'couture'] as $cat)
-                                    <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#D4AF37]">
-                                        <input type="radio" name="category" value="{{ $cat }}" 
-                                               {{ request('category') === $cat || (isset($currentCategory) && $currentCategory === $cat) ? 'checked' : '' }}
+                                <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#D4AF37]">
+                                    <input type="radio" name="category" value="" 
+                                           {{ !request('category') && !isset($currentCategory) ? 'checked' : '' }}
+                                           class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
+                                    All Categories
+                                </label>
+                                @php
+                                    $primaryCats = [
+                                        'jewelry' => 'Jewelry',
+                                        'clothing' => 'Clothing',
+                                        'watches' => 'Watches',
+                                        'footwear' => 'Footwear',
+                                    ];
+                                    $legacyJewelrySubs = [
+                                        'rings' => 'Rings',
+                                        'necklaces' => 'Necklaces',
+                                        'bracelets' => 'Bracelets',
+                                        'earrings' => 'Earrings',
+                                        'solitaires' => 'Solitaires',
+                                    ];
+                                @endphp
+                                @foreach($primaryCats as $slug => $label)
+                                    <label class="flex items-center text-xs font-semibold text-[#0E261C] cursor-pointer hover:text-[#D4AF37]">
+                                        <input type="radio" name="category" value="{{ $slug }}" 
+                                               {{ (request('category') === $slug || (isset($currentCategory) && $currentCategory === $slug)) ? 'checked' : '' }}
                                                class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
-                                        {{ $cat === 'couture' ? 'Haute Couture & Clothes' : ucfirst($cat) }}
+                                        {{ $label }}
                                     </label>
                                 @endforeach
-                            </div>
-                        </div>
-
-                        {{-- Metal Type Filter --}}
-                        <div class="border-t border-gray-100 pt-5">
-                            <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Precious Alloy</label>
-                            <div class="space-y-2">
-                                @foreach($metalTypes as $metal)
-                                    <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#D4AF37]">
-                                        <input type="radio" name="metal_type" value="{{ $metal }}" 
-                                               {{ request('metal_type') === $metal ? 'checked' : '' }}
-                                               class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
-                                        {{ $metal }}
-                                    </label>
-                                @endforeach
+                                <div class="pl-4 pt-1 space-y-1.5 border-l-2 border-[#D4AF37]/30 ml-2">
+                                    <span class="text-[10px] uppercase tracking-wider text-gray-400 block font-bold">Jewelry Styles</span>
+                                    @foreach($legacyJewelrySubs as $slug => $label)
+                                        <label class="flex items-center text-xs text-[#0E261C]/70 cursor-pointer hover:text-[#D4AF37]">
+                                            <input type="radio" name="category" value="{{ $slug }}" 
+                                                   {{ (request('category') === $slug || (isset($currentCategory) && $currentCategory === $slug)) ? 'checked' : '' }}
+                                                   class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
+                                            {{ $label }}
+                                        </label>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
 
@@ -98,15 +115,6 @@
                                 <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max" 
                                        class="text-xs px-2.5 py-2 border border-gray-200 focus:border-[#D4AF37] focus:outline-none">
                             </div>
-                        </div>
-
-                        {{-- Certified Only Toggle --}}
-                        <div class="border-t border-gray-100 pt-5">
-                            <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer">
-                                <input type="checkbox" name="certified_only" value="1" {{ request('certified_only') ? 'checked' : '' }}
-                                       class="rounded text-[#0E261C] focus:ring-[#D4AF37] mr-2">
-                                GIA / IGI Certified Only
-                            </label>
                         </div>
 
                         {{-- Action Buttons --}}

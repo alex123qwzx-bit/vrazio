@@ -30,7 +30,7 @@ return [
     ],
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'concierge@vrazio.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'vrazioofficail@gmail.com'),
         'name' => env('MAIL_FROM_NAME', 'VRAZIO Atelier'),
     ],
 
