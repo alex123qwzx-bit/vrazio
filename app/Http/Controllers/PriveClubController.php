@@ -111,28 +111,48 @@ class PriveClubController extends Controller
         $planSlug = $request->input('plan_slug');
         $plan = MembershipPlan::where('slug', $planSlug)->active()->firstOrFail();
 
-        // Verify Razorpay payment signature if online payment was used
-        $paymentId = $request->input('razorpay_payment_id');
-        $orderId = $request->input('razorpay_order_id');
-        $signature = $request->input('razorpay_signature');
+        // Strictly verify Razorpay payment parameters
+        $paymentId = (string) $request->input('razorpay_payment_id');
+        $orderId = (string) $request->input('razorpay_order_id');
+        $signature = (string) $request->input('razorpay_signature');
 
-        if ($paymentId && $orderId && $signature) {
-            try {
-                $razorpay = app(RazorpayService::class);
-                $isValid = $razorpay->verifySignature($orderId, $paymentId, $signature);
-                if (! $isValid) {
-                    if ($request->wantsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Payment signature verification failed. Please contact concierge.',
-                        ], 422);
-                    }
-
-                    return back()->with('error', 'Payment signature verification failed. Please contact concierge.');
-                }
-            } catch (\Throwable $e) {
-                // In demo / test sandbox fallback gracefully
+        if (empty($paymentId) || empty($orderId) || empty($signature)) {
+            $msg = 'Valid payment verification parameters are required to activate membership.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                ], 422);
             }
+
+            return back()->with('error', $msg);
+        }
+
+        // Prevent duplicate payment reuse
+        if (Membership::where('razorpay_payment_id', $paymentId)->exists()) {
+            $msg = 'This payment has already been verified for an active membership.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                ], 422);
+            }
+
+            return redirect()->route('account')->with('info', $msg);
+        }
+
+        $razorpay = app(RazorpayService::class);
+        $isValid = $razorpay->verifySignature($orderId, $paymentId, $signature);
+        if (! $isValid) {
+            $msg = 'Payment signature verification failed. Membership cannot be activated without verified payment.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                ], 422);
+            }
+
+            return back()->with('error', $msg);
         }
 
         try {

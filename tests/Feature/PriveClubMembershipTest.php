@@ -300,4 +300,45 @@ class PriveClubMembershipTest extends TestCase
         $membership->update(['next_order_discount_used' => true]);
         $this->assertEquals(0.00, $cartService->getPriveDiscount());
     }
+
+    /**
+     * Test enrollment strictly fails without payment parameters.
+     */
+    public function test_membership_enrollment_rejected_without_payment_parameters(): void
+    {
+        $this->createPlans();
+        $user = User::factory()->create(['role' => 'customer']);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('prive-club.enroll'), [
+                'plan_slug' => 'gold',
+            ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('memberships', [
+            'user_id' => $user->id,
+        ]);
+    }
+
+    /**
+     * Test enrollment strictly fails with invalid payment signature.
+     */
+    public function test_membership_enrollment_rejected_with_invalid_signature(): void
+    {
+        $this->createPlans();
+        $user = User::factory()->create(['role' => 'customer']);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('prive-club.enroll'), [
+                'plan_slug' => 'gold',
+                'razorpay_order_id' => 'order_invalid_123',
+                'razorpay_payment_id' => 'pay_invalid_123',
+                'razorpay_signature' => 'sig_invalid_forged',
+            ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('memberships', [
+            'user_id' => $user->id,
+        ]);
+    }
 }

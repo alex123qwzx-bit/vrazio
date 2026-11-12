@@ -5,184 +5,187 @@
 
 @push('head')
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function atelierCheckout() {
+            return {
+                step: 1,
+                shippingMethod: 'standard',
+                phone: @json($verifiedPhone ?? ''),
+                otpVerified: true,
+                errorMessage: '',
+                successMessage: '',
+
+                // Form Data
+                clientName: @json(auth()->user()?->name ?? ''),
+                clientEmail: @json(auth()->user()?->email ?? ''),
+                clientPhone: @json($verifiedPhone ?? auth()->user()?->phone ?? ''),
+                street: '',
+                city: '',
+                state: 'Maharashtra',
+                pincode: '',
+                paymentMethod: 'cod',
+                paymentSubmitting: false,
+                subtotalVal: {{ (float) $subtotal }},
+                discountVal: {{ (float) ($discount ?? 0) }},
+                voucherCode: @json($voucher?->code ?? ''),
+                gstVal: {{ (float) $gst }},
+                standardTransitVal: 0,
+                expressTransitVal: 999,
+                stateCodRates: @json($codStateRates ?? []),
+
+                getCodFee() {
+                    if (this.paymentMethod !== 'cod') return 0;
+                    const st = (this.state || '').trim();
+                    if (this.stateCodRates && this.stateCodRates[st] !== undefined) {
+                        return parseFloat(this.stateCodRates[st]) || 0;
+                    }
+                    if (this.stateCodRates && this.stateCodRates['default'] !== undefined) {
+                        return parseFloat(this.stateCodRates['default']) || 0;
+                    }
+                    return 0;
+                },
+
+                getCalculatedTotal() {
+                    let netSubtotal = Math.max(0, this.subtotalVal - this.discountVal);
+                    let base = netSubtotal; // GST already included
+                    let transit = (this.shippingMethod === 'express') ? this.expressTransitVal : this.standardTransitVal;
+                    let cod = this.getCodFee();
+                    return (base + transit + cod).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+
+                async initializePayment() {
+                    this.errorMessage = '';
+                    this.paymentSubmitting = true;
+                    try {
+                        const payload = {
+                            client_name: this.clientName,
+                            client_email: this.clientEmail,
+                            client_phone: this.clientPhone,
+                            shipping_address: {
+                                street: this.street,
+                                city: this.city,
+                                state: this.state,
+                                pincode: this.pincode
+                            },
+                            shipping_method: this.shippingMethod,
+                            payment_method: this.paymentMethod
+                        };
+
+                        const res = await fetch('{{ route('checkout.process') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await res.json();
+
+                        if (!res.ok || !data.success) {
+                            this.errorMessage = data.message || 'Order initialization failed.';
+                            this.paymentSubmitting = false;
+                            return;
+                        }
+
+                        // Handle Cash on Delivery (COD)
+                        if (data.payment_method === 'cod') {
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            }
+                            return;
+                        }
+
+                        // Handle Simulated / Demo Razorpay (ensures client demo never fails on missing gateway keys)
+                        if (data.is_simulated || (data.key && data.key.includes('simulated'))) {
+                            const verifyRes = await fetch('{{ route('checkout.verify-payment') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: data.razorpay_order_id,
+                                    razorpay_payment_id: 'pay_sim_' + Math.random().toString(36).substring(2, 11),
+                                    razorpay_signature: 'sig_sim_demo_approved'
+                                })
+                            });
+                            const verifyData = await verifyRes.json();
+                            if (verifyData.success && verifyData.redirect_url) {
+                                window.location.href = verifyData.redirect_url;
+                            } else {
+                                this.errorMessage = verifyData.message || 'Payment simulation failed.';
+                                this.paymentSubmitting = false;
+                            }
+                            return;
+                        }
+
+                        // Launch Razorpay Modal
+                        const options = {
+                            key: data.key,
+                            amount: data.amount,
+                            currency: data.currency,
+                            name: 'VRAZIO Atelier',
+                            description: 'Haute Joaillerie Commission ' + data.order_number,
+                            image: '{{ asset('images/vrazio-card-icon.png') }}',
+                            order_id: data.razorpay_order_id,
+                            prefill: {
+                                name: data.client_name,
+                                email: data.client_email,
+                                contact: data.client_phone
+                            },
+                            theme: {
+                                color: '#0E261C'
+                            },
+                            handler: async (response) => {
+                                // Callback to server verification
+                                const verifyRes = await fetch('{{ route('checkout.verify-payment') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_signature: response.razorpay_signature
+                                    })
+                                });
+                                const verifyData = await verifyRes.json();
+                                if (verifyData.success && verifyData.redirect_url) {
+                                    window.location.href = verifyData.redirect_url;
+                                } else {
+                                    alert('Payment verification issue: ' + (verifyData.message || 'Please contact concierge.'));
+                                }
+                            }
+                        };
+
+                        const rzp = new Razorpay(options);
+                        rzp.on('payment.failed', function (response){
+                            let desc = response.error ? (response.error.description || 'Payment failed') : 'Payment failed';
+                            if (desc.toLowerCase().includes('international')) {
+                                desc += '\n\n💡 Tip: Use Indian Domestic Test Card: 4100 2800 0000 1007 (CVV: 123) or UPI (success@razorpay).';
+                            }
+                            alert('Payment declined: ' + desc);
+                        });
+                        rzp.open();
+                        this.paymentSubmitting = false;
+
+                    } catch (err) {
+                        this.errorMessage = 'Checkout network error. Please contact atelier concierge.';
+                        this.paymentSubmitting = false;
+                    }
+                }
+            };
+        }
+    </script>
 @endpush
 
 @section('content')
-<div class="bg-[#FAF8F5] min-h-screen py-10" 
-     x-data="{
-         step: 1,
-         shippingMethod: 'standard',
-         phone: '{{ $verifiedPhone ?? '' }}',
-         otpVerified: true,
-         errorMessage: '',
-         successMessage: '',
-
-         // Form Data
-         clientName: '{{ addslashes(auth()->user()?->name ?? '') }}',
-         clientEmail: '{{ addslashes(auth()->user()?->email ?? '') }}',
-         clientPhone: '{{ $verifiedPhone ?? auth()->user()?->phone ?? '' }}',
-         street: '',
-         city: '',
-         state: 'Maharashtra',
-         pincode: '',
-         paymentMethod: 'cod',
-         paymentSubmitting: false,
-         subtotalVal: {{ $subtotal }},
-         discountVal: {{ $discount ?? 0 }},
-         voucherCode: '{{ $voucher?->code ?? '' }}',
-         gstVal: {{ $gst }},
-         standardTransitVal: 0,
-         expressTransitVal: 999,
-         stateCodRates: {{ json_encode($codStateRates ?? []) }},
-
-         getCodFee() {
-             if (this.paymentMethod !== 'cod') return 0;
-             const st = (this.state || '').trim();
-             if (this.stateCodRates && this.stateCodRates[st] !== undefined) {
-                 return parseFloat(this.stateCodRates[st]) || 0;
-             }
-             if (this.stateCodRates && this.stateCodRates['default'] !== undefined) {
-                 return parseFloat(this.stateCodRates['default']) || 0;
-             }
-             return 0;
-         },
-
-         getCalculatedTotal() {
-             let netSubtotal = Math.max(0, this.subtotalVal - this.discountVal);
-             let base = netSubtotal; // GST already included
-             let transit = (this.shippingMethod === 'express') ? this.expressTransitVal : this.standardTransitVal;
-             let cod = this.getCodFee();
-             return (base + transit + cod).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-         },
-
-         async initializePayment() {
-             this.errorMessage = '';
-             this.paymentSubmitting = true;
-             try {
-                 const payload = {
-                     client_name: this.clientName,
-                     client_email: this.clientEmail,
-                     client_phone: this.clientPhone,
-                     shipping_address: {
-                         street: this.street,
-                         city: this.city,
-                         state: this.state,
-                         pincode: this.pincode
-                     },
-                     shipping_method: this.shippingMethod,
-                     payment_method: this.paymentMethod
-                 };
-
-                 const res = await fetch('{{ route('checkout.process') }}', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                         'Accept': 'application/json'
-                     },
-                     body: JSON.stringify(payload)
-                 });
-
-                 const data = await res.json();
-
-                 if (!res.ok || !data.success) {
-                     this.errorMessage = data.message || 'Order initialization failed.';
-                     this.paymentSubmitting = false;
-                     return;
-                 }
-
-                 // Handle Cash on Delivery (COD)
-                 if (data.payment_method === 'cod') {
-                     if (data.redirect_url) {
-                         window.location.href = data.redirect_url;
-                     }
-                     return;
-                 }
-
-                 // Handle Simulated / Demo Razorpay (ensures client demo never fails on missing gateway keys)
-                 if (data.is_simulated || (data.key && data.key.includes('simulated'))) {
-                     const verifyRes = await fetch('{{ route('checkout.verify-payment') }}', {
-                         method: 'POST',
-                         headers: {
-                             'Content-Type': 'application/json',
-                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                             'Accept': 'application/json'
-                         },
-                         body: JSON.stringify({
-                             razorpay_order_id: data.razorpay_order_id,
-                             razorpay_payment_id: 'pay_sim_' + Math.random().toString(36).substring(2, 11),
-                             razorpay_signature: 'sig_sim_demo_approved'
-                         })
-                     });
-                     const verifyData = await verifyRes.json();
-                     if (verifyData.success && verifyData.redirect_url) {
-                         window.location.href = verifyData.redirect_url;
-                     } else {
-                         this.errorMessage = verifyData.message || 'Payment simulation failed.';
-                         this.paymentSubmitting = false;
-                     }
-                     return;
-                 }
-
-                 // Launch Razorpay Modal
-                 const options = {
-                     key: data.key,
-                     amount: data.amount,
-                     currency: data.currency,
-                     name: 'VRAZIO Atelier',
-                     description: 'Haute Joaillerie Commission ' + data.order_number,
-                     image: '{{ asset('images/vrazio-card-icon.png') }}',
-                     order_id: data.razorpay_order_id,
-                     prefill: {
-                         name: data.client_name,
-                         email: data.client_email,
-                         contact: data.client_phone
-                     },
-                     theme: {
-                         color: '#0E261C'
-                     },
-                     handler: async (response) => {
-                         // Callback to server verification
-                         const verifyRes = await fetch('{{ route('checkout.verify-payment') }}', {
-                             method: 'POST',
-                             headers: {
-                                 'Content-Type': 'application/json',
-                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                 'Accept': 'application/json'
-                             },
-                             body: JSON.stringify({
-                                 razorpay_order_id: response.razorpay_order_id,
-                                 razorpay_payment_id: response.razorpay_payment_id,
-                                 razorpay_signature: response.razorpay_signature
-                             })
-                         });
-                         const verifyData = await verifyRes.json();
-                         if (verifyData.success && verifyData.redirect_url) {
-                             window.location.href = verifyData.redirect_url;
-                         } else {
-                             alert('Payment verification issue: ' + (verifyData.message || 'Please contact concierge.'));
-                         }
-                     }
-                 };
-
-                 const rzp = new Razorpay(options);
-                 rzp.on('payment.failed', function (response){
-                     let desc = response.error ? (response.error.description || 'Payment failed') : 'Payment failed';
-                      if (desc.toLowerCase().includes('international')) {
-                          desc += "\n\n💡 Tip: Use Indian Domestic Test Card: 4100 2800 0000 1007 (CVV: 123) or UPI (success@razorpay).";
-                      }
-                      alert('Payment declined: ' + desc);
-                 });
-                 rzp.open();
-                 this.paymentSubmitting = false;
-
-             } catch (err) {
-                 this.errorMessage = 'Checkout network error. Please contact atelier concierge.';
-                 this.paymentSubmitting = false;
-             }
-         }
-     }">
-
+<div class="bg-[#FAF8F5] min-h-screen py-10" x-data="atelierCheckout()">
     <div class="max-w-7xl mx-auto px-6">
         <x-breadcrumbs :links="['Bespoke Bag' => route('cart.index'), 'Escrow Checkout' => '']" />
 
@@ -212,12 +215,15 @@
         </div>
 
         {{-- Payment Flexibility Banner --}}
-        <div class="max-w-3xl mx-auto mb-6 p-4 bg-gradient-to-r from-[#0E261C] to-[#1A3A2C] border border-[#D4AF37]/40 text-[#FAF8F5] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md rounded-xs">
-            <div class="flex items-center gap-3 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#D4AF37] animate-pulse shrink-0"></span>
-                <span><strong>Cash on Delivery (COD) Available:</strong> Pay in cash or UPI at your doorstep upon delivery. Online payment is completely optional.</span>
+        <div class="max-w-3xl mx-auto mb-6 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md rounded-xs"
+             style="background: linear-gradient(135deg, #0E261C 0%, #1A3A2C 100%); border: 1px solid rgba(212, 175, 55, 0.4); color: #FAF8F5;">
+            <div class="flex items-center gap-3 text-xs" style="color: #FAF8F5;">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: #D4AF37;"></span>
+                <span style="color: #FAF8F5;"><strong style="color: #FFFFFF;">Cash on Delivery (COD) Available:</strong> Pay in cash or UPI at your doorstep upon delivery. Online payment is completely optional.</span>
             </div>
-            <button type="button" @click="step = 3; paymentMethod = 'cod';" class="px-3 py-1.5 bg-[#D4AF37] text-[#0E261C] font-bold text-[10px] uppercase tracking-widest hover:bg-[#F3E5AB] transition-all whitespace-nowrap shadow-xs">
+            <button type="button" @click="step = 3; paymentMethod = 'cod';" 
+                    style="background-color: #D4AF37; color: #0E261C;"
+                    class="px-3 py-1.5 font-bold text-[10px] uppercase tracking-widest hover:opacity-90 transition-all whitespace-nowrap shadow-xs cursor-pointer">
                 Select COD &rarr;
             </button>
         </div>
@@ -507,18 +513,18 @@
                         <div class="flex justify-between">
                             <span>Armoured Transit:</span>
                             <span class="font-mono font-semibold text-green-700" 
-                                  x-text="shippingMethod === 'standard' ? 'Complimentary (₹0)' : '₹999.00'"></span>
+                                  x-text="shippingMethod === 'standard' ? 'Complimentary (₹0)' : '₹999.00'">Complimentary (₹0)</span>
                         </div>
                         <div x-show="paymentMethod === 'cod'" x-cloak class="flex justify-between items-center text-xs">
                             <span class="text-amber-800">COD Surcharge (<span x-text="state"></span>):</span>
                             <span class="font-mono font-semibold" 
                                   :class="getCodFee() > 0 ? 'text-amber-800' : 'text-emerald-700'"
-                                  x-text="getCodFee() > 0 ? '+₹' + getCodFee().toFixed(2) : 'Free (₹0)'"></span>
+                                  x-text="getCodFee() > 0 ? '+₹' + getCodFee().toFixed(2) : 'Free (₹0)'">Free (₹0)</span>
                         </div>
                         <div class="pt-3 border-t border-gray-100 flex justify-between font-bold text-sm text-[#0E261C]">
                             <span>Final Investment:</span>
                             <span class="font-display text-lg text-[#0E261C]" 
-                                  x-text="'₹' + getCalculatedTotal()"></span>
+                                  x-text="'₹' + getCalculatedTotal()">₹{{ number_format($standardTotal, 2) }}</span>
                         </div>
                     </div>
                 </div>

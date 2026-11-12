@@ -26,24 +26,7 @@ class ProductController extends Controller
         // Category filter
         if ($request->filled('category')) {
             $cat = strtolower(trim((string) $request->input('category')));
-
-            if ($cat === 'jewelry') {
-                $query->where('category', 'jewelry');
-            } elseif ($cat === 'clothing' || $cat === 'couture' || $cat === 'clothes') {
-                $query->where('category', 'clothing');
-            } elseif ($cat === 'watches' || $cat === 'watch') {
-                $query->where('category', 'watches');
-            } elseif ($cat === 'footwear' || $cat === 'shoes') {
-                $query->where('category', 'footwear');
-            } elseif (in_array($cat, ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires'], true)) {
-                $query->where('category', 'jewelry')
-                    ->where(function ($q) use ($cat): void {
-                        $singular = rtrim($cat, 's');
-                        $q->where('title', 'like', "%{$singular}%")
-                          ->orWhere('tags', 'like', "%{$singular}%")
-                          ->orWhere('tags', 'like', "%{$cat}%");
-                    });
-            }
+            $query->byCategory($cat);
         }
 
         // Tag filter
@@ -118,24 +101,11 @@ class ProductController extends Controller
             return $this->couture(request());
         }
 
-        $query = Product::query()->inStock();
-
-        if (in_array($cat, self::PRIMARY_CATEGORIES, true)) {
-            $query->where('category', $cat);
-        } else {
-            // Legacy subcategory within jewelry
-            $singular = rtrim($cat, 's');
-            $query->where('category', 'jewelry')
-                ->where(function ($q) use ($cat, $singular): void {
-                    $q->where('title', 'like', "%{$singular}%")
-                      ->orWhere('tags', 'like', "%{$singular}%")
-                      ->orWhere('tags', 'like', "%{$cat}%");
-                });
-        }
+        $query = Product::query()->inStock()->byCategory($cat);
 
         $products = $query->latest()->paginate(12);
 
-        $metalTypes = Product::where('category', in_array($cat, self::PRIMARY_CATEGORIES, true) ? $cat : 'jewelry')
+        $metalTypes = Product::byCategory($cat)
             ->select('metal_type')
             ->distinct()
             ->pluck('metal_type');

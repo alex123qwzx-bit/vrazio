@@ -62,32 +62,33 @@
                         {{-- Category Filter --}}
                         <div class="border-t border-gray-100 pt-5">
                             <label class="block text-xs uppercase tracking-widest text-[#0E261C] font-bold mb-3">Category</label>
+                            @php
+                                $activeCat = request('category', $currentCategory ?? '');
+                                $primaryCats = [
+                                    'jewelry' => 'Jewelry',
+                                    'clothing' => 'Clothing',
+                                    'watches' => 'Watches',
+                                    'footwear' => 'Footwear',
+                                ];
+                                $legacyJewelrySubs = [
+                                    'rings' => 'Rings',
+                                    'necklaces' => 'Necklaces',
+                                    'bracelets' => 'Bracelets',
+                                    'earrings' => 'Earrings',
+                                    'solitaires' => 'Solitaires',
+                                ];
+                            @endphp
                             <div class="space-y-2">
                                 <label class="flex items-center text-xs text-[#0E261C]/80 cursor-pointer hover:text-[#D4AF37]">
                                     <input type="radio" name="category" value="" 
-                                           {{ !request('category') && !isset($currentCategory) ? 'checked' : '' }}
+                                           {{ empty($activeCat) ? 'checked' : '' }}
                                            class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
                                     All Categories
                                 </label>
-                                @php
-                                    $primaryCats = [
-                                        'jewelry' => 'Jewelry',
-                                        'clothing' => 'Clothing',
-                                        'watches' => 'Watches',
-                                        'footwear' => 'Footwear',
-                                    ];
-                                    $legacyJewelrySubs = [
-                                        'rings' => 'Rings',
-                                        'necklaces' => 'Necklaces',
-                                        'bracelets' => 'Bracelets',
-                                        'earrings' => 'Earrings',
-                                        'solitaires' => 'Solitaires',
-                                    ];
-                                @endphp
                                 @foreach($primaryCats as $slug => $label)
                                     <label class="flex items-center text-xs font-semibold text-[#0E261C] cursor-pointer hover:text-[#D4AF37]">
                                         <input type="radio" name="category" value="{{ $slug }}" 
-                                               {{ (request('category') === $slug || (isset($currentCategory) && $currentCategory === $slug)) ? 'checked' : '' }}
+                                               {{ $activeCat === $slug ? 'checked' : '' }}
                                                class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
                                         {{ $label }}
                                     </label>
@@ -97,7 +98,7 @@
                                     @foreach($legacyJewelrySubs as $slug => $label)
                                         <label class="flex items-center text-xs text-[#0E261C]/70 cursor-pointer hover:text-[#D4AF37]">
                                             <input type="radio" name="category" value="{{ $slug }}" 
-                                                   {{ (request('category') === $slug || (isset($currentCategory) && $currentCategory === $slug)) ? 'checked' : '' }}
+                                                   {{ $activeCat === $slug ? 'checked' : '' }}
                                                    class="text-[#0E261C] focus:ring-[#D4AF37] mr-2">
                                             {{ $label }}
                                         </label>

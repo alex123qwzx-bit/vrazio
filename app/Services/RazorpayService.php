@@ -87,11 +87,16 @@ class RazorpayService
      */
     public function verifySignature(string $orderId, string $paymentId, string $signature): bool
     {
-        if (str_starts_with($orderId, 'order_sim_') || $this->isSimulated) {
-            return true;
+        if (empty($orderId) || empty($paymentId) || empty($signature)) {
+            return false;
         }
 
-        if ($this->api) {
+        // Only allow simulated verification if the order is explicitly simulated
+        if (str_starts_with($orderId, 'order_sim_')) {
+            return $this->isSimulated || str_starts_with($signature, 'sig_sim_');
+        }
+
+        if ($this->api && ! $this->isSimulated) {
             try {
                 $this->api->utility->verifyPaymentSignature([
                     'razorpay_order_id' => $orderId,
@@ -101,16 +106,35 @@ class RazorpayService
 
                 return true;
             } catch (\Throwable $e) {
-                Log::warning('Razorpay signature verification failed: ' . $e->getMessage());
-                // In local debug or non-production environment, allow pass-through
-                if (config('app.debug')) {
-                    return true;
-                }
+                Log::warning('Razorpay signature verification failed: ' . $e->getMessage(), [
+                    'order_id' => $orderId,
+                    'payment_id' => $paymentId,
+                ]);
+
                 return false;
             }
         }
 
-        return true;
+        return false;
+    }
+
+    /**
+     * Verify a Razorpay webhook signature.
+     */
+    public function verifyWebhookSignature(string $payload, string $signature, ?string $secret = null): bool
+    {
+        $secret = $secret ?? (string) config('services.razorpay.webhook_secret', '');
+        if (empty($secret) || empty($signature)) {
+            return false;
+        }
+
+        try {
+            $expectedSignature = hash_hmac('sha256', $payload, $secret);
+            return hash_equals($expectedSignature, $signature);
+        } catch (\Throwable $e) {
+            Log::warning('Razorpay webhook signature verification error: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

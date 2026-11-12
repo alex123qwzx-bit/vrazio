@@ -68,7 +68,7 @@ class ProductCatalog extends Component
         $query = Product::query()->inStock();
 
         if ($this->category) {
-            $query->where('category', $this->category);
+            $query->byCategory($this->category);
         }
 
         if ($this->metalType) {

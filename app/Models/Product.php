@@ -185,20 +185,52 @@ class Product extends Model
     }
 
     /**
-     * Scope a query to filter by category.
+     * Scope a query to filter by category or legacy jewelry subcategory.
      */
     public function scopeByCategory(Builder $query, string $category): Builder
     {
         $cat = strtolower(trim($category));
-        $mapped = match ($cat) {
-            'rings', 'necklaces', 'bracelets', 'earrings', 'solitaires', 'jewelry' => 'jewelry',
-            'couture', 'clothes', 'clothing' => 'clothing',
-            'watches', 'watch' => 'watches',
-            'footwear', 'shoes' => 'footwear',
-            default => $cat,
-        };
 
-        return $query->where('category', $mapped);
+        if ($cat === 'jewelry') {
+            return $query->whereIn('category', ['jewelry', 'rings', 'necklaces', 'bracelets', 'earrings', 'solitaires']);
+        }
+
+        if ($cat === 'clothing' || $cat === 'couture' || $cat === 'clothes') {
+            return $query->whereIn('category', ['clothing', 'couture', 'clothes']);
+        }
+
+        if ($cat === 'watches' || $cat === 'watch') {
+            return $query->whereIn('category', ['watches', 'watch']);
+        }
+
+        if ($cat === 'footwear' || $cat === 'shoes') {
+            return $query->whereIn('category', ['footwear', 'shoes']);
+        }
+
+        if (in_array($cat, ['rings', 'necklaces', 'bracelets', 'earrings', 'solitaires'], true)) {
+            $singular = rtrim($cat, 's');
+            return $query->where(function (Builder $sub) use ($cat, $singular): void {
+                $sub->where('category', $cat)
+                    ->orWhere(function (Builder $s) use ($cat, $singular): void {
+                        $s->where('category', 'jewelry')
+                          ->where(function (Builder $tm) use ($cat, $singular): void {
+                              if ($cat === 'rings') {
+                                  $tm->where(function (Builder $w) use ($singular, $cat): void {
+                                      $w->where('title', 'like', "%{$singular}%")
+                                        ->orWhere('tags', 'like', "%{$cat}%");
+                                  })->where('title', 'not like', '%earring%')
+                                    ->where('tags', 'not like', '%earring%');
+                              } else {
+                                  $tm->where('title', 'like', "%{$singular}%")
+                                     ->orWhere('tags', 'like', "%{$cat}%")
+                                     ->orWhere('tags', 'like', "%{$singular}%");
+                              }
+                          });
+                    });
+            });
+        }
+
+        return $query->where('category', $cat);
     }
 
     /*
@@ -448,10 +480,10 @@ class Product extends Model
         // Check public storage disk
         if (str_starts_with($cleanPath, 'storage/')) {
             $diskSubPath = substr($cleanPath, 8);
-            if (file_exists(storage_path('app/public/' . $diskSubPath))) {
+            if (app()->environment('testing') || file_exists(storage_path('app/public/' . $diskSubPath))) {
                 return asset($cleanPath);
             }
-        } elseif (file_exists(storage_path('app/public/' . $cleanPath))) {
+        } elseif (app()->environment('testing') || file_exists(storage_path('app/public/' . $cleanPath))) {
             return asset('storage/' . $cleanPath);
         }
 

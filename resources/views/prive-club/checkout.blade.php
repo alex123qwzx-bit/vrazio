@@ -121,13 +121,7 @@
         const form = document.getElementById('priveEnrollmentForm');
 
         if (!razorpayKey || razorpayKey === '' || !orderId || orderId === '') {
-            @if(config('app.debug'))
-                if ("{{ $razorpayError }}") {
-                    console.warn("Razorpay API order error: {{ addslashes($razorpayError) }}");
-                }
-            @endif
-            // Test demo fallback: directly submit form
-            form.submit();
+            alert('Payment gateway order initialization is pending. Please reload the page or contact our atelier concierge.');
             return;
         }
 
@@ -168,7 +162,7 @@
             rzp.open();
         } catch(err) {
             console.error('Razorpay modal open error:', err);
-            form.submit();
+            alert('Unable to launch secure payment modal. Please try again.');
         }
     });
 </script>
