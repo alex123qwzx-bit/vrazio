@@ -7,6 +7,8 @@
 {{-- Firebase App & Auth SDK --}}
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+{{-- Google Identity Services SDK (Native One Tap & Direct Token Fallback) --}}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
 document.addEventListener('alpine:init', () => {
@@ -25,19 +27,136 @@ document.addEventListener('alpine:init', () => {
                 appId: '{{ config('services.firebase.app_id') }}'
             };
 
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
+            if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                } catch(e) {
+                    console.warn('Firebase init:', e);
+                }
             }
-            try {
-                firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-            } catch(e) {}
+
+            // Resilient persistence: try LOCAL -> SESSION -> NONE
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                    .catch(() => firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION))
+                    .catch(() => firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE))
+                    .catch(() => {});
+
+                // Seamlessly resolve redirect result if returning from a redirect sign-in
+                firebase.auth().getRedirectResult()
+                    .then((result) => {
+                        if (result && result.user) {
+                            this.googleLoading = true;
+                            this.errorMessage = '';
+                            this.successMessage = 'Authenticating patron credentials...';
+                            return result.user.getIdToken()
+                                .then(idToken => this.verifySession(idToken, 'google'));
+                        }
+                    })
+                    .catch((err) => {
+                        this.handleAuthError(err);
+                    });
+            }
+
+            // Initialize Google Identity Services (GSI)
+            this.initGoogleIdentityServices();
         },
 
-        // Google One-Click Authentication via Firebase
+        initGoogleIdentityServices() {
+            const googleClientId = '{{ config('services.firebase.google_client_id') }}';
+            if (!googleClientId) return;
+
+            const setupGsi = () => {
+                if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                    try {
+                        google.accounts.id.initialize({
+                            client_id: googleClientId,
+                            callback: (response) => {
+                                if (response && response.credential) {
+                                    this.googleLoading = true;
+                                    this.errorMessage = '';
+                                    this.successMessage = 'Authenticating Google credentials...';
+                                    this.verifySession(response.credential, 'google');
+                                }
+                            },
+                            auto_select: false,
+                            cancel_on_tap_outside: true,
+                        });
+                        google.accounts.id.prompt();
+                    } catch (e) {
+                        console.warn('Google Identity Services notice:', e);
+                    }
+                }
+            };
+
+            if (typeof google !== 'undefined' && google.accounts) {
+                setupGsi();
+            } else {
+                window.addEventListener('load', setupGsi);
+            }
+        },
+
+        verifySession(idToken, provider = 'google') {
+            this.googleLoading = true;
+            return fetch('{{ route('auth.firebase.session') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ idToken: idToken, provider: provider })
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.googleLoading = false;
+                if (data.success) {
+                    this.successMessage = 'Welcome to VRAZIO. Redirecting to your patron suite...';
+                    window.location.href = data.redirect || '{{ route('account') }}';
+                } else {
+                    this.errorMessage = data.message || 'Authentication could not be established.';
+                }
+            })
+            .catch(err => {
+                this.googleLoading = false;
+                this.errorMessage = 'Network connection interrupted during verification. Please try again.';
+            });
+        },
+
+        // Google One-Click Authentication via Firebase with automatic redirect fallback
         signInWithGoogle() {
             this.googleLoading = true;
             this.errorMessage = '';
             this.successMessage = '';
+
+            const fallbackToRedirect = () => {
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    try {
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        provider.setCustomParameters({ prompt: 'select_account' });
+                        this.successMessage = 'Opening secure Google authentication...';
+                        firebase.auth().signInWithRedirect(provider);
+                        return;
+                    } catch (e) {
+                        this.handleAuthError(e);
+                        return;
+                    }
+                }
+
+                if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                    google.accounts.id.prompt();
+                    this.googleLoading = false;
+                    return;
+                }
+
+                this.googleLoading = false;
+                this.errorMessage = 'Google authentication is initializing. Please refresh and try again.';
+            };
+
+            if (typeof firebase === 'undefined' || !firebase.auth) {
+                fallbackToRedirect();
+                return;
+            }
 
             const provider = new firebase.auth.GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
@@ -47,45 +166,64 @@ document.addEventListener('alpine:init', () => {
                     return result.user.getIdToken();
                 })
                 .then((idToken) => {
-                    return fetch('{{ route('auth.firebase.session') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ idToken: idToken, provider: 'google' })
-                    });
-                })
-                .then(res => res.json())
-                .then(data => {
-                    this.googleLoading = false;
-                    if (data.success) {
-                        window.location.href = data.redirect || '{{ route('account') }}';
-                    } else {
-                        this.errorMessage = data.message || 'Google authentication failed.';
-                    }
+                    return this.verifySession(idToken, 'google');
                 })
                 .catch((error) => {
-                    this.googleLoading = false;
-                    if (error.code === 'auth/popup-closed-by-user') {
+                    // 1. User closed popup window
+                    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                        this.googleLoading = false;
                         return;
                     }
-                    const isDomainAuthError = error.code === 'auth/unauthorized-domain'
-                        || error.code === 'auth/invalid-continue-uri'
-                        || (error.message && (
-                            error.message.includes('unauthorized-domain')
-                            || error.message.includes('invalid-continue-uri')
-                            || error.message.includes('missing initial state')
+
+                    // 2. Storage / iframe / cross-origin / internal error:
+                    // Automatically fallback to redirect flow without displaying any raw technical error!
+                    const isInternalOrPopupError =
+                        error.code === 'auth/internal-error' ||
+                        error.code === 'auth/popup-blocked' ||
+                        error.code === 'auth/web-storage-unsupported' ||
+                        (error.message && (
+                            error.message.includes('internal-error') ||
+                            error.message.includes('popup') ||
+                            error.message.includes('storage') ||
+                            error.message.includes('cookie') ||
+                            error.message.includes('partition')
                         ));
 
-                    if (isDomainAuthError) {
-                        const currentHost = window.location.hostname;
-                        this.errorMessage = 'Google Sign-In requires "' + currentHost + '" in Firebase Authorized Domains.';
-                    } else {
-                        this.errorMessage = error.message || 'Unable to sign in with Google. Please try again.';
+                    if (isInternalOrPopupError) {
+                        console.warn('Popup authentication restricted by browser environment. Initiating seamless redirect flow...');
+                        fallbackToRedirect();
+                        return;
                     }
+
+                    this.googleLoading = false;
+                    this.handleAuthError(error);
                 });
+        },
+
+        handleAuthError(error) {
+            this.googleLoading = false;
+            if (!error) return;
+
+            const code = error.code || '';
+            const msg = (error.message || '').toLowerCase();
+
+            if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+                return;
+            }
+
+            if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized-domain') || msg.includes('invalid-continue-uri')) {
+                const currentHost = window.location.hostname;
+                this.errorMessage = 'Google Sign-In configuration: Domain "' + currentHost + '" must be authorized in Firebase Console.';
+                return;
+            }
+
+            if (code === 'auth/network-request-failed' || msg.includes('network-request-failed')) {
+                this.errorMessage = 'Network connection issue. Please check your internet connection and try again.';
+                return;
+            }
+
+            // GUARANTEE: Never leak raw "Firebase: Error" or technical stack traces to the user
+            this.errorMessage = 'Unable to complete Google Sign-In at this moment. Please try again or sign in with your staff credentials.';
         }
     }));
 });

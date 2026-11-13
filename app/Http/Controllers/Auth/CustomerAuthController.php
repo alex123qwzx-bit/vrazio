@@ -326,28 +326,47 @@ class CustomerAuthController extends Controller
 
         $apiKey = config('services.firebase.api_key');
 
-        // Verify ID token with Google Identity Toolkit API (with SSL verification enabled)
+        $googleData = null;
+        $firebaseUid = null;
+        $phoneNumber = null;
+        $email = null;
+        $displayName = null;
+        $photoUrl = null;
+
+        // Verify ID token with Google Identity Toolkit API or OAuth2 TokenInfo fallback
         try {
             $verifyRes = Http::timeout(10)
                 ->post("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={$apiKey}", [
                     'idToken' => $idToken,
                 ]);
 
-            if (! $verifyRes->successful() || empty($verifyRes->json('users.0'))) {
-                return response()->json(['success' => false, 'message' => 'Invalid or expired Firebase session.'], 401);
-            }
+            if ($verifyRes->successful() && !empty($verifyRes->json('users.0'))) {
+                $googleData = $verifyRes->json('users.0');
+                $firebaseUid = $googleData['localId'] ?? null;
+                $phoneNumber = $googleData['phoneNumber'] ?? null;
+                $email = isset($googleData['email']) ? strtolower(trim((string) $googleData['email'])) : null;
+                $displayName = $googleData['displayName'] ?? null;
+                $photoUrl = $googleData['photoUrl'] ?? null;
+            } else {
+                // Resilient fallback verification via Google OAuth2 TokenInfo (handles direct Google Identity Services tokens)
+                $fallbackRes = Http::timeout(10)
+                    ->get("https://oauth2.googleapis.com/tokeninfo?id_token={$idToken}");
 
-            $googleData = $verifyRes->json('users.0');
+                if ($fallbackRes->successful() && !empty($fallbackRes->json('email'))) {
+                    $tokenInfo = $fallbackRes->json();
+                    $email = strtolower(trim((string) $tokenInfo['email']));
+                    $firebaseUid = $tokenInfo['sub'] ?? null;
+                    $displayName = $tokenInfo['name'] ?? null;
+                    $photoUrl = $tokenInfo['picture'] ?? null;
+                    $provider = 'google';
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Invalid or expired Firebase session.'], 401);
+                }
+            }
         } catch (\Throwable $e) {
-            \Log::error('Firebase Token Verify Failed', ['error' => $e->getMessage()]);
+            \Log::error('Firebase / Google Token Verify Failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Authentication verification error.'], 500);
         }
-
-        $firebaseUid = $googleData['localId'] ?? null;
-        $phoneNumber = $googleData['phoneNumber'] ?? null;
-        $email = isset($googleData['email']) ? strtolower(trim((string) $googleData['email'])) : null;
-        $displayName = $googleData['displayName'] ?? null;
-        $photoUrl = $googleData['photoUrl'] ?? null;
 
         $user = null;
 

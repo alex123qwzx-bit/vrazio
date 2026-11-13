@@ -19,6 +19,7 @@ return [
         'messaging_sender_id' => env('FIREBASE_MESSAGING_SENDER_ID', '765416189650'),
         'app_id' => env('FIREBASE_APP_ID', '1:765416189650:web:e8b0c346b70953c25f470b'),
         'measurement_id' => env('FIREBASE_MEASUREMENT_ID', 'G-0NL6RX2815'),
+        'google_client_id' => env('GOOGLE_CLIENT_ID', '765416189650-fcsfoihb52uqcg7594bjocluph80t4q1.apps.googleusercontent.com'),
     ],
 
     'razorpay' => [

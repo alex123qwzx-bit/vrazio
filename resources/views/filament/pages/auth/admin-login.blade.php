@@ -18,8 +18,76 @@
                     firebase.initializeApp(firebaseConfig);
                 }
 
+                // Resilient persistence: LOCAL -> SESSION -> NONE
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                        .catch(() => firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION))
+                        .catch(() => firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE))
+                        .catch(() => {});
+                }
+
                 const googleBtn = document.getElementById('admin-google-signin-btn');
                 const alertBox = document.getElementById('admin-google-alert');
+
+                const verifyAdminToken = async (idToken) => {
+                    googleBtn.disabled = true;
+                    googleBtn.style.opacity = '0.6';
+                    googleBtn.innerText = 'Verifying Administrative Clearance...';
+                    alertBox.style.display = 'none';
+
+                    try {
+                        const res = await fetch('{{ route('admin.auth.google') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ id_token: idToken })
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok && data.success) {
+                            alertBox.style.display = 'block';
+                            alertBox.style.backgroundColor = '#ECFDF5';
+                            alertBox.style.borderColor = '#10B981';
+                            alertBox.style.color = '#065F46';
+                            alertBox.innerHTML = '<strong>Clearance Approved:</strong> ' + data.message + ' Redirecting...';
+                            window.location.href = data.redirect_url || '{{ url('/admin') }}';
+                        } else {
+                            googleBtn.disabled = false;
+                            googleBtn.style.opacity = '1';
+                            googleBtn.innerHTML = '<svg style="width:18px;height:18px;margin-right:8px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> Sign in with Google (Authorized Staff Only)';
+                            alertBox.style.display = 'block';
+                            alertBox.style.backgroundColor = '#FEF2F2';
+                            alertBox.style.borderColor = '#EF4444';
+                            alertBox.style.color = '#991B1B';
+                            alertBox.innerHTML = '<strong>Access Denied:</strong> ' + (data.message || 'Administrative verification failed.');
+                        }
+                    } catch (e) {
+                        googleBtn.disabled = false;
+                        googleBtn.style.opacity = '1';
+                        alertBox.style.display = 'block';
+                        alertBox.style.backgroundColor = '#FEF2F2';
+                        alertBox.style.borderColor = '#EF4444';
+                        alertBox.style.color = '#991B1B';
+                        alertBox.innerHTML = '<strong>Verification Error:</strong> Network connection interrupted. Please try again.';
+                    }
+                };
+
+                // Check redirect result on load
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    firebase.auth().getRedirectResult()
+                        .then((result) => {
+                            if (result && result.user) {
+                                result.user.getIdToken().then(idToken => verifyAdminToken(idToken));
+                            }
+                        })
+                        .catch((err) => {
+                            console.warn('Redirect auth check notice:', err);
+                        });
+                }
 
                 if (googleBtn) {
                     googleBtn.addEventListener('click', async () => {
@@ -28,55 +96,41 @@
                         googleBtn.innerText = 'Connecting to Google Secure Vault...';
                         alertBox.style.display = 'none';
 
-                        try {
-                            const provider = new firebase.auth.GoogleAuthProvider();
-                            provider.setCustomParameters({ prompt: 'select_account' });
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        provider.setCustomParameters({ prompt: 'select_account' });
 
+                        try {
                             const result = await firebase.auth().signInWithPopup(provider);
                             const idToken = await result.user.getIdToken();
-
-                            googleBtn.innerText = 'Verifying Administrative Clearance...';
-
-                            const res = await fetch('{{ route('admin.auth.google') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json'
-                                },
-                                body: JSON.stringify({ id_token: idToken })
-                            });
-
-                            const data = await res.json();
-
-                            if (res.ok && data.success) {
-                                alertBox.style.display = 'block';
-                                alertBox.style.backgroundColor = '#ECFDF5';
-                                alertBox.style.borderColor = '#10B981';
-                                alertBox.style.color = '#065F46';
-                                alertBox.innerHTML = '<strong>Clearance Approved:</strong> ' + data.message + ' Redirecting...';
-                                window.location.href = data.redirect_url || '{{ url('/admin') }}';
-                            } else {
-                                googleBtn.disabled = false;
-                                googleBtn.style.opacity = '1';
-                                googleBtn.innerHTML = '<svg style="width:18px;height:18px;margin-right:8px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> Sign in with Google (Authorized Staff Only)';
-                                alertBox.style.display = 'block';
-                                alertBox.style.backgroundColor = '#FEF2F2';
-                                alertBox.style.borderColor = '#EF4444';
-                                alertBox.style.color = '#991B1B';
-                                alertBox.innerHTML = '<strong>Access Denied:</strong> ' + (data.message || 'Administrative verification failed.');
-                            }
+                            await verifyAdminToken(idToken);
                         } catch (err) {
                             googleBtn.disabled = false;
                             googleBtn.style.opacity = '1';
                             googleBtn.innerHTML = '<svg style="width:18px;height:18px;margin-right:8px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> Sign in with Google (Authorized Staff Only)';
-                            if (err.code !== 'auth/popup-closed-by-user') {
-                                alertBox.style.display = 'block';
-                                alertBox.style.backgroundColor = '#FEF2F2';
-                                alertBox.style.borderColor = '#EF4444';
-                                alertBox.style.color = '#991B1B';
-                                alertBox.innerHTML = '<strong>Authentication Error:</strong> ' + (err.message || 'Google identity verification failed.');
+
+                            if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+                                return;
                             }
+
+                            // Seamless redirect fallback for popup/storage/internal errors
+                            const isPopupRestriction = err.code === 'auth/internal-error' || err.code === 'auth/popup-blocked' || err.code === 'auth/web-storage-unsupported';
+                            if (isPopupRestriction) {
+                                googleBtn.innerText = 'Redirecting to Google Secure Authentication...';
+                                firebase.auth().signInWithRedirect(provider);
+                                return;
+                            }
+
+                            // Sanitized staff error: never show raw Firebase SDK strings
+                            let cleanMsg = 'Google identity verification could not be completed. Please try again or use your password.';
+                            if (err.code === 'auth/unauthorized-domain') {
+                                cleanMsg = 'Domain "' + window.location.hostname + '" must be authorized in Firebase Console.';
+                            }
+
+                            alertBox.style.display = 'block';
+                            alertBox.style.backgroundColor = '#FEF2F2';
+                            alertBox.style.borderColor = '#EF4444';
+                            alertBox.style.color = '#991B1B';
+                            alertBox.innerHTML = '<strong>Authentication Notice:</strong> ' + cleanMsg;
                         }
                     });
                 }

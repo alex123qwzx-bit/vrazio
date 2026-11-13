@@ -206,4 +206,45 @@ class PatronProfileAndSecurityFixTest extends TestCase
         $this->assertArrayNotHasKey('dev_otp', $result);
         $this->assertStringContainsString('SMS service is temporarily unavailable', $result['message']);
     }
+
+    public function test_google_oauth2_tokeninfo_fallback_authenticates_patron_seamlessly(): void
+    {
+        $googleSub = 'google_sub_' . Str::random(16);
+        $patronEmail = 'oauth_patron_' . Str::random(8) . '@gmail.com';
+
+        // Identity Toolkit returns 400/failure (e.g. for raw Google OAuth or GIS tokens)
+        Http::fake([
+            'https://identitytoolkit.googleapis.com/*' => Http::response(['error' => ['message' => 'INVALID_ID_TOKEN']], 400),
+            'https://oauth2.googleapis.com/tokeninfo*' => Http::response([
+                'sub' => $googleSub,
+                'email' => $patronEmail,
+                'name' => 'Royal Patron OAuth',
+                'picture' => 'https://lh3.googleusercontent.com/avatar_test.jpg',
+            ], 200),
+        ]);
+
+        $response = $this->postJson(route('auth.firebase.session'), [
+            'idToken' => 'raw_google_gsi_id_token',
+            'provider' => 'google',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $user = User::where('google_id', $googleSub)->first();
+        $this->assertNotNull($user);
+        $this->assertEquals(strtolower($patronEmail), $user->email);
+        $this->assertEquals('Royal Patron OAuth', $user->name);
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_login_page_renders_with_resilient_google_auth_and_csp(): void
+    {
+        $response = $this->get(route('login'));
+        $response->assertStatus(200);
+        $response->assertSee('Continue with Google');
+        $response->assertSee('accounts.google.com/gsi/client');
+        $response->assertSee('getRedirectResult');
+        $response->assertSee('signInWithRedirect');
+    }
 }
