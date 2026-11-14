@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ $order->order_number }} | VRAZIO Atelier</title>
+    <title>Tax Invoice #{{ $order->order_number }} | VRAZIO Atelier</title>
 
     {{-- Favicon & App Icons --}}
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
@@ -14,33 +14,409 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Alex+Brush&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #EFECE6;
             color: #1a1a1a;
+            padding: 24px 12px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .font-display {
-            font-family: 'Playfair Display', serif;
-        }
-
-        .font-script {
-            font-family: 'Alex Brush', cursive;
-        }
-
-        .invoice-sheet {
-            background-color: #FAF8F5;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(212, 175, 55, 0.15);
-            width: 100%;
+        .invoice-wrapper {
             max-width: 820px;
             margin: 0 auto;
-            position: relative;
-            overflow: hidden;
         }
 
+        /* Top Action Bar */
+        .action-bar {
+            background-color: #0E261C;
+            color: #FAF8F5;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .action-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .action-bar-left a {
+            color: #D4AF37;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-bar-left a:hover {
+            text-decoration: underline;
+        }
+
+        .action-bar-sep {
+            color: #555555;
+        }
+
+        .action-bar-num {
+            color: #E0E0E0;
+        }
+
+        .action-bar-num strong {
+            color: #FFFFFF;
+            font-family: monospace;
+        }
+
+        .action-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-print {
+            padding: 7px 14px;
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-download {
+            padding: 7px 16px;
+            background-color: #D4AF37;
+            color: #0E261C;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background 0.2s;
+        }
+
+        .btn-download:hover {
+            background-color: #c5a028;
+        }
+
+        /* Luxury Double Gold Border Invoice Sheet */
+        .invoice-card-outer {
+            border: 2px solid #C5A059;
+            background-color: #FFFFFF;
+            padding: 4px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 2px;
+        }
+
+        .invoice-card-inner {
+            border: 1px solid #C5A059;
+            background-color: #FAF8F5;
+            padding: 24px 28px;
+        }
+
+        /* Header Emblem & Brand Heading */
+        .brand-emblem-wrap {
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .brand-emblem-img {
+            width: 52px;
+            height: 52px;
+            max-width: 52px;
+            max-height: 52px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 6px auto;
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            background-color: #0E261C;
+            object-fit: contain;
+        }
+
+        .brand-title {
+            text-align: center;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 26px;
+            font-weight: bold;
+            color: #0E261C;
+            letter-spacing: 6px;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        .brand-tagline {
+            text-align: center;
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: #777777;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .tax-invoice-heading {
+            text-align: center;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 19px;
+            font-weight: bold;
+            color: #0E261C;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 12px;
+            margin-bottom: 18px;
+        }
+
+        /* Two-Column Metadata */
+        .meta-layout-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .meta-col-left {
+            width: 52%;
+            vertical-align: top;
+            padding-right: 14px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #222222;
+        }
+
+        .meta-col-right {
+            width: 48%;
+            vertical-align: top;
+            padding-left: 14px;
+            text-align: right;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .seller-name {
+            font-weight: bold;
+            font-size: 13px;
+            color: #0E261C;
+            margin-bottom: 2px;
+        }
+
+        .billto-wrap {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #E8E2D8;
+        }
+
+        .billto-title {
+            font-weight: bold;
+            font-size: 11px;
+            color: #0E261C;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .billto-name {
+            font-weight: bold;
+            font-size: 13px;
+            color: #0E261C;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Items Table */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 14px;
+            margin-bottom: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #CCCCCC;
+            font-size: 12px;
+            min-width: 520px;
+        }
+
+        .items-table thead tr {
+            background-color: #0E261C;
+            color: #FFFFFF;
+        }
+
+        .items-table th {
+            padding: 8px 8px;
+            border: 1px solid #0E261C;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table tbody tr {
+            background-color: #FFFFFF;
+        }
+
+        .items-table td {
+            padding: 9px 8px;
+            border: 1px solid #CCCCCC;
+            vertical-align: middle;
+            color: #222222;
+        }
+
+        .item-title {
+            font-weight: bold;
+            color: #0E261C;
+            font-size: 12.5px;
+        }
+
+        .item-meta {
+            font-size: 11px;
+            color: #666666;
+            font-family: monospace;
+            margin-top: 2px;
+        }
+
+        /* Financial Summary */
+        .summary-wrapper-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .summary-table td {
+            padding: 2px 0;
+        }
+
+        .summary-table .s-lbl {
+            text-align: right;
+            padding-right: 14px;
+            color: #333333;
+            width: 60%;
+        }
+
+        .summary-table .s-val {
+            text-align: right;
+            font-family: monospace;
+            font-weight: 500;
+            color: #111111;
+            width: 40%;
+        }
+
+        .total-emerald-bar {
+            background-color: #0E261C;
+            color: #FFFFFF;
+            padding: 10px 14px;
+            margin-top: 8px;
+            border-radius: 2px;
+            text-align: right;
+        }
+
+        .total-amount-row {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            color: #FFFFFF;
+        }
+
+        .total-words-row {
+            font-size: 10.5px;
+            color: #E8D5A0;
+            margin-top: 3px;
+            line-height: 1.3;
+        }
+
+        /* Footer Notes */
+        .footer-legal-notes {
+            font-size: 11px;
+            line-height: 1.5;
+            color: #222222;
+            margin-top: 14px;
+            border-top: 1px dotted #C5A059;
+            padding-top: 10px;
+        }
+
+        .signature-row {
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+            color: #0E261C;
+            margin-top: 16px;
+            padding-right: 14px;
+        }
+
+        .signoff-centered {
+            text-align: center;
+            margin-top: 16px;
+            padding-top: 4px;
+        }
+
+        .signoff-script-text {
+            font-family: 'Alex Brush', cursive, serif;
+            font-size: 24px;
+            color: #0E261C;
+            line-height: 1.1;
+        }
+
+        .signoff-atelier-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 10.5px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-left: 6px;
+        }
+
+        .signoff-timeless {
+            font-size: 9px;
+            letter-spacing: 2.5px;
+            color: #777777;
+            text-transform: uppercase;
+            margin-top: 3px;
+            font-weight: bold;
+        }
+
+        /* Print Media Styles */
         @media print {
             body {
                 background-color: #FFFFFF !important;
@@ -49,39 +425,99 @@
             .no-print {
                 display: none !important;
             }
-            .invoice-sheet {
+            .invoice-card-outer {
                 box-shadow: none !important;
                 max-width: 100% !important;
-                margin: 0 !important;
-                padding: 20px !important;
+                border: 2px solid #C5A059 !important;
+            }
+            .invoice-card-inner {
+                border: 1px solid #C5A059 !important;
+                background-color: #FAF8F5 !important;
+            }
+        }
+
+        /* Mobile Viewport Responsiveness */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px 6px !important;
+            }
+
+            .invoice-card-inner {
+                padding: 16px 12px !important;
+            }
+
+            .action-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+
+            .action-bar-right {
+                width: 100% !important;
+            }
+
+            .btn-print, .btn-download {
+                flex: 1 !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+
+            .meta-col-left, .meta-col-right {
+                display: block !important;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .meta-col-right {
+                text-align: left !important;
+                margin-top: 12px !important;
+                padding-top: 10px !important;
+                border-top: 1px solid #E8E2D8 !important;
+            }
+
+            .summary-spacer {
+                display: none !important;
+            }
+
+            .summary-content {
+                width: 100% !important;
             }
         }
     </style>
 </head>
-<body class="py-8 sm:py-12 px-4 sm:px-6">
+<body>
+
+@php
+    $logoPath = public_path('images/vrazio-card-icon.png');
+    if (!file_exists($logoPath)) {
+        $logoPath = public_path('images/vrazio-logo.png');
+    }
+    $logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : '';
+    $addr = is_array($order->shipping_address) ? $order->shipping_address : json_decode((string)$order->shipping_address, true);
+    $stateName = $order->getCustomerStateName();
+    $stateCode = $order->getCustomerStateCode();
+@endphp
+
+<div class="invoice-wrapper">
 
     {{-- Top Action Bar (Hidden when Printing) --}}
-    <div class="max-w-[820px] mx-auto mb-6 flex flex-wrap items-center justify-between gap-4 no-print bg-[#0E261C] text-[#FAF8F5] p-4 rounded-lg shadow-md border border-[#D4AF37]/30">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('orders.index') }}" class="text-xs uppercase tracking-wider text-[#D4AF37] hover:underline flex items-center gap-1 font-semibold">
-                &larr; Back to My Orders
-            </a>
-            <span class="text-gray-500">|</span>
-            <span class="text-xs text-gray-300">Invoice: <strong class="text-white font-mono">#{{ $order->order_number }}</strong></span>
+    <div class="action-bar no-print">
+        <div class="action-bar-left">
+            <a href="{{ route('orders.index') }}">&larr; Back to My Orders</a>
+            <span class="action-bar-sep">|</span>
+            <span class="action-bar-num">Invoice: <strong>#{{ $order->order_number }}</strong></span>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button onclick="window.print()" 
-                    class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs uppercase tracking-wider font-semibold rounded transition-colors flex items-center gap-2">
-                <svg width="16" height="16" class="w-4 h-4 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="action-bar-right">
+            <button onclick="window.print()" class="btn-print">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #D4AF37;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
-                Print Invoice
+                Print
             </button>
 
-            <a href="{{ route('order.invoice.download', $order->order_number) }}" 
-               class="px-5 py-2 bg-[#D4AF37] hover:bg-[#c5a028] text-[#0E261C] text-xs uppercase tracking-wider font-bold rounded shadow-sm transition-all flex items-center gap-2">
-                <svg width="16" height="16" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('order.invoice.download', $order->order_number) }}" class="btn-download">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 Download PDF
@@ -89,208 +525,200 @@
         </div>
     </div>
 
-    {{-- Main Printable Invoice Sheet --}}
-    <div class="invoice-sheet p-8 sm:p-12 md:p-14">
-        {{-- Background Monogram Watermark --}}
-        <div class="absolute right-6 bottom-32 text-[#D4AF37] opacity-[0.035] font-display text-[320px] select-none pointer-events-none leading-none">
-            V
-        </div>
+    {{-- Luxury Double-Border Invoice Sheet --}}
+    <div class="invoice-card-outer">
+        <div class="invoice-card-inner">
 
-        {{-- Header Section: Brand & Invoice Meta --}}
-        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-8 border-b border-[#D4AF37]/20">
-            {{-- Brand Logo & Taglines --}}
-            <div class="flex items-center sm:items-start gap-4 sm:gap-5">
-                <img src="{{ asset('images/vrazio-logo.png') }}" alt="VRAZIO Brand Logo" class="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-lg border border-[#D4AF37]/50 shadow-md shrink-0 bg-[#0E261C]">
-                <div>
-                    <div class="font-display text-3xl sm:text-4xl font-bold tracking-[0.2em] text-[#0E261C]">
-                        VR<span class="text-[#D4AF37]">A</span>ZIO
-                    </div>
-                    <div class="text-[11px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold mt-1">
-                        — ATELIER &amp; HAUTE COUTURE —
-                    </div>
-                    <div class="text-[11px] text-gray-700 mt-2 space-y-0.5">
-                        <div class="font-semibold text-[#0E261C]">NAME OF ENTERPRISE: <span class="font-bold tracking-wide">VRAZIO</span></div>
-                        <div class="font-mono text-gray-700 text-xs">UDYAM REG. NO.: <span class="font-bold text-[#0E261C]">UDYAM-UP-59-0089382</span></div>
-                        <div class="text-gray-500 text-[10px] uppercase tracking-wider">HSN 7113 • 3% GST PRECIOUS JEWELLERY</div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Invoice Title & Meta Details --}}
-            <div class="sm:text-right">
-                <h1 class="font-display text-3xl sm:text-4xl tracking-[0.2em] text-[#0E261C] uppercase font-normal">
-                    INVOICE
-                </h1>
-                <div class="w-16 h-0.5 bg-[#D4AF37] sm:ml-auto mt-1 mb-4"></div>
-
-                <div class="space-y-1 text-xs sm:text-[13px]">
-                    <div class="flex sm:justify-end gap-3">
-                        <span class="text-gray-500 uppercase tracking-wider text-[11px]">INVOICE NO:</span>
-                        <span class="font-mono font-bold text-[#0E261C]">VRZ-INV-{{ str_replace('VRZ-', '', $order->order_number) }}</span>
-                    </div>
-                    <div class="flex sm:justify-end gap-3">
-                        <span class="text-gray-500 uppercase tracking-wider text-[11px]">DATE:</span>
-                        <span class="font-bold text-[#0E261C]">{{ $order->created_at ? $order->created_at->format('d M Y') : date('d M Y') }}</span>
-                    </div>
-                    <div class="flex sm:justify-end gap-3">
-                        <span class="text-gray-500 uppercase tracking-wider text-[11px]">ORDER NO:</span>
-                        <span class="font-mono font-bold text-[#0E261C]">#{{ $order->order_number }}</span>
-                    </div>
-                    <div class="flex sm:justify-end gap-3">
-                        <span class="text-gray-500 uppercase tracking-wider text-[11px]">PAYMENT:</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#0E261C] text-[#D4AF37] uppercase">
-                            {{ $order->payment_status ?? 'PAID' }} ({{ strtoupper($order->payment_gateway ?? 'ONLINE') }})
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- BILL TO Section --}}
-        <div class="py-8">
-            <span class="text-[10px] uppercase tracking-[0.25em] text-gray-500 font-bold block mb-1">
-                BILL TO
-            </span>
-            <h2 class="font-display text-xl sm:text-2xl font-bold text-[#0E261C]">
-                {{ $order->client_name }}
-            </h2>
-            <div class="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
-                @php
-                    $addr = is_array($order->shipping_address) ? $order->shipping_address : json_decode((string)$order->shipping_address, true);
-                @endphp
-                @if(!empty($addr['street'])) <div>{{ $addr['street'] }}</div> @endif
-                @if(!empty($addr['city']) || !empty($addr['state'])) 
-                    <div>{{ $addr['city'] ?? '' }}{{ !empty($addr['city']) && !empty($addr['state']) ? ', ' : '' }}{{ $addr['state'] ?? '' }} {{ $addr['pincode'] ?? '' }}</div>
+            {{-- Centered Header Emblem & Brand Title --}}
+            <div class="brand-emblem-wrap">
+                @if(!empty($logoBase64))
+                    <img src="data:image/png;base64,{{ $logoBase64 }}" 
+                         width="52" 
+                         height="52" 
+                         class="brand-emblem-img" 
+                         alt="VRAZIO Emblem" />
+                @else
+                    <img src="{{ asset('images/vrazio-card-icon.png') }}" 
+                         width="52" 
+                         height="52" 
+                         class="brand-emblem-img" 
+                         alt="VRAZIO Emblem" />
                 @endif
-                <div class="mt-1 text-gray-500 flex flex-wrap items-center gap-2">
-                    <span>Phone: <strong class="text-gray-800">{{ $order->client_phone }}</strong></span>
-                    @if(!empty($order->client_email))
-                        <span class="text-[#D4AF37]">•</span>
-                        <span>Email: <strong class="text-gray-800">{{ $order->client_email }}</strong></span>
-                    @endif
-                </div>
             </div>
-        </div>
 
-        {{-- Product Items Table --}}
-        <div class="overflow-x-auto mb-8">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#0E261C] text-[#FAF8F5] text-[10px] uppercase tracking-wider">
-                        <th class="py-3.5 px-4 font-semibold text-center w-12">#</th>
-                        <th class="py-3.5 px-4 font-semibold">PRODUCT DESCRIPTION</th>
-                        <th class="py-3.5 px-4 font-semibold text-center w-16">QTY</th>
-                        <th class="py-3.5 px-4 font-semibold text-right w-32">UNIT PRICE</th>
-                        <th class="py-3.5 px-4 font-semibold text-right w-32">TOTAL</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[#E8E2D8] text-xs sm:text-sm">
-                    @foreach($order->items as $idx => $item)
-                        <tr class="hover:bg-[#FAF8F5]/80 transition-colors">
-                            <td class="py-4 px-4 text-center text-gray-400 font-mono text-xs">{{ $idx + 1 }}</td>
-                            <td class="py-4 px-4">
-                                <div class="font-bold text-[#0E261C] text-sm">{{ $item->product_title }}</div>
-                                @if(!empty($item->product_sku))
-                                    <div class="text-[11px] text-gray-400 font-mono mt-0.5">SKU: {{ $item->product_sku }}</div>
-                                @endif
-                                @if(!empty($item->size))
-                                    <div class="text-[11px] text-[#D4AF37] font-semibold mt-0.5">Size / Fit: {{ $item->size }}</div>
-                                @endif
-                            </td>
-                            <td class="py-4 px-4 text-center font-mono">{{ $item->quantity }}</td>
-                            <td class="py-4 px-4 text-right font-mono text-gray-700">₹{{ number_format((float)$item->unit_price, 2) }}</td>
-                            <td class="py-4 px-4 text-right font-mono font-bold text-[#0E261C]">₹{{ number_format((float)$item->line_total, 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
+            <div class="brand-title">V R A Z I O</div>
+            <div class="brand-tagline">LUXURY &bull; HANDCRAFTED</div>
+            <div class="tax-invoice-heading">TAX INVOICE</div>
+
+            {{-- Two-Column Metadata Section: Seller + Bill To vs Invoice Metadata --}}
+            <table class="meta-layout-table">
+                <tr>
+                    {{-- Left Column: Seller Details & Bill To --}}
+                    <td class="meta-col-left">
+                        <div class="seller-name">VRAZIO ATELIER</div>
+                        <div><strong>UDYAM:</strong> <span style="font-family: monospace;">UDYAM-UP-59-0089382</span></div>
+                        <div><strong>GSTIN:</strong> <span style="font-family: monospace;">08AAAFV1234F1Z5</span></div>
+                        <div><strong>Address:</strong> Civil Lines, Moradabad, Uttar Pradesh - 244001</div>
+                        <div><strong>Email:</strong> vrazioofficial@gmail.com</div>
+                        <div><strong>WhatsApp:</strong> +91 87912 27210</div>
+
+                        <div class="billto-wrap">
+                            <div class="billto-title">BILL TO:</div>
+                            <div class="billto-name">{{ strtoupper($order->client_name) }}</div>
+                            @if(!empty($addr['street']))
+                                <div style="text-transform: uppercase;">{{ strtoupper($addr['street']) }}</div>
+                            @endif
+                            @if(!empty($addr['city']) || !empty($addr['state']))
+                                <div>{{ $addr['city'] ?? '' }}{{ !empty($addr['city']) && !empty($addr['state']) ? ', ' : '' }}{{ $addr['state'] ?? '' }}{{ !empty($addr['pincode']) ? ' - ' . $addr['pincode'] : '' }}</div>
+                            @endif
+                            <div><strong>Ph:</strong> {{ $order->client_phone }}</div>
+                            <div><strong>State Code:</strong> {{ $stateCode }} ({{ $stateName }})</div>
+                        </div>
+                    </td>
+
+                    {{-- Right Column: Invoice Metadata --}}
+                    <td class="meta-col-right">
+                        <div><strong style="color: #0E261C;">INVOICE NO:</strong> <span style="font-family: monospace; font-weight: bold;">VRZ-INV-{{ str_replace('VRZ-', '', $order->order_number) }}</span></div>
+                        <div><strong style="color: #0E261C;">DATE:</strong> {{ $order->created_at ? $order->created_at->format('d M Y') : date('d M Y') }}</div>
+                        <div><strong style="color: #0E261C;">ORDER NO:</strong> <span style="font-family: monospace; font-weight: bold;">#{{ $order->order_number }}</span></div>
+                        <div><strong style="color: #0E261C;">PAYMENT:</strong> <span style="font-weight: bold; text-transform: uppercase;">{{ $order->payment_status ?? 'PENDING' }} ({{ strtoupper($order->payment_gateway ?? 'COD') }})</span></div>
+                        <div><strong style="color: #0E261C;">PLACE OF SUPPLY:</strong> <span style="font-weight: bold;">{{ $order->getPlaceOfSupply() }}</span></div>
+                    </td>
+                </tr>
             </table>
-        </div>
 
-        {{-- Summary & Warranty Card Grid --}}
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-10">
-            {{-- Left Side: Script Thank You & Warranty Overview --}}
-            <div class="md:col-span-7 space-y-4">
-                <div>
-                    <div class="font-script text-4xl sm:text-5xl text-[#0E261C] leading-tight">
-                        Thank You
-                    </div>
-                    <div class="text-[10px] uppercase tracking-[0.25em] text-gray-500 font-bold mt-1">
-                        FOR CHOOSING VRAZIO ATELIER
-                    </div>
-                </div>
+            {{-- Products Table --}}
+            <div class="table-responsive">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 6%; text-align: center;">#</th>
+                            <th style="width: 50%; text-align: left;">PRODUCT DESCRIPTION</th>
+                            <th style="width: 8%; text-align: center;">QTY</th>
+                            <th style="width: 18%; text-align: right;">UNIT PRICE (₹)</th>
+                            <th style="width: 18%; text-align: right;">TOTAL (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($order->items as $idx => $item)
+                            <tr>
+                                <td style="text-align: center; font-family: monospace; color: #555555;">{{ $idx + 1 }}</td>
+                                <td>
+                                    <div class="item-title">{{ $item->product_title }}</div>
+                                    <div class="item-meta">
+                                        SKU: {{ $item->product_sku }} | HSN: {{ $item->getHsnCode() }} | GST: {{ $item->getGstRateFormatted() }}@if(!empty($item->size)) | Size: {{ $item->size }}@endif
+                                    </div>
+                                </td>
+                                <td style="text-align: center; font-family: monospace;">{{ $item->quantity }}</td>
+                                <td style="text-align: right; font-family: monospace;">₹{{ number_format((float)$item->unit_price, 2) }}</td>
+                                <td style="text-align: right; font-family: monospace; font-weight: bold; color: #0E261C;">₹{{ number_format((float)$item->line_total, 2) }}</td>
+                            </tr>
+                        @endforeach
 
-                {{-- Warranty Overview Card --}}
-                <div class="bg-white border border-[#E2D9CC] p-4 sm:p-5 rounded-md shadow-xs relative">
-                    <div class="flex items-center gap-2 text-xs font-bold text-[#0E261C] uppercase tracking-wider mb-2">
-                        <span class="text-[#D4AF37] text-base leading-none">✦</span>
-                        <span>Warranty &amp; Authenticity Guarantee</span>
-                    </div>
-                    <p class="text-xs text-gray-600 leading-relaxed">
-                        Every authentic VRAZIO creation is BIS hallmarked and covered under our Comprehensive Lifetime Craftsmanship Warranty. Includes complimentary gem inspection, prong tightening, and ultrasonic cleaning.
-                    </p>
-                    <div class="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px]">
-                        <span class="text-gray-500">Need support or claim?</span>
-                        <a href="{{ route('orders.index') }}" class="text-[#D4AF37] font-bold hover:underline">
-                            vrazio.com/orders &rarr;
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Right Side: Financial Totals with Left Gold Accent Line --}}
-            <div class="md:col-span-5 border-l-2 border-[#D4AF37] pl-6 space-y-2.5">
-                <div class="flex justify-between text-xs sm:text-sm text-gray-600">
-                    <span>Subtotal</span>
-                    <span class="font-mono font-semibold text-gray-900">₹{{ number_format((float)($order->subtotal ?? $order->total_amount), 2) }}</span>
-                </div>
-                <div class="flex justify-between text-xs sm:text-sm text-gray-600">
-                    <span>Tax / GST (3%)</span>
-                    <span class="font-mono font-semibold text-gray-900">₹{{ number_format((float)($order->tax_gst ?? 0), 2) }}</span>
-                </div>
-                <div class="flex justify-between text-xs sm:text-sm text-gray-600">
-                    <span>Insured Shipping</span>
-                    <span class="font-mono font-semibold text-gray-900">
-                        @if((float)$order->shipping_cost > 0)
-                            ₹{{ number_format((float)$order->shipping_cost, 2) }}
-                        @else
-                            <span class="text-emerald-700 font-bold">FREE</span>
+                        {{-- Empty row for visual spacing matching Image 3 if 1 or 2 items --}}
+                        @if($order->items->count() < 3)
+                            <tr>
+                                <td style="height: 18px;">&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                            </tr>
                         @endif
-                    </span>
-                </div>
-                <div class="flex justify-between text-xs sm:text-sm text-gray-600">
-                    <span>Discount</span>
-                    <span class="font-mono font-semibold text-gray-900">₹0.00</span>
-                </div>
-
-                <div class="border-t border-[#D4AF37]/50 my-2 pt-2"></div>
-
-                <div class="flex justify-between items-baseline">
-                    <span class="font-display text-lg font-bold text-[#0E261C]">Total</span>
-                    <span class="font-display text-2xl font-bold text-[#0E261C]">
-                        ₹{{ number_format((float)$order->total_amount, 2) }}
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Bottom Footer Bar --}}
-        <div class="pt-6 border-t border-[#D4AF37]/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
-            <div class="flex flex-wrap items-center gap-3">
-                <span class="flex items-center gap-1">
-                    <svg width="14" height="14" class="w-3.5 h-3.5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.044.102-.115.434-.506.549-.68.116-.173.232-.144.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z"/></svg>
-                    +91 87912 27210
-                </span>
-                <span class="text-[#D4AF37]">•</span>
-                <span>vrazioofficail@gmail.com</span>
-                <span class="text-[#D4AF37]">•</span>
-                <span>@vrazio.official</span>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="text-[10px] uppercase tracking-widest text-[#D4AF37] font-semibold">
-                ✦ TIMELESS BEAUTY, ALWAYS YOURS
+            {{-- Summary & Total Block --}}
+            <table class="summary-wrapper-table">
+                <tr>
+                    <td class="summary-spacer" style="width: 48%;"></td>
+                    <td class="summary-content" style="width: 52%; vertical-align: top;">
+                        <table class="summary-table">
+                            <tr>
+                                <td class="s-lbl">Subtotal:</td>
+                                <td class="s-val">₹{{ number_format((float)($order->subtotal ?? $order->total_amount), 2) }}</td>
+                            </tr>
+
+                            @if(!$order->isInterState())
+                                <tr>
+                                    <td class="s-lbl">CGST ({{ number_format($order->getCgstRate(), 1) }}%):</td>
+                                    <td class="s-val">₹{{ number_format($order->getCgstAmount(), 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="s-lbl">SGST ({{ number_format($order->getSgstRate(), 1) }}%):</td>
+                                    <td class="s-val">₹{{ number_format($order->getSgstAmount(), 2) }}</td>
+                                </tr>
+                            @else
+                                <tr>
+                                    <td class="s-lbl">IGST ({{ number_format($order->getIgstRate(), 1) }}%):</td>
+                                    <td class="s-val">₹{{ number_format($order->getIgstAmount(), 2) }}</td>
+                                </tr>
+                            @endif
+
+                            <tr>
+                                <td class="s-lbl">Insured Shipping:</td>
+                                <td class="s-val">
+                                    @if((float)$order->shipping_cost > 0)
+                                        ₹{{ number_format((float)$order->shipping_cost, 2) }}
+                                    @else
+                                        FREE
+                                    @endif
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="s-lbl">Discount:</td>
+                                <td class="s-val">
+                                    @if((float)($order->discount_amount ?? 0) > 0)
+                                        -₹{{ number_format((float)$order->discount_amount, 2) }}
+                                    @else
+                                        ₹0.00
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+
+                        {{-- Deep Emerald Total Bar --}}
+                        <div class="total-emerald-bar">
+                            <div class="total-amount-row">
+                                TOTAL (INR): &nbsp;&nbsp; ₹{{ number_format((float)$order->total_amount, 2) }}
+                            </div>
+                            <div class="total-words-row">
+                                In Words: {{ $order->getAmountInWords() }}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            {{-- Footer Notes: Bank Details & Warranty --}}
+            <div class="footer-legal-notes">
+                <div><strong>BANK DETAILS:</strong> VRAZIO ATELIER, ICICI BANK, A/C No: 123450506781, IFSC: ICIC0001234</div>
+                <div style="margin-top: 3px;">
+                    <strong>WARRANTY:</strong> Each accessory is backed by VRAZIO's authentic craftsmanship guarantee. Track warranty at <a href="{{ route('orders.index') }}" style="color: #0E261C; text-decoration: underline;">vrazio.com/orders</a>
+                </div>
             </div>
+
+            {{-- Signature Block --}}
+            <div class="signature-row">
+                For VRAZIO
+            </div>
+
+            {{-- Centered Bottom Signoff --}}
+            <div class="signoff-centered">
+                <div class="signoff-script-text">
+                    Thank You <span class="signoff-atelier-text">FOR CHOOSING VRAZIO ATELIER</span>
+                </div>
+                <div class="signoff-timeless">
+                    TIMELESS BEAUTY, ALWAYS YOURS
+                </div>
+            </div>
+
         </div>
     </div>
+
+</div>
 
 </body>
 </html>

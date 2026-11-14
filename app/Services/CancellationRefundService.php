@@ -188,7 +188,7 @@ class CancellationRefundService
                 'status' => OrderCancellation::STATUS_APPROVED,
                 'approved_by' => $approvedBy?->id,
                 'approved_at' => now(),
-                'admin_notes' => $adminNotes ? trim($cancellation->admin_notes . "\n" . $adminNotes) : $cancellation->admin_notes,
+                'admin_notes' => $adminNotes ? trim($cancellation->admin_notes."\n".$adminNotes) : $cancellation->admin_notes,
             ]);
 
             // 1. Inventory Restoration (Strictly exactly once!)
@@ -196,12 +196,12 @@ class CancellationRefundService
 
             // 2. Update Order/Item status
             if ($cancellation->type === OrderCancellation::TYPE_FULL) {
-                $orderNotes = $order->tracking_notes ? $order->tracking_notes . "\n" : '';
+                $orderNotes = $order->tracking_notes ? $order->tracking_notes."\n" : '';
                 $order->update([
                     'fulfillment_status' => 'cancelled',
                     'cancellation_status' => 'cancelled',
                     'cancelled_at' => now(),
-                    'tracking_notes' => $orderNotes . '[' . now()->toDateTimeString() . "] Cancelled: {$cancellation->reason}",
+                    'tracking_notes' => $orderNotes.'['.now()->toDateTimeString()."] Cancelled: {$cancellation->reason}",
                 ]);
 
                 foreach ($order->items as $it) {
@@ -272,7 +272,7 @@ class CancellationRefundService
                 'rejected_by' => $rejectedBy?->id,
                 'rejected_at' => now(),
                 'rejection_reason' => $rejectionReason,
-                'admin_notes' => $adminNotes ? trim((string) $cancellation->admin_notes . "\n" . $adminNotes) : $cancellation->admin_notes,
+                'admin_notes' => $adminNotes ? trim((string) $cancellation->admin_notes."\n".$adminNotes) : $cancellation->admin_notes,
             ]);
 
             // Revert request statuses
@@ -361,7 +361,7 @@ class CancellationRefundService
                 );
 
                 $refund->update([
-                    'razorpay_refund_id' => $rzpRefund->id ?? ('rfnd_' . Str::random(14)),
+                    'razorpay_refund_id' => $rzpRefund->id ?? ('rfnd_'.Str::random(14)),
                     'status' => OrderRefund::STATUS_REFUNDED,
                     'completed_at' => now(),
                     'gateway_response' => (array) $rzpRefund,
@@ -373,7 +373,7 @@ class CancellationRefundService
 
                 $this->safeSendMail(new RefundNotificationMail($order, $refund, 'completed'), $order->client_email);
             } catch (\Throwable $e) {
-                Log::error('Razorpay refund error: ' . $e->getMessage(), [
+                Log::error('Razorpay refund error: '.$e->getMessage(), [
                     'order_id' => $order->id,
                     'refund_id' => $refund->id,
                 ]);
@@ -451,7 +451,7 @@ class CancellationRefundService
         return CreditNote::create([
             'order_id' => $order->id,
             'order_cancellation_id' => $cancellation->id,
-            'original_invoice_number' => 'VRZ-INV-' . $order->order_number,
+            'original_invoice_number' => 'VRZ-INV-'.$order->order_number,
             'invoice_date' => $order->created_at->toDateString(),
             'client_name' => $order->client_name,
             'client_email' => $order->client_email,
@@ -531,8 +531,13 @@ class CancellationRefundService
         $totalOrderDiscounts = (float) $order->discount_amount;
         $discountRatio = max(0.0, ($orderSubtotal - $totalOrderDiscounts) / $orderSubtotal);
 
-        // Proportional net value + tax
-        $itemShareOfPaid = (float) $item->line_total * $discountRatio;
+        // Proportional net value + proportional tax
+        $itemNetTaxable = (float) $item->line_total * $discountRatio;
+        $netSubtotalAfterDiscount = max(0.01, $orderSubtotal - $totalOrderDiscounts);
+        $itemShareRatio = $itemNetTaxable / $netSubtotalAfterDiscount;
+        $itemGst = round((float) $order->tax_gst * $itemShareRatio, 2);
+
+        $itemShareOfPaid = round($itemNetTaxable + $itemGst, 2);
 
         return round(min($itemShareOfPaid, (float) $order->total_amount), 2);
     }
@@ -563,7 +568,7 @@ class CancellationRefundService
         try {
             Mail::to($to)->send($mailable);
         } catch (\Throwable $e) {
-            Log::warning('Email notification failed to send: ' . $e->getMessage(), ['to' => $to]);
+            Log::warning('Email notification failed to send: '.$e->getMessage(), ['to' => $to]);
         }
     }
 }

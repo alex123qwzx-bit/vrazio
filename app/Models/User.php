@@ -95,6 +95,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Get all membership requests submitted by this user.
+     */
+    public function membershipRequests(): HasMany
+    {
+        return $this->hasMany(MembershipRequest::class)->latest();
+    }
+
+    /**
      * Get currently active PRIVÉ CLUB membership if any.
      */
     public function activeMembership(): ?Membership

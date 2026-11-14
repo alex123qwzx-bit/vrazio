@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class Membership extends Model
@@ -24,6 +26,9 @@ class Membership extends Model
         'razorpay_order_id',
         'razorpay_payment_id',
         'status',
+        'auto_renewal',
+        'cancelled_at',
+        'cancellation_reason',
         'starts_at',
         'expires_at',
         'next_order_discount_used',
@@ -36,6 +41,8 @@ class Membership extends Model
 
     protected $casts = [
         'fee_paid' => 'decimal:2',
+        'auto_renewal' => 'boolean',
+        'cancelled_at' => 'datetime',
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
         'next_order_discount_used' => 'boolean',
@@ -82,6 +89,80 @@ class Membership extends Model
         return $this->belongsTo(Order::class, 'next_order_order_id');
     }
 
+    public function requests(): HasMany
+    {
+        return $this->hasMany(MembershipRequest::class)->latest();
+    }
+
+    public function activeRequest(): ?MembershipRequest
+    {
+        return $this->requests()
+            ->whereIn('status', [
+                MembershipRequest::STATUS_PENDING_REVIEW,
+                MembershipRequest::STATUS_UNDER_REVIEW,
+                MembershipRequest::STATUS_PAYMENT_PENDING,
+            ])
+            ->first();
+    }
+
+    public function isCancellationPending(): bool
+    {
+        return $this->requests()
+            ->where('type', MembershipRequest::TYPE_CANCELLATION)
+            ->whereIn('status', [
+                MembershipRequest::STATUS_PENDING_REVIEW,
+                MembershipRequest::STATUS_UNDER_REVIEW,
+            ])
+            ->exists();
+    }
+
+    public function isUpgradePending(): bool
+    {
+        return $this->requests()
+            ->where('type', MembershipRequest::TYPE_UPGRADE)
+            ->whereIn('status', [
+                MembershipRequest::STATUS_PENDING_REVIEW,
+                MembershipRequest::STATUS_UNDER_REVIEW,
+                MembershipRequest::STATUS_PAYMENT_PENDING,
+            ])
+            ->exists();
+    }
+
+    public function isRefundPending(): bool
+    {
+        return $this->requests()
+            ->where(function ($q) {
+                $q->where('type', MembershipRequest::TYPE_REFUND)
+                    ->orWhere('is_refund_requested', true);
+            })
+            ->whereIn('refund_status', [
+                MembershipRequest::REFUND_PENDING_REVIEW,
+                MembershipRequest::REFUND_UNDER_REVIEW,
+                MembershipRequest::REFUND_PROCESSING,
+            ])
+            ->exists();
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return $this->status === 'active' && ! $this->isCancellationPending();
+    }
+
+    public function canBeUpgraded(): bool
+    {
+        return $this->status === 'active' && ! $this->isUpgradePending() && $this->tier !== 'gold_max';
+    }
+
+    public function getNextBillingDateAttribute(): ?Carbon
+    {
+        return $this->expires_at;
+    }
+
+    public function getFormattedPriceAttribute(): string
+    {
+        return '₹'.number_format((float) $this->fee_paid, 2);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active')
@@ -126,6 +207,10 @@ class Membership extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->status === 'cancelled') {
+            return 'Cancelled';
+        }
+
         if ($this->status === 'suspended') {
             return 'Suspended';
         }
@@ -139,6 +224,10 @@ class Membership extends Model
 
     public function getStatusColorAttribute(): string
     {
+        if ($this->status === 'cancelled') {
+            return 'gray';
+        }
+
         if ($this->status === 'suspended') {
             return 'warning';
         }

@@ -6,6 +6,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
+use App\Models\OrderCancellation;
+use App\Services\CancellationRefundService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -178,11 +180,27 @@ class OrderResource extends Resource
                                 Infolists\Components\TextEntry::make('subtotal')
                                     ->money('INR'),
 
+                                Infolists\Components\TextEntry::make('discount_amount')
+                                    ->label('Discount')
+                                    ->money('INR')
+                                    ->placeholder('₹0.00')
+                                    ->color('success'),
+
+                                Infolists\Components\TextEntry::make('voucher_code')
+                                    ->label('Voucher Code')
+                                    ->placeholder('None')
+                                    ->badge(),
+
+                                Infolists\Components\TextEntry::make('prive_member_id')
+                                    ->label('PRIVÉ Member ID')
+                                    ->placeholder('None'),
+
                                 Infolists\Components\TextEntry::make('tax_gst')
                                     ->label('GST')
                                     ->money('INR'),
 
                                 Infolists\Components\TextEntry::make('shipping_cost')
+                                    ->label('Shipping / Transit')
                                     ->money('INR'),
 
                                 Infolists\Components\TextEntry::make('total_amount')
@@ -375,7 +393,7 @@ class OrderResource extends Resource
                     ->label('Update Delivery')
                     ->icon('heroicon-o-truck')
                     ->color('primary')
-                    ->modalHeading(fn (Order $record): string => 'Update Delivery Status — ' . $record->order_number)
+                    ->modalHeading(fn (Order $record): string => 'Update Delivery Status — '.$record->order_number)
                     ->modalDescription('Update order status and courier tracking info for the customer.')
                     ->modalSubmitActionLabel('Save Updates')
                     ->form([
@@ -495,13 +513,13 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->visible(fn (Order $record): bool => $record->canBeCancelled())
-                    ->modalHeading(fn (Order $record): string => 'Cancel Consignment — ' . $record->order_number)
+                    ->modalHeading(fn (Order $record): string => 'Cancel Consignment — '.$record->order_number)
                     ->modalDescription('Cancelling will release reserved vault inventory, issue a GST Credit Note, initiate online Razorpay refund, and notify patron.')
                     ->form([
                         Forms\Components\Select::make('reason')
                             ->label('Cancellation Reason')
                             ->required()
-                            ->options(\App\Models\OrderCancellation::REASONS)
+                            ->options(OrderCancellation::REASONS)
                             ->default('Changed my mind'),
 
                         Forms\Components\Textarea::make('admin_notes')
@@ -509,7 +527,7 @@ class OrderResource extends Resource
                             ->placeholder('Optional staff notes...'),
                     ])
                     ->action(function (Order $record, array $data): void {
-                        $service = app(\App\Services\CancellationRefundService::class);
+                        $service = app(CancellationRefundService::class);
                         $cancellation = $service->requestCancellation(
                             order: $record,
                             reason: $data['reason'],

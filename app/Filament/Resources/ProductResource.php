@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Subcategory;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -67,11 +69,11 @@ class ProductResource extends Resource
                                         Forms\Components\Select::make('category_id')
                                             ->label('Product Category')
                                             ->required()
-                                            ->options(fn (): array => \App\Models\Category::active()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->toArray())
+                                            ->options(fn (): array => Category::active()->orderBy('sort_order')->orderBy('name')->pluck('name', 'id')->toArray())
                                             ->searchable()
                                             ->preload()
                                             ->live()
-                                            ->afterStateUpdated(function (Forms\Set $set, ?int $state): void {
+                                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?int $state): void {
                                                 // Reset subcategory selection when category changes
                                                 $set('subcategory_id', null);
 
@@ -79,9 +81,9 @@ class ProductResource extends Resource
                                                     return;
                                                 }
 
-                                                // Contextual GST suggestion based on selected category
-                                                $category = \App\Models\Category::find($state);
-                                                if ($category) {
+                                                // Contextual GST suggestion only if GST percentage is not yet set
+                                                $category = Category::find($state);
+                                                if ($category && ($get('gst_percent') === null || $get('gst_percent') === '')) {
                                                     $slug = strtolower($category->slug);
                                                     if ($slug === 'jewelry') {
                                                         $set('gst_percent', 3);
@@ -103,7 +105,8 @@ class ProductResource extends Resource
                                                 if (! $catId) {
                                                     return [];
                                                 }
-                                                return \App\Models\Subcategory::where('category_id', $catId)
+
+                                                return Subcategory::where('category_id', $catId)
                                                     ->where('is_active', true)
                                                     ->orderBy('sort_order')
                                                     ->orderBy('name')
@@ -168,14 +171,25 @@ class ProductResource extends Resource
                                             ->live(onBlur: true)
                                             ->helperText('Taxable wholesale/base valuation before GST and discounts.'),
 
-                                        Forms\Components\Select::make('gst_percent')
-                                            ->label('GST Percentage')
+                                        Forms\Components\TextInput::make('gst_percent')
+                                            ->label('GST Percentage (%)')
                                             ->required()
-                                            ->options(Product::GST_RATES)
+                                            ->numeric()
+                                            ->suffix('%')
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->step(0.01)
                                             ->default(3)
-                                            ->native(false)
-                                            ->live()
-                                            ->helperText('Manually selectable GST percentage applicable to this product.'),
+                                            ->live(onBlur: true)
+                                            ->datalist([
+                                                '0',
+                                                '3',
+                                                '5',
+                                                '12',
+                                                '18',
+                                                '28',
+                                            ])
+                                            ->helperText('Manually enter any GST percentage (e.g. 0, 3, 5, 12, 18, 28) or select a common rate.'),
 
                                         Forms\Components\TextInput::make('discount_percent')
                                             ->label('Discount Percentage (%)')
@@ -202,7 +216,7 @@ class ProductResource extends Resource
                                                 $discountPercent = (float) ($get('discount_percent') ?? 0);
                                                 $gstPercent = (float) ($get('gst_percent') ?? 0);
                                                 $catId = $get('category_id');
-                                                $category = $catId ? (\App\Models\Category::find($catId)?->name ?? 'General') : 'General';
+                                                $category = $catId ? (Category::find($catId)?->name ?? 'General') : 'General';
 
                                                 $discountAmount = round($basePrice * ($discountPercent / 100.0), 2);
                                                 $discountedPrice = max(0.0, round($basePrice - $discountAmount, 2));
@@ -222,19 +236,19 @@ class ProductResource extends Resource
                                                             </div>
                                                             <div style='background:#fff; padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px;'>
                                                                 <span style='color:#6b7280; display:block; font-size:10px; text-transform:uppercase;'>Base Price</span>
-                                                                <strong style='font-family:monospace; font-size:13px;'>₹" . number_format($basePrice, 2) . "</strong>
+                                                                <strong style='font-family:monospace; font-size:13px;'>₹".number_format($basePrice, 2)."</strong>
                                                             </div>
                                                             <div style='background:#fff; padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px;'>
                                                                 <span style='color:#6b7280; display:block; font-size:10px; text-transform:uppercase;'>Discount ({$discountPercent}%)</span>
-                                                                <strong style='color:#dc2626; font-family:monospace; font-size:13px;'>- ₹" . number_format($discountAmount, 2) . "</strong>
+                                                                <strong style='color:#dc2626; font-family:monospace; font-size:13px;'>- ₹".number_format($discountAmount, 2)."</strong>
                                                             </div>
                                                             <div style='background:#fff; padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px;'>
                                                                 <span style='color:#6b7280; display:block; font-size:10px; text-transform:uppercase;'>Discounted Taxable Price</span>
-                                                                <strong style='font-family:monospace; font-size:13px;'>₹" . number_format($discountedPrice, 2) . "</strong>
+                                                                <strong style='font-family:monospace; font-size:13px;'>₹".number_format($discountedPrice, 2)."</strong>
                                                             </div>
                                                             <div style='background:#fff; padding:8px 12px; border:1px solid #e5e7eb; border-radius:4px;'>
                                                                 <span style='color:#6b7280; display:block; font-size:10px; text-transform:uppercase;'>GST ({$gstPercent}%)</span>
-                                                                <strong style='color:#059669; font-family:monospace; font-size:13px;'>+ ₹" . number_format($gstAmount, 2) . "</strong>
+                                                                <strong style='color:#059669; font-family:monospace; font-size:13px;'>+ ₹".number_format($gstAmount, 2)."</strong>
                                                             </div>
                                                         </div>
 
@@ -243,16 +257,16 @@ class ProductResource extends Resource
                                                                 <span style='color:#D4AF37; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; display:block;'>Calculated Customer Price (GST Inclusive)</span>
                                                                 <div style='display:flex; align-items:center; margin-top:2px;'>
                                                                     {$badgeHtml}
-                                                                    <span style='font-family:monospace; font-size:18px; font-weight:700; color:#D4AF37;'>₹" . number_format($finalPrice, 2) . "</span>
+                                                                    <span style='font-family:monospace; font-size:18px; font-weight:700; color:#D4AF37;'>₹".number_format($finalPrice, 2)."</span>
                                                                 </div>
                                                             </div>
                                                             <div style='text-align:right;'>
                                                                 <span style='color:#9ca3af; font-size:10px; display:block;'>Storefront Customer Display</span>
-                                                                <span style='color:#fff; font-weight:700; font-size:14px; font-family:monospace;'>" . ($discountPercent > 0 ? "[{$discountPercent}% OFF] " : "") . "₹" . number_format($finalPrice, 0) . "</span>
+                                                                <span style='color:#fff; font-weight:700; font-size:14px; font-family:monospace;'>".($discountPercent > 0 ? "[{$discountPercent}% OFF] " : '').'₹'.number_format($finalPrice, 0).'</span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                ");
+                                                ');
                                             })
                                             ->columnSpanFull(),
                                     ])
@@ -410,7 +424,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('discount_percent')
                     ->label('Discount')
                     ->suffix('%')
-                    ->color(fn ($state) => (float)$state > 0 ? 'danger' : 'gray')
+                    ->color(fn ($state) => (float) $state > 0 ? 'danger' : 'gray')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('final_price')

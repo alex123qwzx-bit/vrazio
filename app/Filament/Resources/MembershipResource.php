@@ -70,11 +70,23 @@ class MembershipResource extends Resource
                         Forms\Components\Toggle::make('next_order_discount_used')
                             ->label('One-Time Next Order Discount Used'),
 
+                        Forms\Components\Toggle::make('auto_renewal')
+                            ->label('Auto-Renewal Active'),
+
                         Forms\Components\TextInput::make('fee_paid')
                             ->label('Fee Paid')
                             ->numeric()
                             ->prefix('₹')
                             ->disabledOn('edit'),
+
+                        Forms\Components\DateTimePicker::make('cancelled_at')
+                            ->label('Cancellation Date')
+                            ->disabled(),
+
+                        Forms\Components\TextInput::make('cancellation_reason')
+                            ->label('Cancellation Reason')
+                            ->disabled()
+                            ->columnSpanFull(),
 
                         Forms\Components\Textarea::make('admin_notes')
                             ->label('Atelier / Admin Notes')
@@ -129,6 +141,11 @@ class MembershipResource extends Resource
                 Tables\Columns\IconColumn::make('next_order_discount_used')
                     ->label('Disc. Used')
                     ->boolean(),
+
+                Tables\Columns\IconColumn::make('auto_renewal')
+                    ->label('Auto Renew')
+                    ->boolean()
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('expires_at')
                     ->label('Valid Until')

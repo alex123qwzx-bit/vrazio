@@ -147,8 +147,22 @@
                         <span>Subtotal:</span>
                         <span class="font-mono">₹{{ number_format((float) $order->subtotal, 2) }}</span>
                     </div>
+                    @if((float) $order->discount_amount > 0)
+                        <div class="flex justify-between text-emerald-700 font-semibold">
+                            <span>
+                                @if($order->voucher_code)
+                                    Privilege Discount ({{ $order->voucher_code }}):
+                                @elseif($order->prive_member_id)
+                                    ✦ PRIVÉ Club Privilege:
+                                @else
+                                    Privilege Discount:
+                                @endif
+                            </span>
+                            <span class="font-mono">-₹{{ number_format((float) $order->discount_amount, 2) }}</span>
+                        </div>
+                    @endif
                     <div class="flex justify-between">
-                        <span>GST (3%):</span>
+                        <span>Tax / GST:</span>
                         <span class="font-mono">₹{{ number_format((float) $order->tax_gst, 2) }}</span>
                     </div>
                     <div class="flex justify-between">

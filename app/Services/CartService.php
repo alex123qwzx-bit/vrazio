@@ -60,7 +60,7 @@ class CartService
     {
         $rates = SiteThemeSetting::getSetting('cod_state_rates', []);
         if (! is_array($rates)) {
-            $rates = json_decode((string)$rates, true) ?: [];
+            $rates = json_decode((string) $rates, true) ?: [];
         }
 
         $defaultFee = (float) ($rates['default'] ?? 0);
@@ -78,7 +78,7 @@ class CartService
 
         // Case-insensitive match
         foreach ($rates as $st => $fee) {
-            if (strcasecmp((string)$st, $cleanedState) === 0) {
+            if (strcasecmp((string) $st, $cleanedState) === 0) {
                 return (float) $fee;
             }
         }
@@ -90,6 +90,7 @@ class CartService
      * Session key for cart storage.
      */
     private const SESSION_KEY = 'cart';
+
     private const VOUCHER_SESSION_KEY = 'cart_voucher';
 
     /**
@@ -149,7 +150,7 @@ class CartService
         $cart = Session::get(self::SESSION_KEY, []);
         $productId = $product->id;
         $cleanSize = $size ? trim($size) : null;
-        $cartKey = $cleanSize ? "{$productId}_" . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $cleanSize) : (string) $productId;
+        $cartKey = $cleanSize ? "{$productId}_".preg_replace('/[^a-zA-Z0-9_\-]/', '_', $cleanSize) : (string) $productId;
 
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $quantity;
@@ -175,12 +176,13 @@ class CartService
         $cart = Session::get(self::SESSION_KEY, []);
         $key = (string) $cartKey;
 
-        if (!isset($cart[$key])) {
+        if (! isset($cart[$key])) {
             return;
         }
 
         if ($quantity <= 0) {
             $this->removeItem($key);
+
             return;
         }
 
@@ -239,7 +241,7 @@ class CartService
         if ($voucher->min_spend > 0 && $subtotal < (float) $voucher->min_spend) {
             return [
                 'success' => false,
-                'message' => "Voucher requires a minimum spend of ₹" . number_format((float) $voucher->min_spend, 2) . ". Current subtotal is ₹" . number_format($subtotal, 2) . ".",
+                'message' => 'Voucher requires a minimum spend of ₹'.number_format((float) $voucher->min_spend, 2).'. Current subtotal is ₹'.number_format($subtotal, 2).'.',
             ];
         }
 
@@ -255,6 +257,7 @@ class CartService
 
             if (! $hasProduct) {
                 $productTitle = $voucher->product?->title ?? 'the specified atelier piece';
+
                 return [
                     'success' => false,
                     'message' => "This voucher is exclusively valid for {$productTitle}.",
@@ -266,7 +269,7 @@ class CartService
         if ($voucher->usage_limit !== null && $voucher->used_count >= $voucher->usage_limit) {
             return [
                 'success' => false,
-                'message' => "This voucher code has reached its maximum redemption limit.",
+                'message' => 'This voucher code has reached its maximum redemption limit.',
             ];
         }
 
@@ -274,7 +277,7 @@ class CartService
 
         return [
             'success' => true,
-            'message' => "Voucher '{$voucher->code}' successfully applied! Discount: " . $voucher->discount_label . ".",
+            'message' => "Voucher '{$voucher->code}' successfully applied! Discount: ".$voucher->discount_label.'.',
             'voucher' => $voucher,
             'discount' => $this->getDiscount(),
             'subtotal' => $subtotal,
@@ -304,12 +307,14 @@ class CartService
         $voucher = Voucher::where('code', $code)->first();
         if (! $voucher || ! $voucher->isActive()) {
             $this->removeVoucher();
+
             return null;
         }
 
         $subtotal = $this->getSubtotal();
         if ($voucher->min_spend > 0 && $subtotal < (float) $voucher->min_spend) {
             $this->removeVoucher();
+
             return null;
         }
 
@@ -323,6 +328,7 @@ class CartService
             }
             if (! $hasProduct) {
                 $this->removeVoucher();
+
                 return null;
             }
         }
@@ -347,10 +353,11 @@ class CartService
                     $eligibleTotal += ($item['price'] * $item['quantity']);
                 }
             }
-            return $voucher->calculateDiscount($eligibleTotal);
+
+            return $voucher->calculateDiscount($eligibleTotal, $this->getItems());
         }
 
-        return $voucher->calculateDiscount($this->getSubtotal());
+        return $voucher->calculateDiscount($this->getSubtotal(), $this->getItems());
     }
 
     /**
@@ -379,6 +386,7 @@ class CartService
         if (! $membership->next_order_discount_used) {
             if ($subtotal >= (float) $plan->next_order_min_cart) {
                 $discount = $subtotal * ((float) $plan->next_order_discount_percent / 100.0);
+
                 return round(min($discount, (float) $plan->next_order_max_discount), 2);
             }
         }
@@ -392,6 +400,7 @@ class CartService
             if ($birthMonth === $currentMonth && (int) $membership->birthday_coupon_used_year !== $currentYear) {
                 if ($subtotal >= (float) $plan->birthday_min_cart) {
                     $bDiscount = $subtotal * ((float) $plan->birthday_discount_percent / 100.0);
+
                     return round(min($bDiscount, (float) $plan->birthday_max_discount), 2);
                 }
             }

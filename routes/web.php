@@ -103,6 +103,15 @@ Route::get('/prive-club/join/{slug}', [\App\Http\Controllers\PriveClubController
 Route::post('/prive-club/enroll', [\App\Http\Controllers\PriveClubController::class, 'processEnrollment'])->name('prive-club.enroll');
 Route::get('/prive-club/verify/{memberId}', [\App\Http\Controllers\PriveClubController::class, 'verify'])->name('prive-club.verify');
 
+// Customer Dashboard — Manage Membership, Cancellations, Refunds & Upgrades
+Route::middleware(['auth'])->group(function () {
+    Route::get('/account/membership', [\App\Http\Controllers\MembershipManagementController::class, 'showManage'])->name('account.membership.manage');
+    Route::post('/account/membership/cancel', [\App\Http\Controllers\MembershipManagementController::class, 'requestCancellation'])->middleware('throttle:6,1')->name('account.membership.cancel');
+    Route::post('/account/membership/refund', [\App\Http\Controllers\MembershipManagementController::class, 'requestRefund'])->middleware('throttle:6,1')->name('account.membership.refund');
+    Route::post('/account/membership/upgrade', [\App\Http\Controllers\MembershipManagementController::class, 'requestUpgrade'])->middleware('throttle:6,1')->name('account.membership.upgrade');
+    Route::get('/account/membership/requests/{requestNumber}', [\App\Http\Controllers\MembershipManagementController::class, 'trackRequest'])->name('account.membership.request.track');
+});
+
 // Editorial & Legal Atelier Pages
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 Route::get('/faq-page', [PageController::class, 'faq'])->name('faq');

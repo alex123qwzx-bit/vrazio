@@ -10,6 +10,7 @@ use Razorpay\Api\Api;
 class RazorpayService
 {
     private ?Api $api = null;
+
     private bool $isSimulated = true;
 
     public function __construct()
@@ -30,7 +31,7 @@ class RazorpayService
                 $this->api = new Api($key, $secret);
                 $this->isSimulated = false;
             } catch (\Throwable $e) {
-                Log::warning('Razorpay Api initialization failed: ' . $e->getMessage());
+                Log::warning('Razorpay Api initialization failed: '.$e->getMessage());
                 $this->api = null;
                 $this->isSimulated = true;
             }
@@ -50,22 +51,48 @@ class RazorpayService
     /**
      * Create a Razorpay order for payment processing.
      *
-     * @param  string  $receipt   Internal order reference
-     * @param  float   $amount    Total amount in INR (rupees, not paise)
+     * @param  string  $receipt  Internal order reference
+     * @param  float  $amount  Total amount in INR (rupees, not paise)
      * @param  string  $currency  ISO currency code
      */
     public function createOrder(string $receipt, float $amount, string $currency = 'INR'): object
     {
+        $key = $this->getKey();
+        $isTestMode = str_starts_with($key, 'rzp_test_') || app()->environment('local', 'testing');
+
+        // Razorpay API enforces a maximum transaction limit of ₹5,00,000 (50,000,000 paise) in Test Mode.
+        // For testing high-ticket bespoke jewelry orders (> ₹5,00,000), cap the gateway charge amount at ₹5,00,000
+        // in test mode so developers and patrons can complete end-to-end sandbox checkout without being blocked.
+        $chargeAmount = $amount;
+        if ($isTestMode && $amount > 500000) {
+            $chargeAmount = 500000;
+        }
+
         if ($this->api && ! $this->isSimulated) {
             try {
                 return $this->api->order->create([
                     'receipt' => $receipt,
-                    'amount' => (int) round($amount * 100), // Convert to paise
+                    'amount' => (int) round($chargeAmount * 100), // Convert to paise
                     'currency' => $currency,
                     'payment_capture' => 1,
                 ]);
             } catch (\Throwable $e) {
-                Log::error('Razorpay Order API call failed: ' . $e->getMessage(), [
+                // If Razorpay API rejects due to amount limits even below 500k (e.g. strict merchant test profile)
+                if ($isTestMode && str_contains(strtolower($e->getMessage()), 'exceeds maximum amount')) {
+                    Log::warning("Razorpay amount limit exceeded for test order {$receipt} (requested: {$amount}). Retrying with sandbox safe cap (₹10,000).");
+                    try {
+                        return $this->api->order->create([
+                            'receipt' => $receipt,
+                            'amount' => 1000000, // ₹10,000 in paise
+                            'currency' => $currency,
+                            'payment_capture' => 1,
+                        ]);
+                    } catch (\Throwable $retryErr) {
+                        Log::warning('Razorpay retry also failed: '.$retryErr->getMessage());
+                    }
+                }
+
+                Log::error('Razorpay Order API call failed: '.$e->getMessage(), [
                     'error' => $e->getMessage(),
                     'receipt' => $receipt,
                 ]);
@@ -82,9 +109,9 @@ class RazorpayService
 
         // Seamless fallback simulation ONLY for automated unit/feature tests
         return (object) [
-            'id' => 'order_sim_' . bin2hex(random_bytes(8)),
+            'id' => 'order_sim_'.bin2hex(random_bytes(8)),
             'receipt' => $receipt,
-            'amount' => (int) round($amount * 100),
+            'amount' => (int) round($chargeAmount * 100),
             'currency' => $currency,
             'status' => 'created',
         ];
@@ -114,7 +141,7 @@ class RazorpayService
 
                 return true;
             } catch (\Throwable $e) {
-                Log::warning('Razorpay signature verification failed: ' . $e->getMessage(), [
+                Log::warning('Razorpay signature verification failed: '.$e->getMessage(), [
                     'order_id' => $orderId,
                     'payment_id' => $paymentId,
                 ]);
@@ -138,9 +165,11 @@ class RazorpayService
 
         try {
             $expectedSignature = hash_hmac('sha256', $payload, $secret);
+
             return hash_equals($expectedSignature, $signature);
         } catch (\Throwable $e) {
-            Log::warning('Razorpay webhook signature verification error: ' . $e->getMessage());
+            Log::warning('Razorpay webhook signature verification error: '.$e->getMessage());
+
             return false;
         }
     }
@@ -149,9 +178,9 @@ class RazorpayService
      * Create a refund through Razorpay API.
      *
      * @param  string  $paymentId  Razorpay payment ID (e.g. pay_xxx)
-     * @param  float   $amount     Amount in INR
-     * @param  array   $notes      Optional metadata notes
-     * @return object  Razorpay Refund object or simulated refund object
+     * @param  float  $amount  Amount in INR
+     * @param  array  $notes  Optional metadata notes
+     * @return object Razorpay Refund object or simulated refund object
      */
     public function createRefund(string $paymentId, float $amount, array $notes = []): object
     {
@@ -164,7 +193,7 @@ class RazorpayService
                     'notes' => $notes,
                 ]);
             } catch (\Throwable $e) {
-                Log::error('Razorpay Refund API call failed: ' . $e->getMessage(), [
+                Log::error('Razorpay Refund API call failed: '.$e->getMessage(), [
                     'payment_id' => $paymentId,
                     'amount' => $amount,
                 ]);
@@ -174,7 +203,7 @@ class RazorpayService
 
         // Simulated refund response for continuity, tests, and mock mode
         return (object) [
-            'id' => 'rfnd_sim_' . bin2hex(random_bytes(8)),
+            'id' => 'rfnd_sim_'.bin2hex(random_bytes(8)),
             'payment_id' => $paymentId,
             'amount' => $amountInPaise,
             'currency' => 'INR',
@@ -193,6 +222,7 @@ class RazorpayService
         if (empty($key) || str_contains($key, 'xxxx') || str_contains($key, 'placeholder')) {
             return 'rzp_test_simulated_key';
         }
+
         return $key;
     }
 }

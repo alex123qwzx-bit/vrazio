@@ -6,7 +6,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\CartService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -34,7 +33,7 @@ class CheckoutAndWebhookTest extends TestCase
         // Unauthenticated guest cannot checkout
         $response = $this->withSession([
             'cart' => [
-                (string)$product->id => ['id' => $product->id, 'quantity' => 1],
+                (string) $product->id => ['id' => $product->id, 'quantity' => 1],
             ],
         ])->postJson(route('checkout.process'), $payload);
 
@@ -170,5 +169,45 @@ class CheckoutAndWebhookTest extends TestCase
 
         $product->refresh();
         $this->assertEquals(3, $product->stock_quantity); // Remains 3
+    }
+
+    public function test_checkout_handles_high_value_luxury_order_above_razorpay_test_cap(): void
+    {
+        $user = User::factory()->create(['phone' => '9999999999']);
+        $product = Product::factory()->create(['stock_quantity' => 2, 'price' => 558000]);
+
+        $payload = [
+            'client_name' => 'Alex Tim',
+            'client_email' => 'alex@example.com',
+            'client_phone' => '9999999999',
+            'payment_method' => 'razorpay',
+            'shipping_address' => [
+                'street' => 'Ladakh Heights',
+                'city' => 'Leh',
+                'state' => 'Ladakh',
+                'pincode' => '111111',
+            ],
+            'shipping_method' => 'standard',
+        ];
+
+        $response = $this->actingAs($user)->withSession([
+            'order_phone_verified' => '9999999999',
+            'cart' => [
+                (string) $product->id => [
+                    'id' => $product->id,
+                    'quantity' => 1,
+                ],
+            ],
+        ])->postJson(route('checkout.process'), $payload);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'order_number', 'razorpay_order_id', 'amount']);
+
+        $order = Order::where('client_phone', '9999999999')->first();
+        $this->assertNotNull($order);
+        // Internal order total retains the true high value (including any taxes/subtotals)
+        $this->assertGreaterThanOrEqual(558000, (float) $order->total_amount);
+        $this->assertEquals('pending', $order->payment_status);
+        $this->assertNotNull($order->razorpay_order_id);
     }
 }

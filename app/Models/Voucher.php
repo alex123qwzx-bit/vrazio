@@ -105,8 +105,7 @@ class Voucher extends Model
     /**
      * Check if the voucher is currently valid for a given cart subtotal and items.
      *
-     * @param float $subtotal
-     * @param array<int, int> $productIds
+     * @param  array<int, int>  $productIds
      * @return array{valid: bool, message: string}
      */
     public function validateForCart(float $subtotal, array $productIds = []): array
@@ -129,12 +128,14 @@ class Voucher extends Model
 
         if ($this->min_spend > 0 && $subtotal < (float) $this->min_spend) {
             $needed = number_format((float) $this->min_spend, 2);
+
             return ['valid' => false, 'message' => "Voucher '{$this->code}' requires a minimum spend of ₹{$needed}."];
         }
 
-        if ($this->product_id !== null && !empty($productIds)) {
-            if (!in_array((int) $this->product_id, array_map('intval', $productIds), true)) {
+        if ($this->product_id !== null && ! empty($productIds)) {
+            if (! in_array((int) $this->product_id, array_map('intval', $productIds), true)) {
                 $productName = $this->product?->title ?? 'a specific atelier piece';
+
                 return ['valid' => false, 'message' => "Voucher '{$this->code}' is valid only for '{$productName}'."];
             }
         }
@@ -152,10 +153,14 @@ class Voucher extends Model
         if ($this->product_id !== null) {
             // Apply only to the specific product in bag
             $targetSubtotal = 0.0;
-            foreach ($items as $item) {
-                if ((int) $item['id'] === (int) $this->product_id) {
-                    $targetSubtotal += (float) $item['price'] * (int) $item['quantity'];
+            if (! empty($items)) {
+                foreach ($items as $item) {
+                    if ((int) $item['id'] === (int) $this->product_id) {
+                        $targetSubtotal += (float) $item['price'] * (int) $item['quantity'];
+                    }
                 }
+            } else {
+                $targetSubtotal = $subtotal;
             }
 
             if ($this->discount_type === 'percentage') {
@@ -186,9 +191,9 @@ class Voucher extends Model
     public function getDiscountLabelAttribute(): string
     {
         if ($this->discount_type === 'percentage') {
-            return rtrim(rtrim(number_format((float) $this->discount_value, 2), '0'), '.') . '% OFF';
+            return rtrim(rtrim(number_format((float) $this->discount_value, 2), '0'), '.').'% OFF';
         }
 
-        return '₹' . number_format((float) $this->discount_value, 0) . ' OFF';
+        return '₹'.number_format((float) $this->discount_value, 0).' OFF';
     }
 }

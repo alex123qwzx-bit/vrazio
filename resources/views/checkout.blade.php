@@ -45,12 +45,16 @@
                     return 0;
                 },
 
-                getCalculatedTotal() {
+                getRawTotal() {
                     let netSubtotal = Math.max(0, this.subtotalVal - this.discountVal);
-                    let base = netSubtotal; // GST already included
                     let transit = (this.shippingMethod === 'express') ? this.expressTransitVal : this.standardTransitVal;
                     let cod = this.getCodFee();
-                    return (base + transit + cod).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return netSubtotal + this.gstVal + transit + cod;
+                },
+
+                getCalculatedTotal() {
+                    let total = this.getRawTotal();
+                    return total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
 
                 async initializePayment() {
@@ -438,10 +442,21 @@
                             <p class="mt-1 text-[11px] text-amber-800 leading-relaxed">
                                 • <strong>Domestic Test Card (India):</strong> <code class="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded text-amber-950">4100 2800 0000 1007</code> (CVV: 123, Exp: any future)<br>
                                 • <strong>Instant UPI Test:</strong> <code class="font-mono font-bold bg-amber-100 px-1 py-0.5 rounded text-amber-950">success@razorpay</code><br>
+                                • <strong>High-Value Test Orders (> ₹5 Lakhs):</strong> In Razorpay sandbox, orders above ₹5,00,000 are processed at the test ceiling of ₹5,00,000 for tokenization while retaining your full commission dossier value in your official invoice.<br>
                                 • <em>Note: Cards like 4012... are international Stripe cards and are declined by Razorpay India sandbox.</em>
                             </p>
                         </div>
                     @endif
+
+                    <div x-show="paymentMethod === 'razorpay' && getRawTotal() > 500000" x-cloak class="p-3 bg-[#FAF8F5] border border-[#D4AF37]/50 rounded text-xs text-[#0E261C]">
+                        <p class="font-bold flex items-center gap-1.5 text-[#0E261C]">
+                            <svg class="w-4 h-4 text-[#D4AF37] shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                            <span>High-Value Atelier Commission Advisory</span>
+                        </p>
+                        <p class="mt-1 text-[11px] text-[#0E261C]/80 leading-relaxed">
+                            For bespoke commissions exceeding ₹5,00,000, please ensure your card issuing bank permits single-transaction limits of this size. Alternatively, choose complimentary <strong>Armoured Cash on Delivery</strong> or contact our Concierge for direct RTGS/NEFT settlement.
+                        </p>
+                    </div>
 
                     <div x-show="paymentMethod === 'cod'" x-cloak class="p-4 border border-[#D4AF37]/30 bg-[#0E261C] text-[#FAF8F5]">
                         <div class="flex items-center gap-3">
@@ -470,9 +485,12 @@
 
             {{-- Right Column: Cart Breakdown Summary --}}
             <div class="lg:col-span-4 space-y-6">
+                @php
+                    $totalPieces = array_sum(array_column($items, 'quantity'));
+                @endphp
                 <div class="bg-white border border-[#D4AF37]/20 p-6 sm:p-8 shadow-sm">
                     <h3 class="font-display text-base font-bold text-[#0E261C] pb-4 border-b border-gray-100">
-                        Order Dossier ({{ count($items) }} Pieces)
+                        Order Dossier ({{ $totalPieces }} {{ $totalPieces === 1 ? 'Piece' : 'Pieces' }})
                     </h3>
 
                     <ul role="list" class="divide-y divide-gray-100 my-4 max-h-72 overflow-y-auto pr-2">
@@ -498,12 +516,20 @@
                         </div>
                         @if(($discount ?? 0) > 0)
                             <div class="flex justify-between text-emerald-700 font-semibold">
-                                <span>Privilege ({{ $voucher?->code }}):</span>
+                                <span>
+                                    @if(!empty($voucher?->code))
+                                        Privilege ({{ $voucher->code }}):
+                                    @elseif(!empty($membership))
+                                        ✦ PRIVÉ Club Privilege ({{ $membership->tier_name }}):
+                                    @else
+                                        Privilege Discount:
+                                    @endif
+                                </span>
                                 <span class="font-mono">-₹{{ number_format($discount, 2) }}</span>
                             </div>
                         @endif
                         <div class="flex justify-between">
-                            <span>Estimated GST (Included):</span>
+                            <span>Estimated GST:</span>
                             <span class="font-mono font-semibold">₹{{ number_format($gst, 2) }}</span>
                         </div>
                         <div class="flex justify-between">

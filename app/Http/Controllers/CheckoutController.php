@@ -6,7 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
+use App\Models\OrderCancellation;
 use App\Models\OrderItem;
+use App\Models\OrderRefund;
 use App\Models\Product;
 use App\Models\SiteThemeSetting;
 use App\Services\CartService;
@@ -39,6 +41,7 @@ class CheckoutController extends Controller
         // Require customer authentication to proceed to checkout / place an order
         if (! auth()->check()) {
             session()->put('url.intended', route('checkout.index'));
+
             return redirect()->route('login')
                 ->with('info', 'Please sign in or create an account to proceed with your bespoke order.');
         }
@@ -55,7 +58,7 @@ class CheckoutController extends Controller
         $membership = auth()->check() ? auth()->user()->activeMembership() : null;
 
         $verifiedPhone = session('order_phone_verified');
-        if (! $verifiedPhone && auth()->check() && auth()->user()->phone_verified_at && !empty(auth()->user()->phone)) {
+        if (! $verifiedPhone && auth()->check() && auth()->user()->phone_verified_at && ! empty(auth()->user()->phone)) {
             $verifiedPhone = auth()->user()->phone;
             session(['order_phone_verified' => $verifiedPhone]);
         }
@@ -140,7 +143,7 @@ class CheckoutController extends Controller
         $totalAmount = max(0.0, round($taxable + $gst + $shippingCost, 2));
 
         $queryLog = [];
-        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queryLog) {
+        DB::listen(function ($query) use (&$queryLog) {
             $queryLog[] = [
                 'sql' => $query->sql,
                 'bindings' => $query->bindings,
@@ -164,7 +167,7 @@ class CheckoutController extends Controller
             }
 
             $paymentMethod = $validated['payment_method'] ?? 'cod';
-            $orderNumber = 'VRZ-' . strtoupper(Str::random(8));
+            $orderNumber = 'VRZ-'.strtoupper(Str::random(8));
 
             $order = Order::create([
                 'order_number' => $orderNumber,
@@ -271,7 +274,7 @@ class CheckoutController extends Controller
                 'is_simulated' => $this->razorpayService->isSimulated(),
                 'order_number' => $order->order_number,
                 'razorpay_order_id' => $razorpayOrder->id,
-                'amount' => (int) round($totalAmount * 100), // in paise for Razorpay JS
+                'amount' => (int) ($razorpayOrder->amount ?? round($totalAmount * 100)), // in paise for Razorpay JS
                 'currency' => 'INR',
                 'key' => $this->razorpayService->getKey(),
                 'client_name' => $order->client_name,
@@ -288,16 +291,22 @@ class CheckoutController extends Controller
                     // Ignore rollback cleanup error
                 }
             }
-            Log::error('Order creation failed: ' . $e->getMessage(), [
+            Log::error('Order creation failed: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'queries' => $queryLog,
             ]);
 
+            $isAmountLimit = str_contains(strtolower($e->getMessage()), 'exceeds maximum amount');
+
+            $errorMessage = $isAmountLimit
+                ? 'High-value bespoke commissions exceeding ₹5,00,000 are restricted by online payment gateway limits. Please select Cash on Delivery or contact our Atelier Concierge for direct RTGS/NEFT settlement.'
+                : (config('app.debug') ? ('Order error: '.$e->getMessage().' in '.basename($e->getFile()).':'.$e->getLine()) : 'We made a mistake while initializing your order. Our team has been notified. Please try again shortly.');
+
             return response()->json([
                 'success' => false,
-                'message' => config('app.debug') ? ('Order error: ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine()) : 'We made a mistake while initializing your order. Our team has been notified. Please try again shortly.',
+                'message' => $errorMessage,
                 'error_detail' => config('app.debug') ? $e->getMessage() : null,
-            ], 500);
+            ], $isAmountLimit ? 422 : 500);
         }
     }
 
@@ -336,6 +345,7 @@ class CheckoutController extends Controller
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Order reference not found.'], 404);
             }
+
             return redirect()->route('home')->with('error', 'Order reference not located.');
         }
 
@@ -400,12 +410,14 @@ class CheckoutController extends Controller
         } else {
             if (empty($secret)) {
                 Log::error('Razorpay webhook secret is not configured in environment.');
+
                 return response()->json(['error' => 'Webhook secret configuration missing'], 500);
             }
 
             $expectedSignature = hash_hmac('sha256', $payload, $secret);
             if (! hash_equals($expectedSignature, $signature)) {
                 Log::warning('Razorpay webhook signature mismatch', ['received' => $signature]);
+
                 return response()->json(['error' => 'Invalid signature'], 400);
             }
         }
@@ -420,7 +432,7 @@ class CheckoutController extends Controller
 
         if ($event === 'order.paid' || $event === 'payment.captured') {
             $rzpOrderId = $data['payload']['order']['entity']['id'] ?? ($data['payload']['payment']['entity']['order_id'] ?? null);
-            $rzpPaymentId = $data['payload']['payment']['entity']['id'] ?? ('pay_hook_' . Str::random(10));
+            $rzpPaymentId = $data['payload']['payment']['entity']['id'] ?? ('pay_hook_'.Str::random(10));
 
             if ($rzpOrderId) {
                 $order = Order::where('razorpay_order_id', $rzpOrderId)->first();
@@ -435,17 +447,17 @@ class CheckoutController extends Controller
             $amountInRupees = round($amountInPaise / 100, 2);
 
             if ($rzpRefundId) {
-                $refund = \App\Models\OrderRefund::where('razorpay_refund_id', $rzpRefundId)->first();
-                if ($refund && $refund->status !== \App\Models\OrderRefund::STATUS_REFUNDED) {
+                $refund = OrderRefund::where('razorpay_refund_id', $rzpRefundId)->first();
+                if ($refund && $refund->status !== OrderRefund::STATUS_REFUNDED) {
                     $refund->update([
-                        'status' => \App\Models\OrderRefund::STATUS_REFUNDED,
+                        'status' => OrderRefund::STATUS_REFUNDED,
                         'completed_at' => now(),
                         'gateway_response' => $data['payload']['refund']['entity'] ?? null,
                     ]);
                     $refund->order?->increment('total_refunded', $amountInRupees);
                     $refund->order?->update(['refund_status' => 'refunded']);
                     if ($refund->cancellation) {
-                        $refund->cancellation->update(['status' => \App\Models\OrderCancellation::STATUS_COMPLETED]);
+                        $refund->cancellation->update(['status' => OrderCancellation::STATUS_COMPLETED]);
                     }
                     Log::info("Razorpay refund {$rzpRefundId} marked refunded via webhook.");
                 }
@@ -455,10 +467,10 @@ class CheckoutController extends Controller
             $failureReason = $data['payload']['refund']['entity']['error_description'] ?? 'Gateway failed processing refund';
 
             if ($rzpRefundId) {
-                $refund = \App\Models\OrderRefund::where('razorpay_refund_id', $rzpRefundId)->first();
-                if ($refund && $refund->status !== \App\Models\OrderRefund::STATUS_FAILED) {
+                $refund = OrderRefund::where('razorpay_refund_id', $rzpRefundId)->first();
+                if ($refund && $refund->status !== OrderRefund::STATUS_FAILED) {
                     $refund->update([
-                        'status' => \App\Models\OrderRefund::STATUS_FAILED,
+                        'status' => OrderRefund::STATUS_FAILED,
                         'failure_reason' => $failureReason,
                         'gateway_response' => $data['payload']['refund']['entity'] ?? null,
                     ]);

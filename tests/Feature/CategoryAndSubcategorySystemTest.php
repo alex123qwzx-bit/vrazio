@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\Subcategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -237,6 +238,17 @@ class CategoryAndSubcategorySystemTest extends TestCase
 
         $editNoSubRes = $this->get(ProductResource::getUrl('edit', ['record' => $productNoSub]));
         $editNoSubRes->assertSuccessful();
+
+        // 5. Test Livewire afterStateUpdated on Category selection executes flawlessly
+        Livewire::test(ProductResource\Pages\CreateProduct::class)
+            ->set('data.category_id', $jewelry->id)
+            ->assertSet('data.gst_percent', 3);
+
+        // 6. Test manual GST percent is preserved when switching categories
+        Livewire::test(ProductResource\Pages\CreateProduct::class)
+            ->set('data.gst_percent', 18)
+            ->set('data.category_id', $jewelry->id)
+            ->assertSet('data.gst_percent', 18);
     }
 
     /**
@@ -264,7 +276,7 @@ class CategoryAndSubcategorySystemTest extends TestCase
             $createdSubs[$name] = Subcategory::create([
                 'category_id' => $ringsCat->id,
                 'name' => $name,
-                'slug' => \Illuminate\Support\Str::slug($name),
+                'slug' => Str::slug($name),
                 'is_active' => true,
             ]);
         }

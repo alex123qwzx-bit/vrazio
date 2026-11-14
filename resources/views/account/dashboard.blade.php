@@ -111,6 +111,13 @@
                             </span>
                         </div>
 
+                        @if($priveMembership->activeRequest())
+                            <div class="mb-3 p-2.5 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900 flex items-center justify-between">
+                                <span>Request {{ $priveMembership->activeRequest()->request_number }}: <strong class="uppercase">{{ $priveMembership->activeRequest()->status_label }}</strong></span>
+                                <a href="{{ route('account.membership.manage') }}" class="underline font-bold text-amber-950">Track</a>
+                            </div>
+                        @endif
+
                         @include('prive-club.card', ['membership' => $priveMembership])
 
                         <div class="mt-4 pt-3 border-t border-gray-100 space-y-2 text-xs">
@@ -126,9 +133,13 @@
                                 <span class="text-gray-500">Warranty Protection:</span>
                                 <span class="text-emerald-700 font-bold">Active Coverage</span>
                             </div>
-                            <div class="pt-2 text-center">
-                                <a href="{{ route('prive-club.verify', $priveMembership->member_id) }}" target="_blank" class="text-[11px] text-[#D4AF37] hover:underline font-bold uppercase tracking-wider">
-                                    Open QR Verification Docket &rarr;
+                            <div class="pt-3 border-t border-gray-100 flex flex-col gap-2">
+                                <a href="{{ route('account.membership.manage') }}" 
+                                   class="block text-center py-2 bg-[#0E261C] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0E261C] text-xs font-bold uppercase tracking-wider rounded transition-colors shadow-xs">
+                                    ✦ Manage Membership &rarr;
+                                </a>
+                                <a href="{{ route('prive-club.verify', $priveMembership->member_id) }}" target="_blank" class="text-center text-[11px] text-[#D4AF37] hover:underline font-bold uppercase tracking-wider">
+                                    Open QR Verification Docket
                                 </a>
                             </div>
                         </div>

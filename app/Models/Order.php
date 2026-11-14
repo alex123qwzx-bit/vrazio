@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Order extends Model
@@ -144,7 +145,7 @@ class Order extends Model
         static::creating(function (Order $order): void {
             if (empty($order->order_number)) {
                 do {
-                    $candidate = 'VRZ-' . strtoupper(Str::random(8));
+                    $candidate = 'VRZ-'.strtoupper(Str::random(8));
                 } while (static::where('order_number', $candidate)->exists());
 
                 $order->order_number = $candidate;
@@ -182,7 +183,7 @@ class Order extends Model
     /**
      * Get the warranty claim associated with this order.
      */
-        /**
+    /**
      * Get all cancellation requests filed for this order.
      */
     public function cancellations(): HasMany
@@ -214,7 +215,7 @@ class Order extends Model
         return $this->hasMany(CreditNote::class);
     }
 
-    public function warrantyClaim(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function warrantyClaim(): HasOne
     {
         return $this->hasOne(WarrantyClaim::class);
     }
@@ -236,22 +237,27 @@ class Order extends Model
             if ($this->user_id && (int) $this->user_id === (int) $user->id) {
                 return true;
             }
-            if (!empty($user->phone) && $this->client_phone === $user->phone) {
+            if (! empty($user->phone) && $this->client_phone === $user->phone) {
                 return true;
             }
-            if (!empty($user->email) && strtolower((string) $this->client_email) === strtolower((string) $user->email)) {
+            if (! empty($user->email) && strtolower((string) $this->client_email) === strtolower((string) $user->email)) {
                 return true;
             }
         }
 
         // 3. Guest with verified OTP phone in session or recently placed order in session
         $recentOrder = session('recently_placed_order');
-        if (!empty($recentOrder) && $recentOrder === $this->order_number) {
+        if (! empty($recentOrder) && $recentOrder === $this->order_number) {
             return true;
         }
 
         $sessionPhone = $verifiedPhone ?? session('order_phone_verified');
-        if (!empty($sessionPhone) && !empty($this->client_phone) && $sessionPhone === $this->client_phone) {
+        if (! empty($sessionPhone) && ! empty($this->client_phone) && $sessionPhone === $this->client_phone) {
+            return true;
+        }
+
+        // 4. Local development preview for unassigned guest order
+        if (app()->environment('local') && empty($this->user_id)) {
             return true;
         }
 
@@ -263,8 +269,8 @@ class Order extends Model
      */
     public function isEligibleForWarranty(): bool
     {
-        return $this->fulfillment_status === 'delivered' && ! $this->relationLoaded('warrantyClaim') 
-            ? ! $this->warrantyClaim()->exists() 
+        return $this->fulfillment_status === 'delivered' && ! $this->relationLoaded('warrantyClaim')
+            ? ! $this->warrantyClaim()->exists()
             : ($this->fulfillment_status === 'delivered' && $this->warrantyClaim === null);
     }
 
@@ -283,7 +289,7 @@ class Order extends Model
             get: function (): string {
                 $amount = (float) $this->total_amount;
 
-                return '₹' . $this->formatIndianNumber($amount);
+                return '₹'.$this->formatIndianNumber($amount);
             },
         );
     }
@@ -333,6 +339,7 @@ class Order extends Model
                 return $key;
             }
         }
+
         return 'order_placed';
     }
 
@@ -342,6 +349,7 @@ class Order extends Model
     public function getCasualStatusLabel(): string
     {
         $key = $this->getCasualStatusKey();
+
         return self::CASUAL_STEPS[$key]['label'] ?? 'Order Placed';
     }
 
@@ -351,6 +359,7 @@ class Order extends Model
     public function getCurrentStepNumber(): int
     {
         $key = $this->getCasualStatusKey();
+
         return self::CASUAL_STEPS[$key]['step'] ?? 1;
     }
 
@@ -368,6 +377,7 @@ class Order extends Model
         }
 
         $nextStatus = $flow[$currentIndex + 1];
+
         return $this->updateTrackingStatus($nextStatus);
     }
 
@@ -427,7 +437,7 @@ class Order extends Model
         }
 
         $dateFormatted = $this->estimated_delivery_at->format('D, d M Y');
-        
+
         if ($this->delivery_time_slot) {
             return "{$dateFormatted} ({$this->delivery_time_slot})";
         }
@@ -454,6 +464,7 @@ class Order extends Model
         }
 
         $casualKey = $this->getCasualStatusKey();
+
         return in_array($casualKey, ['order_placed', 'packed'], true);
     }
 
@@ -466,18 +477,18 @@ class Order extends Model
             return false;
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($reason) {
+        DB::transaction(function () use ($reason) {
             // Restore inventory for each line item
             foreach ($this->items as $item) {
                 if ($item->product_id && $item->quantity > 0) {
-                    \Illuminate\Support\Facades\DB::table('products')->where('id', $item->product_id)->increment('stock_quantity', (int) $item->quantity);
+                    DB::table('products')->where('id', $item->product_id)->increment('stock_quantity', (int) $item->quantity);
                 }
             }
 
-            $currentNotes = $this->tracking_notes ? $this->tracking_notes . "\n" : '';
+            $currentNotes = $this->tracking_notes ? $this->tracking_notes."\n" : '';
             $this->update([
                 'fulfillment_status' => 'cancelled',
-                'tracking_notes' => $currentNotes . '[' . now()->toDateTimeString() . '] ' . $reason,
+                'tracking_notes' => $currentNotes.'['.now()->toDateTimeString().'] '.$reason,
             ]);
         });
 
@@ -504,12 +515,239 @@ class Order extends Model
         $remaining = substr($integerPart, 0, -3);
 
         if ($remaining !== '' && $remaining !== false) {
-            $lastThree = ',' . $lastThree;
-            $formatted = preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', $remaining) . $lastThree;
+            $lastThree = ','.$lastThree;
+            $formatted = preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', $remaining).$lastThree;
         } else {
             $formatted = $lastThree;
         }
 
-        return $formatted . '.' . $decimalPart;
+        return $formatted.'.'.$decimalPart;
+    }
+
+    public const array STATE_CODES = [
+        'JAMMU AND KASHMIR' => '01',
+        'HIMACHAL PRADESH' => '02',
+        'PUNJAB' => '03',
+        'CHANDIGARH' => '04',
+        'UTTARAKHAND' => '05',
+        'HARYANA' => '06',
+        'DELHI' => '07',
+        'RAJASTHAN' => '08',
+        'UTTAR PRADESH' => '09',
+        'BIHAR' => '10',
+        'SIKKIM' => '11',
+        'ARUNACHAL PRADESH' => '12',
+        'NAGALAND' => '13',
+        'MANIPUR' => '14',
+        'MIZORAM' => '15',
+        'TRIPURA' => '16',
+        'MEGHALAYA' => '17',
+        'ASSAM' => '18',
+        'WEST BENGAL' => '19',
+        'JHARKHAND' => '20',
+        'ODISHA' => '21',
+        'CHHATTISGARH' => '22',
+        'MADHYA PRADESH' => '23',
+        'GUJARAT' => '24',
+        'DAMAN AND DIU' => '25',
+        'DADRA AND NAGAR HAVELI' => '26',
+        'MAHARASHTRA' => '27',
+        'ANDHRA PRADESH' => '28',
+        'KARNATAKA' => '29',
+        'GOA' => '30',
+        'LAKSHADWEEP' => '31',
+        'KERALA' => '32',
+        'TAMIL NADU' => '33',
+        'PUDUCHERRY' => '34',
+        'ANDAMAN AND NICOBAR ISLANDS' => '35',
+        'TELANGANA' => '36',
+        'LADAKH' => '38',
+    ];
+
+    /**
+     * Get the customer state name from shipping address.
+     */
+    public function getCustomerStateName(): string
+    {
+        $addr = is_array($this->shipping_address) ? $this->shipping_address : json_decode((string) $this->shipping_address, true);
+        $state = trim($addr['state'] ?? '');
+
+        return $state !== '' ? $state : 'Uttar Pradesh';
+    }
+
+    /**
+     * Get the GST 2-digit state code for customer state.
+     */
+    public function getCustomerStateCode(): string
+    {
+        $state = strtoupper(trim($this->getCustomerStateName()));
+
+        return self::STATE_CODES[$state] ?? '09';
+    }
+
+    /**
+     * Get Place of Supply string (e.g. "Uttar Pradesh (09)").
+     */
+    public function getPlaceOfSupply(): string
+    {
+        return $this->getCustomerStateName().' ('.$this->getCustomerStateCode().')';
+    }
+
+    /**
+     * Check if the order is inter-state (outside Uttar Pradesh 09).
+     */
+    public function isInterState(): bool
+    {
+        return $this->getCustomerStateCode() !== '09';
+    }
+
+    /**
+     * Calculate effective GST rate in percentage.
+     */
+    public function getEffectiveGstRate(): float
+    {
+        $totalGst = (float) ($this->tax_gst ?? 0);
+        if ($totalGst <= 0) {
+            return 0.0;
+        }
+
+        $taxable = max(1.0, (float) ($this->subtotal ?? $this->total_amount) - (float) ($this->discount_amount ?? 0));
+
+        return round(($totalGst / $taxable) * 100, 1);
+    }
+
+    public function getCgstRate(): float
+    {
+        return $this->isInterState() ? 0.0 : round($this->getEffectiveGstRate() / 2, 1);
+    }
+
+    public function getSgstRate(): float
+    {
+        return $this->isInterState() ? 0.0 : round($this->getEffectiveGstRate() / 2, 1);
+    }
+
+    public function getIgstRate(): float
+    {
+        return $this->isInterState() ? $this->getEffectiveGstRate() : 0.0;
+    }
+
+    public function getCgstAmount(): float
+    {
+        if ($this->isInterState()) {
+            return 0.0;
+        }
+
+        $totalGst = (float) ($this->tax_gst ?? 0);
+
+        return round($totalGst / 2, 2);
+    }
+
+    public function getSgstAmount(): float
+    {
+        if ($this->isInterState()) {
+            return 0.0;
+        }
+
+        $totalGst = (float) ($this->tax_gst ?? 0);
+        $cgst = round($totalGst / 2, 2);
+
+        return round($totalGst - $cgst, 2);
+    }
+
+    public function getIgstAmount(): float
+    {
+        return $this->isInterState() ? (float) ($this->tax_gst ?? 0) : 0.0;
+    }
+
+    /**
+     * Convert the order total amount to words in Indian numbering format.
+     */
+    public function getAmountInWords(?float $amount = null): string
+    {
+        $val = $amount ?? (float) $this->total_amount;
+
+        return static::convertNumberToIndianWords($val);
+    }
+
+    /**
+     * Convert an amount into Indian words (Crores, Lakhs, Thousands, Hundreds, Rupees, Paise).
+     */
+    public static function convertNumberToIndianWords(float $amount): string
+    {
+        $amount = round($amount, 2);
+        if ($amount <= 0.0) {
+            return 'Zero Only';
+        }
+
+        $rupees = (int) floor($amount);
+        $paise = (int) round(($amount - $rupees) * 100);
+
+        $words = [];
+
+        $crores = (int) floor($rupees / 10000000);
+        $rupees %= 10000000;
+
+        $lakhs = (int) floor($rupees / 100000);
+        $rupees %= 100000;
+
+        $thousands = (int) floor($rupees / 1000);
+        $rupees %= 1000;
+
+        $hundreds = (int) floor($rupees / 100);
+        $remainder = $rupees % 100;
+
+        if ($crores > 0) {
+            $words[] = static::convertSubHundred($crores).' Crore'.($crores > 1 ? 's' : '');
+        }
+
+        if ($lakhs > 0) {
+            $words[] = static::convertSubHundred($lakhs).' Lakh';
+        }
+
+        if ($thousands > 0) {
+            $words[] = static::convertSubHundred($thousands).' Thousand';
+        }
+
+        if ($hundreds > 0) {
+            $words[] = static::convertSubHundred($hundreds).' Hundred';
+        }
+
+        if ($remainder > 0) {
+            $words[] = static::convertSubHundred($remainder);
+        }
+
+        $result = implode(' ', $words);
+
+        if ($paise > 0) {
+            $paiseWords = static::convertSubHundred($paise).' Paise';
+            $result = $result ? "{$result} and {$paiseWords}" : "{$paiseWords}";
+        }
+
+        return trim($result).' Only';
+    }
+
+    private static function convertSubHundred(int $number): string
+    {
+        $ones = [
+            0 => '', 1 => 'One', 2 => 'Two', 3 => 'Three', 4 => 'Four',
+            5 => 'Five', 6 => 'Six', 7 => 'Seven', 8 => 'Eight', 9 => 'Nine',
+            10 => 'Ten', 11 => 'Eleven', 12 => 'Twelve', 13 => 'Thirteen',
+            14 => 'Fourteen', 15 => 'Fifteen', 16 => 'Sixteen', 17 => 'Seventeen',
+            18 => 'Eighteen', 19 => 'Nineteen',
+        ];
+
+        $tens = [
+            2 => 'Twenty', 3 => 'Thirty', 4 => 'Forty', 5 => 'Fifty',
+            6 => 'Sixty', 7 => 'Seventy', 8 => 'Eighty', 9 => 'Ninety',
+        ];
+
+        if ($number < 20) {
+            return $ones[$number];
+        }
+
+        $ten = (int) floor($number / 10);
+        $one = $number % 10;
+
+        return $tens[$ten].($one > 0 ? '-'.$ones[$one] : '');
     }
 }
