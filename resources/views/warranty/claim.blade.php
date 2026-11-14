@@ -53,8 +53,8 @@
          },
          validateAndSubmit(e) {
              this.errorMessage = '';
-             if (this.files.length < 2) {
-                 this.errorMessage = 'Please upload at least 2 clear photos showing the craftsmanship defect.';
+             if (this.files.length < 1) {
+                 this.errorMessage = 'Please upload at least 1 clear photo showing the craftsmanship defect.';
                  e.preventDefault();
                  return false;
              }
@@ -260,7 +260,7 @@
                 {{-- Section 4: Photographic Evidence Upload --}}
                 <div class="space-y-4">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-[#0E261C] border-b border-gray-100 pb-2 flex items-center justify-between">
-                        <span>4. Photos of the Item (Upload 2 to 3 Photos)</span>
+                        <span>4. Defect Photographic Evidence (1 to 3 Photos)</span>
                         <span class="text-[10px] text-gray-400 font-normal">Max 5MB each (JPG, PNG, WebP)</span>
                     </h3>
 
@@ -283,7 +283,7 @@
                                 Click or drag defect photographs here
                             </div>
                             <p class="text-[11px] text-gray-500">
-                                Please capture at least 1 close-up macro view and 1 full-piece angle. (2 to 3 photos required)
+                                Please capture at least 1 clear photo of the piece showing the defect. (1 to 3 photos permitted, max 5MB each)
                             </p>
                         </div>
                     </div>

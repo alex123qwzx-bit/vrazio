@@ -92,7 +92,7 @@ Route::get('/order/{orderNumber}/invoice/stream', [InvoiceController::class, 'st
 
 // Haute Joaillerie Warranty Claims
 Route::get('/warranty/claim/{orderNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'create'])->name('warranty.create');
-Route::post('/warranty/claim', [\App\Http\Controllers\WarrantyClaimController::class, 'store'])->name('warranty.store');
+Route::post('/warranty/claim', [\App\Http\Controllers\WarrantyClaimController::class, 'store'])->middleware(['auth', 'throttle:5,1'])->name('warranty.store');
 Route::get('/warranty/claim/view/{claimNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'show'])->name('warranty.show');
 Route::get('/warranty/claim/image/{id}', [\App\Http\Controllers\WarrantyClaimController::class, 'streamImage'])->name('warranty.image');
 Route::get('/api/warranty/check/{orderNumber}', [\App\Http\Controllers\WarrantyClaimController::class, 'checkStatus'])->middleware(['auth'])->name('api.warranty.check');

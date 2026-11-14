@@ -21,6 +21,22 @@ class WarrantyClaimImage extends Model
     ];
 
     /**
+     * Backward-compatible accessor for file_path.
+     */
+    public function getFilePathAttribute(): ?string
+    {
+        return $this->attributes['image_path'] ?? null;
+    }
+
+    /**
+     * Backward-compatible mutator for file_path.
+     */
+    public function setFilePathAttribute(?string $value): void
+    {
+        $this->attributes['image_path'] = $value;
+    }
+
+    /**
      * Relationship to the warranty claim.
      */
     public function claim(): BelongsTo

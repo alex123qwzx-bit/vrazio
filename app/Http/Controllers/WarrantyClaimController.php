@@ -152,28 +152,44 @@ class WarrantyClaimController extends Controller
                     'is_checked' => false,
                 ]);
 
-                // 2. Validate and upload photos to private disk
+                // 2. Validate and upload photos to private disk with strict security hardening
                 $photos = $request->file('photos', []);
 
                 foreach ($photos as $index => $photo) {
-                    $mime = $photo->getMimeType();
-                    if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
-                        throw new Exception("File {$photo->getClientOriginalName()} has an invalid MIME type ({$mime}).");
+                    if (! $photo->isValid()) {
+                        throw new Exception("One of the uploaded photos was corrupted or invalid.");
                     }
 
-                    $ext = strtolower($photo->getClientOriginalExtension());
-                    if (! in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
-                        $ext = 'jpg';
+                    // Strict check A: Verify real binary MIME type on server disk
+                    $realMime = $photo->getMimeType();
+                    if (! in_array($realMime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+                        throw new Exception("File {$photo->getClientOriginalName()} has an invalid MIME type ({$realMime}). Only genuine JPG, PNG, and WebP images are permitted.");
                     }
 
+                    // Strict check B: Deep binary header inspection via getimagesize to block polyglots/scripts
+                    $imageInfo = @getimagesize($photo->getRealPath());
+                    if ($imageInfo === false || ! in_array($imageInfo[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true)) {
+                        throw new Exception("File {$photo->getClientOriginalName()} is not a valid decodable image file.");
+                    }
+
+                    // Strict check C: Derive extension strictly from verified image binary
+                    $safeExt = match ($imageInfo[2]) {
+                        IMAGETYPE_JPEG => 'jpg',
+                        IMAGETYPE_PNG => 'png',
+                        IMAGETYPE_WEBP => 'webp',
+                        default => 'jpg',
+                    };
+
+                    // Strict check D: Cryptographically random filename (prevents directory traversal)
                     $safeFileName = sprintf(
                         'wc_%s_%d_%s.%s',
                         Str::slug($claim->claim_number),
                         $index + 1,
-                        Str::random(16),
-                        $ext
+                        Str::random(32),
+                        $safeExt
                     );
 
+                    // Strict check E: Stored on private local disk (inaccessible from public web root)
                     $storedPath = $photo->storeAs('warranty_claims/' . $claim->claim_number, $safeFileName, 'local');
 
                     if (! $storedPath) {
@@ -182,12 +198,10 @@ class WarrantyClaimController extends Controller
 
                     $uploadedDiskPaths[] = $storedPath;
 
+                    // Fix: Set image_path column correctly
                     WarrantyClaimImage::create([
                         'claim_id' => $claim->id,
-                        'file_path' => $storedPath,
-                        'file_name' => $photo->getClientOriginalName(),
-                        'mime_type' => $mime,
-                        'file_size_bytes' => $photo->getSize(),
+                        'image_path' => $storedPath,
                     ]);
                 }
 
@@ -237,14 +251,27 @@ class WarrantyClaimController extends Controller
             abort(403, 'Unauthorized access to warranty evidence photo.');
         }
 
-        if (! Storage::disk('local')->exists($image->file_path)) {
+        $path = $image->image_path ?: $image->file_path;
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
             abort(404, 'Evidence photo not found on storage disk.');
         }
 
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mime = match ($ext) {
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            default => 'image/jpeg',
+        };
+
         return Storage::disk('local')->response(
-            $image->file_path,
-            $image->file_name,
-            ['Content-Type' => $image->mime_type]
+            $path,
+            basename($path),
+            [
+                'Content-Type' => $mime,
+                'X-Content-Type-Options' => 'nosniff',
+                'Content-Security-Policy' => "default-src 'none'",
+            ]
         );
     }
 
