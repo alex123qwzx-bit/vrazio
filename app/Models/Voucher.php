@@ -40,6 +40,26 @@ class Voucher extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (Voucher $voucher): void {
+            if ($voucher->min_spend === null || $voucher->min_spend === '') {
+                $voucher->min_spend = 0.0;
+            }
+            if ($voucher->used_count === null || $voucher->used_count === '') {
+                $voucher->used_count = 0;
+            }
+        });
+    }
+
+    /**
+     * Mutator to ensure min_spend is never null.
+     */
+    public function setMinSpendAttribute($value): void
+    {
+        $this->attributes['min_spend'] = ($value === null || $value === '') ? 0.0 : (float) $value;
+    }
+
     /**
      * Relationship to Product (if this voucher is specific to one item).
      */

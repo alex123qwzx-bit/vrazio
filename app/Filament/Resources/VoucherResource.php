@@ -73,7 +73,8 @@ class VoucherResource extends Resource
                                                     ->numeric()
                                                     ->default(0)
                                                     ->prefix('₹')
-                                                    ->helperText('Minimum cart subtotal to unlock voucher.'),
+                                                    ->dehydrateStateUsing(fn ($state) => ($state === null || $state === '') ? 0.0 : (float) $state)
+                                                    ->helperText('Minimum cart subtotal to unlock voucher. Defaults to 0 if left empty.'),
 
                                                 Forms\Components\TextInput::make('max_discount')
                                                     ->label('Max Discount Cap')

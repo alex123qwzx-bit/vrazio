@@ -164,4 +164,27 @@ class VoucherAndStaffDelegationTest extends TestCase
         $resInvalid = $this->postJson(route('admin.auth.google'), ['id_token' => 'invalid_token_sample']);
         $this->assertTrue(in_array($resInvalid->getStatusCode(), [401, 500], true));
     }
+
+    /**
+     * Test Voucher model and Filament update gracefully handle null min_spend and never violate constraints.
+     */
+    public function test_voucher_gracefully_handles_null_min_spend_and_used_count(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'NULLTEST',
+            'discount_type' => 'percentage',
+            'discount_value' => 15.0,
+            'min_spend' => null,
+            'is_active' => true,
+        ]);
+
+        $this->assertEquals(0.0, (float) $voucher->fresh()->min_spend);
+
+        $voucher->update(['min_spend' => null]);
+        $this->assertEquals(0.0, (float) $voucher->fresh()->min_spend);
+
+        $voucher->min_spend = null;
+        $voucher->save();
+        $this->assertEquals(0.0, (float) $voucher->fresh()->min_spend);
+    }
 }
