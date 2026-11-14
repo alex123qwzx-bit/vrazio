@@ -4,6 +4,10 @@
 @section('meta_description', 'Track and inspect the live status of your VRAZIO master craftsmanship warranty claim.')
 
 @section('content')
+@php
+    $order = $order ?? $claim->order;
+    $orderNumber = $order?->order_number ?? $claim->order?->order_number ?? '';
+@endphp
 <div class="bg-[#FAF8F5] min-h-screen py-12 md:py-16" 
      x-data="{
          lightboxOpen: false,
@@ -18,7 +22,7 @@
              this.lightboxOpen = true;
          },
          pollStatus() {
-             fetch('{{ route('api.warranty.check', $order->order_number) }}')
+             fetch('{{ route('api.warranty.check', $orderNumber) }}')
                  .then(res => res.json())
                  .then(data => {
                      if (data.success && data.has_claim) {
@@ -43,7 +47,7 @@
         {{-- Breadcrumbs --}}
         <x-breadcrumbs :links="[
             'My Orders' => route('orders.index'),
-            'Order #' . $order->order_number => route('order.track', $order->order_number),
+            'Order #' . $orderNumber => route('order.track', $orderNumber),
             'Claim ' . $claim->claim_number => ''
         ]" />
 
@@ -194,9 +198,9 @@
                     <div class="space-y-3">
                         <h4 class="font-bold uppercase tracking-wider text-[#0E261C]">Order &amp; Product</h4>
                         <div class="space-y-1.5">
-                            <p><span class="text-gray-400">Order Reference:</span> <strong class="text-[#0E261C] font-mono">{{ $order->order_number }}</strong></p>
+                            <p><span class="text-gray-400">Order Reference:</span> <strong class="text-[#0E261C] font-mono">{{ $orderNumber }}</strong></p>
                             <p><span class="text-gray-400">Creation Title:</span> <span class="font-semibold text-[#0E261C]">{{ $claim->product_name ?? 'Bespoke Atelier Creation' }}</span></p>
-                            <p><span class="text-gray-400">Order Delivered:</span> {{ $order->created_at->format('M d, Y') }}</p>
+                            <p><span class="text-gray-400">Order Delivered:</span> {{ ($order?->created_at ?? $claim->order?->created_at)?->format('M d, Y') ?? 'Confirmed' }}</p>
                         </div>
                     </div>
 

@@ -127,6 +127,12 @@ class WarrantyClaimSecurityTest extends TestCase
 
         // Verify image file was written to private storage disk
         Storage::disk('local')->assertExists($claimImage->image_path);
+
+        // Verify warranty.show page renders cleanly without any Undefined variable or Blade errors
+        $showResponse = $this->actingAs($user)->get(route('warranty.show', $claim->claim_number));
+        $showResponse->assertOk();
+        $showResponse->assertSee($claim->claim_number);
+        $showResponse->assertSee($order->order_number);
     }
 
     public function test_fake_image_or_script_upload_is_rejected_by_security_filter(): void

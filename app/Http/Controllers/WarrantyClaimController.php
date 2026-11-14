@@ -237,7 +237,9 @@ class WarrantyClaimController extends Controller
             abort(403, 'Unauthorized access to warranty claim details.');
         }
 
-        return view('warranty.show', compact('claim'));
+        $order = $claim->order;
+
+        return view('warranty.show', compact('claim', 'order'));
     }
 
     /**
